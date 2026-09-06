@@ -1,0 +1,3984 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17251F">
+<title>Adaptive English · Personal Trainer v4</title>
+<style>
+:root{
+  --question-size: 48px;
+  --answer-size: 34px;
+  --purple-1:#6d00c9;
+  --purple-2:#8a1ee6;
+  --purple-3:#48009a;
+  --question-bg:#33293b;
+  --question-shadow:rgba(0,0,0,.22);
+
+  --red:#b61f3b;
+  --blue:#155ca8;
+  --yellow:#7e5d06;
+  --green:#2f6f26;
+
+  --tile-shadow:#8d001d;
+  --white:#fff;
+  --soft:#f6eefc;
+  --ok:#2e9f5b;
+  --bad:#c84457;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  min-height:100%;
+  font-family:Roboto,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  color:#fff;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  background:#5f00b5;
+}
+body{
+  background:
+    radial-gradient(74% 120% at 92% 14%, rgba(190,100,255,.82) 0 21%, rgba(190,100,255,.52) 21.5%, rgba(190,100,255,.18) 37%, transparent 37.5%),
+    radial-gradient(90% 120% at -8% 92%, rgba(93,0,157,.45) 0 36%, transparent 37%),
+    linear-gradient(180deg,var(--purple-1) 0%, var(--purple-2) 52%, var(--purple-3) 100%);
+}
+.app{
+  width:min(760px,100%);
+  min-height:100vh;
+  margin:0 auto;
+  position:relative;
+}
+.screen{
+  min-height:100vh;
+  padding:18px 14px calc(28px + env(safe-area-inset-bottom, 0px));
+  display:flex;
+  flex-direction:column;
+}
+.hidden{display:none !important}
+.fade-out{opacity:.18;transform:scale(.995)}
+
+
+/* START / END */
+.start,.end{
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:22px 16px;
+}
+.panel{
+  width:min(640px,100%);
+  background:rgba(47,34,60,.90);
+  border-radius:16px;
+  padding:28px 20px;
+  box-shadow:0 14px 34px rgba(0,0,0,.24);
+}
+.kicker{
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#f1e7fb;
+}
+h1{
+  margin:8px 0 10px;
+  font-size:clamp(38px,8vw,64px);
+  line-height:1;
+}
+.panel p{
+  margin:10px auto 20px;
+  max-width:540px;
+  font-size:17px;
+  line-height:1.45;
+  font-weight:700;
+  color:#f5eefb;
+}
+.btns{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.primary,.secondary{
+  appearance:none;
+  border:0;
+  border-radius:11px;
+  padding:14px 18px;
+  font-size:18px;
+  font-weight:900;
+  cursor:pointer;
+}
+.primary{background:#fff;color:#241532}
+.secondary{background:rgba(255,255,255,.16);color:#fff}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:9px;
+  margin:18px 0 14px;
+}
+.stat{
+  background:rgba(0,0,0,.18);
+  border-radius:10px;
+  padding:13px 8px;
+}
+.stat b{display:block;font-size:28px;margin-bottom:2px}
+.stat span{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  font-weight:900;
+  opacity:.92;
+}
+.diag{
+  text-align:left;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(0,0,0,.18);
+  border-radius:10px;
+  padding:14px;
+  font-size:14px;
+  line-height:1.55;
+  font-weight:700;
+}
+.metric-bars{
+  display:grid;
+  gap:9px;
+  text-align:left;
+  margin:14px 0;
+}
+.metric-row{
+  display:grid;
+  grid-template-columns:112px 1fr 42px;
+  gap:8px;
+  align-items:center;
+  font-size:13px;
+  font-weight:900;
+}
+.track{height:9px;background:rgba(255,255,255,.18);border-radius:999px;overflow:hidden}
+.fill{height:100%;background:#fff;border-radius:999px}
+
+/* GAME HEADER */
+.game{
+  justify-content:flex-start;
+}
+.top{
+  position:relative;
+  min-height:86px;
+}
+.top-icons{
+  position:absolute;
+  right:0;
+  top:6px;
+  display:flex;
+  gap:10px;
+}
+.icon-btn{
+  width:44px;
+  height:44px;
+  border:0;
+  border-radius:50%;
+  background:rgba(32,24,40,.56);
+  color:#fff;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  box-shadow:0 1px 0 rgba(255,255,255,.10) inset;
+}
+.icon-btn.off{opacity:.48}
+.icon-sound{
+  position:relative;
+}
+.icon-sound::before,
+.icon-sound::after{
+  content:"";
+  position:absolute;
+  background:#fff;
+  border-radius:2px;
+}
+.icon-sound::before{
+  width:6px;height:24px;left:19px;top:10px;
+}
+.icon-sound::after{
+  width:16px;height:14px;left:7px;top:15px;
+  clip-path:polygon(0 35%,50% 35%,88% 0,88% 100%,50% 65%,0 65%);
+}
+.icon-menu{
+  position:relative;
+}
+.icon-menu::before{
+  content:"";
+  width:5px;height:5px;border-radius:50%;background:#fff;
+  box-shadow:0 -9px 0 #fff, 0 9px 0 #fff;
+}
+.timeline{
+  position:absolute;
+  left:0;
+  right:0;
+  top:40px;
+  display:grid;
+  grid-template-columns:repeat(15,1fr);
+  gap:7px;
+  align-items:center;
+  padding-right:110px;
+}
+.seg{
+  height:4px;
+  border-radius:999px;
+  background:rgba(255,255,255,.28);
+  box-shadow:0 1px 0 rgba(0,0,0,.16);
+}
+.seg.done{background:rgba(255,255,255,.72)}
+.seg.current{background:#fff;transform:scaleY(1.5)}
+
+/* QUESTION COMPOSITION */
+.question-zone{
+  flex:1;
+  transition:opacity .10s linear, transform .10s ease;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding-top:8px;
+  padding-bottom:42px;
+}
+.spacer{
+  flex:0 0 0;
+  min-height:0;
+  display:none;
+}
+.question-card{
+  background:rgba(50,40,59,.985);
+  border-radius:9px;
+  padding:26px 20px;
+  box-shadow:0 3px 10px rgba(0,0,0,.18);
+  margin:0 0 14px;
+  max-width:100%;
+  min-height:138px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.question{
+  margin:0;
+  color:#fff;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-align:center;
+  font-size:clamp(30px,6.5vw,50px);
+  line-height:1.14;
+  font-weight:500;
+  letter-spacing:.004em;
+  text-shadow:0 1px 0 rgba(0,0,0,.20);
+}
+
+/* ANSWERS */
+.answers{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-auto-rows:1fr;
+  gap:12px;
+  align-items:stretch;
+}
+.answer{
+  appearance:none;
+  border:0;
+  border-radius:7px;
+  min-height:196px;
+  color:#fff;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding:20px 14px 14px;
+  cursor:pointer;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:clamp(24px,5vw,40px);
+  line-height:1.08;
+  font-weight:900;
+  letter-spacing:.003em;
+  text-shadow:0 2px 0 rgba(0,0,0,.22);
+  box-shadow:
+    inset 0 -6px 0 rgba(0,0,0,.15),
+    0 0 0 2px rgba(0,0,0,.10);
+  transition:transform .05s ease, filter .1s ease, opacity .1s ease, outline .1s ease;
+}
+.answer:active{transform:translateY(2px) scale(.99)}
+.answer:disabled{cursor:default}
+.answer:nth-child(1){background:var(--red)}
+.answer:nth-child(2){background:var(--blue)}
+.answer:nth-child(3){background:var(--yellow)}
+.answer:nth-child(4){background:var(--green)}
+.answer.correct{
+  outline:4px solid rgba(255,255,255,.92);
+  outline-offset:-4px;
+  filter:brightness(1.04);
+}
+.answer.wrong{
+  box-shadow:
+    0 0 0 4px rgba(255,255,255,.92),
+    inset 0 -6px 0 rgba(0,0,0,.15);
+}
+.answer.dim{
+  opacity:.86;
+}
+.answer.result-dim{
+  opacity:.42;
+  filter:saturate(.72) brightness(.82);
+}
+.answer.result-correct{
+  background:var(--ok) !important;
+  outline:2px solid rgba(255,255,255,.88);
+  outline-offset:-2px;
+  box-shadow:none;
+}
+.answer.result-wrong{
+  background:var(--bad) !important;
+  outline:2px solid rgba(255,255,255,.82);
+  outline-offset:-2px;
+  box-shadow:none;
+}
+.answer-shape{
+  position:absolute;
+  top:10px;
+  left:10px;
+  width:26px;
+  height:26px;
+  display:grid;
+  place-items:center;
+  opacity:.96;
+  pointer-events:none;
+}
+.answer-shape svg{
+  width:24px;
+  height:24px;
+  display:block;
+  filter:none;
+}
+.answer-label{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100%;
+  padding:0 18px;
+  max-width:16ch;
+  margin:0 auto;
+  text-align:center;
+  text-wrap:balance;
+  word-break:normal;
+  overflow-wrap:normal;
+  hyphens:none;
+}
+.answer-mark{
+  position:absolute;
+  top:-10px;
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  display:none;
+  place-items:center;
+  font-size:23px;
+  font-weight:900;
+  color:#fff;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  box-shadow:0 2px 8px rgba(0,0,0,.24);
+}
+.answer-mark.left{left:-8px}
+.answer-mark.right{right:-8px}
+.answer-mark.show{display:grid}
+.answer-mark.ok{background:var(--ok)}
+.answer-mark.bad{background:var(--bad)}
+.answer-mark.ok::before{content:"✓"}
+.answer-mark.bad::before{content:"×"}
+
+/* Tiny in-game footer */
+.mini-status{
+  display:none;
+}
+.mini-status.empty{
+  opacity:0;
+}
+
+
+/* MINIMAL RESULT TOAST */
+.result-toast{
+  position:fixed;
+  z-index:30;
+  top:calc(76px + env(safe-area-inset-top, 0px));
+  left:50%;
+  transform:translate(-50%,-10px);
+  min-width:170px;
+  max-width:min(520px,calc(100vw - 30px));
+  padding:10px 18px;
+  border-radius:7px;
+  color:#fff;
+  text-align:center;
+  font-size:17px;
+  line-height:1.1;
+  font-weight:800;
+  letter-spacing:.005em;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .10s linear, transform .10s ease;
+  box-shadow:0 5px 18px rgba(0,0,0,.18);
+}
+.result-toast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
+.result-toast.correct{background:rgba(35,135,75,.96)}
+.result-toast.incorrect{background:rgba(176,52,70,.96)}
+.result-toast.timeout{background:rgba(67,58,81,.96)}
+
+.mode-picker{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin:14px 0 18px;
+}
+.mode-option{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  border-radius:999px;
+  padding:9px 14px;
+  font-size:13px;
+  font-weight:800;
+  cursor:pointer;
+}
+.mode-option.active{
+  background:#fff;
+  color:#241532;
+  border-color:#fff;
+}
+.mode-hint{
+  margin-top:6px;
+  font-size:12px;
+  line-height:1.35;
+  color:#eee6f5;
+  opacity:.9;
+}
+body.focus-mode .answer{
+  box-shadow:0 0 0 2px rgba(0,0,0,.08);
+}
+body.focus-mode .answer-shape{
+  opacity:.70;
+}
+body.focus-mode .result-toast{
+  box-shadow:none;
+}
+body.focus-mode .top-icons{
+  opacity:.78;
+}
+body.game-mode .answer:active{
+  transform:translateY(2px) scale(.985);
+}
+body.game-mode .result-toast{
+  font-size:18px;
+}
+
+/* FEEDBACK MODAL */
+
+.flash{
+  position:fixed;
+  inset:0;
+  z-index:20;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(28,0,53,.70);
+  backdrop-filter:blur(2px);
+}
+.flash.show{display:flex}
+.flash-card{
+  width:min(610px,100%);
+  background:#fff;
+  color:#26162e;
+  border-radius:16px;
+  padding:20px 17px;
+  text-align:center;
+  box-shadow:0 14px 45px rgba(0,0,0,.34);
+}
+.flash-icon{font-size:42px;line-height:1}
+.flash-title{font-size:26px;font-weight:950;margin-top:7px}
+.flash-answer{font-size:23px;font-weight:900;margin:8px 0 5px}
+.flash-rule{font-size:16px;line-height:1.35;font-weight:750;color:#49384f}
+.flash-trigger{
+  margin-top:10px;
+  background:#eee5f5;
+  border-radius:10px;
+  padding:9px 11px;
+  font-size:15px;
+  font-weight:900;
+}
+.flash-type{
+  margin-top:7px;
+  font-size:12px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:#80678d;
+}
+
+.review{
+  margin-top:14px;
+  border:1px solid rgba(255,255,255,.08);
+  text-align:left;
+  background:rgba(0,0,0,.18);
+  border-radius:10px;
+  padding:14px;
+}
+.review h3{
+  margin:0 0 10px;
+  font-size:15px;
+  line-height:1.2;
+}
+.review-item{
+  padding:10px 0;
+  border-top:1px solid rgba(255,255,255,.10);
+}
+.review-item:first-of-type{border-top:0;padding-top:0}
+.review-q{
+  display:block;
+  font-size:14px;
+  line-height:1.4;
+  margin-bottom:6px;
+}
+.review-meta{
+  font-size:13px;
+  line-height:1.45;
+  color:#f5eefb;
+}
+.review-meta b{
+  color:#fff;
+}
+.review-empty{
+  font-size:13px;
+  color:#f5eefb;
+}
+
+
+.focus-card{
+  margin:14px 0 0;
+  padding:14px 15px;
+  border-radius:10px;
+  background:rgba(255,255,255,.92);
+  color:#26172f;
+  text-align:left;
+}
+.focus-card small{
+  display:block;
+  margin-bottom:5px;
+  font-size:11px;
+  line-height:1;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  opacity:.72;
+}
+.focus-card strong{
+  display:block;
+  font-size:18px;
+  line-height:1.25;
+}
+.focus-card span{
+  display:block;
+  margin-top:5px;
+  font-size:13px;
+  line-height:1.35;
+  font-weight:700;
+  opacity:.82;
+}
+
+/* Large text accessibility */
+
+body.large{--question-size:54px;--answer-size:40px}
+body.large .question{line-height:1.075;max-width:17ch}
+body.large .answer{height:202px;min-height:202px;line-height:1.02}
+
+/* MOBILE */
+@media (max-width: 700px){
+  .screen{padding:12px 10px calc(22px + env(safe-area-inset-bottom, 0px))}
+  .top{min-height:76px}
+  .top-icons{gap:8px}
+  .icon-btn{width:41px;height:41px}
+  .timeline{
+    top:36px;
+    gap:5px;
+    padding-right:102px;
+  }
+  .question-zone{justify-content:center;padding-top:2px;padding-bottom:34px}
+  .spacer{display:none}
+  .question-card{padding:22px 15px;margin-bottom:12px;min-height:124px}
+  .question{line-height:1.085;max-width:18ch}
+  .answers{gap:9px}
+  .answer{
+    height:138px;
+    min-height:138px;
+    padding:18px 12px;
+    line-height:1.035;
+  }
+  .answer-shape{
+    top:10px;left:10px;width:28px;height:28px;
+  }
+  .answer-shape svg{width:26px;height:26px}
+}
+@media (max-width: 480px){
+  .result-toast{
+    top:calc(66px + env(safe-area-inset-top, 0px));
+    min-width:150px;
+    font-size:16px;
+    padding:9px 15px;
+  }
+
+  .screen{padding:10px 8px calc(20px + env(safe-area-inset-bottom, 0px))}
+  .top{min-height:70px}
+  .icon-btn{width:40px;height:40px}
+  .timeline{
+    top:34px;
+    gap:5px;
+    padding-right:98px;
+  }
+  .question-zone{justify-content:center;padding-top:0;padding-bottom:38px}
+  .question-card{
+    margin-top:0;
+    padding:21px 14px;
+    margin-bottom:12px;
+    min-height:112px;
+  }
+  .spacer{display:none}
+  .question{
+    line-height:1.08;
+    max-width:17.5ch;
+  }
+  .answers{gap:8px}
+  .answer{
+    height:120px;
+    min-height:120px;
+    border-radius:7px;
+    padding:16px 10px;
+  }
+  .answer-shape{
+    top:8px;
+    left:8px;
+    width:24px;
+    height:24px;
+  }
+  .answer-shape svg{
+    width:22px;
+    height:22px;
+  }
+  .mini-status{font-size:12px;margin-top:8px}
+  body.large .question{font-size:clamp(29px,8.2vw,40px)}
+  body.large .answer{font-size:clamp(22px,6.5vw,31px)}
+  .stats{grid-template-columns:1fr}
+  .metric-row{grid-template-columns:104px 1fr 38px}
+}
+</style>
+
+<style id="v10-overrides">
+/* V10: high-visibility HUD + adult result banner */
+.v10-top{
+  min-height:112px !important;
+  position:relative;
+}
+.hud-row{
+  height:88px;
+  display:grid;
+  grid-template-columns:88px 1fr 108px;
+  align-items:start;
+  gap:10px;
+  position:relative;
+}
+.v10-top .top-icons{
+  position:static !important;
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  padding-top:8px;
+}
+.timer-dial{
+  width:76px;
+  height:76px;
+  position:relative;
+  margin-top:3px;
+  display:grid;
+  place-items:center;
+}
+.timer-svg{
+  width:76px;
+  height:76px;
+  transform:rotate(-90deg);
+  overflow:visible;
+}
+.timer-track,
+.timer-progress{
+  fill:none;
+  stroke-width:7;
+}
+.timer-track{
+  stroke:rgba(255,255,255,.18);
+}
+.timer-progress{
+  stroke:#fff;
+  stroke-linecap:round;
+  stroke-dasharray:194.78;
+  stroke-dashoffset:0;
+  transition:stroke .16s ease;
+}
+.timer-progress.running{
+  animation:v10-countdown-ring 10s linear forwards;
+}
+.timer-dial.urgent .timer-progress{stroke:#ffd65c}
+.timer-dial.danger .timer-progress{stroke:#ff7589}
+@keyframes v10-countdown-ring{
+  from{stroke-dashoffset:0}
+  to{stroke-dashoffset:194.78}
+}
+.timer-center{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding-top:2px;
+}
+.timer-number{
+  font-size:29px;
+  line-height:.9;
+  font-weight:900;
+  letter-spacing:-.04em;
+  color:#fff;
+  font-variant-numeric:tabular-nums;
+}
+.timer-unit{
+  margin-top:5px;
+  font-size:8px;
+  line-height:1;
+  font-weight:900;
+  letter-spacing:.14em;
+  opacity:.72;
+}
+
+.question-counter{
+  height:84px;
+  display:grid;
+  grid-template-columns:auto auto;
+  grid-template-rows:17px 1fr;
+  justify-content:center;
+  align-items:center;
+  align-content:start;
+  column-gap:5px;
+  padding-top:5px;
+  color:#fff;
+}
+.question-counter-label{
+  grid-column:1 / -1;
+  text-align:center;
+  font-size:10px;
+  line-height:1;
+  font-weight:900;
+  letter-spacing:.16em;
+  opacity:.72;
+}
+.question-number{
+  align-self:center;
+  justify-self:end;
+  font-size:55px;
+  line-height:.92;
+  font-weight:900;
+  letter-spacing:-.055em;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 2px 8px rgba(0,0,0,.14);
+}
+.question-total{
+  align-self:end;
+  justify-self:start;
+  padding-bottom:6px;
+  font-size:16px;
+  line-height:1;
+  font-weight:800;
+  opacity:.72;
+}
+
+.progress-timeline{
+  position:absolute !important;
+  left:0 !important;
+  right:0 !important;
+  top:94px !important;
+  padding-right:0 !important;
+  gap:5px !important;
+}
+.progress-timeline .seg{
+  height:5px;
+  background:rgba(255,255,255,.20);
+}
+.progress-timeline .seg.done{background:rgba(255,255,255,.72)}
+.progress-timeline .seg.current{
+  background:#fff;
+  transform:scaleY(1.35);
+}
+
+/* Fix actual dynamic typography from v8/v9 */
+.question-card{
+  min-height:128px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:24px 18px !important;
+}
+.question{
+  width:100% !important;
+  margin:0 auto !important;
+  color:#fff !important;
+  text-align:center !important;
+  text-wrap:balance;
+  font-size:var(--question-size) !important;
+  line-height:1.085 !important;
+  font-weight:760 !important;
+  letter-spacing:-.018em !important;
+  max-width:19ch !important;
+  text-shadow:none !important;
+  word-break:normal;
+  overflow-wrap:normal;
+  hyphens:none;
+}
+.answer{
+  font-size:var(--answer-size) !important;
+  line-height:1.04 !important;
+  font-weight:800 !important;
+  letter-spacing:-.014em !important;
+  text-shadow:none !important;
+}
+.answer-label{
+  text-align:center !important;
+  align-items:center !important;
+  justify-content:center !important;
+  margin:0 auto !important;
+  text-wrap:balance;
+}
+
+/* Move the central interaction block slightly upward despite the larger HUD */
+.question-zone{
+  justify-content:center !important;
+  padding-top:0 !important;
+  padding-bottom:72px !important;
+}
+
+/* Bigger, stronger but flat result banner */
+.result-toast{
+  top:calc(82px + env(safe-area-inset-top, 0px)) !important;
+  min-width:min(420px,calc(100vw - 28px)) !important;
+  max-width:min(560px,calc(100vw - 28px)) !important;
+  padding:15px 24px !important;
+  border-radius:8px !important;
+  font-size:31px !important;
+  line-height:1 !important;
+  font-weight:950 !important;
+  letter-spacing:.015em !important;
+  text-transform:uppercase;
+  box-shadow:0 7px 22px rgba(0,0,0,.20) !important;
+  transform:translate(-50%,-12px) scale(.985) !important;
+}
+.result-toast.show{
+  transform:translate(-50%,0) scale(1) !important;
+}
+.result-toast.correct{background:rgba(34,139,77,.98) !important}
+.result-toast.incorrect{background:rgba(183,52,72,.98) !important}
+.result-toast.timeout{background:rgba(61,53,75,.98) !important}
+body.focus-mode .result-toast{box-shadow:0 5px 18px rgba(0,0,0,.14) !important}
+
+/* Keep response state simple */
+.answer.result-correct{
+  background:#2e9f5b !important;
+  outline:none !important;
+  box-shadow:none !important;
+}
+.answer.result-wrong{
+  background:#c84457 !important;
+  outline:none !important;
+  box-shadow:none !important;
+}
+.answer.result-dim{
+  opacity:.38 !important;
+  filter:saturate(.6) brightness(.78) !important;
+}
+
+@media(max-width:700px){
+  .v10-top{min-height:106px !important}
+  .hud-row{
+    height:82px;
+    grid-template-columns:78px 1fr 94px;
+    gap:6px;
+  }
+  .timer-dial,.timer-svg{width:70px;height:70px}
+  .timer-number{font-size:27px}
+  .question-number{font-size:51px}
+  .question-total{font-size:15px;padding-bottom:5px}
+  .progress-timeline{top:88px !important}
+  .question-zone{padding-bottom:62px !important}
+  .result-toast{
+    top:calc(76px + env(safe-area-inset-top, 0px)) !important;
+    font-size:28px !important;
+    padding:14px 20px !important;
+  }
+}
+@media(max-width:480px){
+  .v10-top{min-height:102px !important}
+  .hud-row{
+    height:80px;
+    grid-template-columns:72px 1fr 88px;
+    gap:4px;
+  }
+  .timer-dial,.timer-svg{width:66px;height:66px}
+  .timer-number{font-size:26px}
+  .timer-unit{font-size:7px;margin-top:4px}
+  .question-counter{height:76px;padding-top:4px}
+  .question-counter-label{font-size:9px}
+  .question-number{font-size:48px}
+  .question-total{font-size:14px;padding-bottom:5px}
+  .v10-top .icon-btn{width:39px;height:39px}
+  .progress-timeline{top:85px !important}
+  .question-zone{padding-bottom:54px !important}
+  .result-toast{
+    top:calc(72px + env(safe-area-inset-top, 0px)) !important;
+    min-width:calc(100vw - 24px) !important;
+    font-size:27px !important;
+    padding:13px 18px !important;
+  }
+}
+</style>
+
+
+<style id="final-loop-overrides">
+.end .panel{width:min(680px,100%);padding:24px 18px}
+.end h1{margin-bottom:14px}
+.final-strip{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 16px
+}
+.final-chip{
+  background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08);
+  border-radius:9px;padding:11px 8px;text-align:center
+}
+.final-chip b{display:block;font-size:23px;line-height:1;margin-bottom:4px}
+.final-chip span{
+  display:block;font-size:10px;font-weight:900;letter-spacing:.07em;
+  text-transform:uppercase;opacity:.78
+}
+.final-section{
+  margin-top:12px;padding:13px 14px;background:rgba(0,0,0,.16);
+  border:1px solid rgba(255,255,255,.08);border-radius:10px;text-align:left
+}
+.final-section h3{
+  margin:0 0 9px;font-size:14px;line-height:1.2;text-transform:uppercase;letter-spacing:.07em
+}
+.error-row{padding:10px 0;border-top:1px solid rgba(255,255,255,.09)}
+.error-row:first-of-type{padding-top:0;border-top:0}
+.error-q{display:block;font-size:14px;line-height:1.34;font-weight:800;margin-bottom:5px}
+.error-line{font-size:13px;line-height:1.42;opacity:.94}
+.error-why{margin-top:4px;font-size:12.5px;line-height:1.4;color:#f1e8f8}
+.next-focus-compact{font-size:14px;line-height:1.45}
+.prompt-box{
+  margin-top:10px;width:100%;min-height:190px;max-height:280px;resize:vertical;
+  border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:12px;
+  background:rgba(22,16,29,.70);color:#fff;
+  font:600 12px/1.45 Roboto,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  outline:none
+}
+.prompt-box:focus{border-color:rgba(255,255,255,.38)}
+.copy-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.copy-btn{
+  appearance:none;border:0;border-radius:8px;padding:11px 14px;
+  font-size:14px;font-weight:900;cursor:pointer;background:#fff;color:#241532
+}
+.copy-status{display:flex;align-items:center;min-height:38px;font-size:12px;font-weight:800;opacity:.82}
+.end .metric-bars,.end #diagnosis,.end #review,.end #focusCard,.end .stats{display:none!important}
+@media(max-width:480px){
+  .final-strip{gap:6px}.final-chip{padding:10px 6px}.final-chip b{font-size:21px}
+  .prompt-box{min-height:220px}
+}
+</style>
+
+
+<style id="green-edition-overrides">
+:root{
+  --green-bg:#17251F;
+  --green-bg-deep:#102019;
+  --green-arc:#1F3A2E;
+  --green-arc-2:#244837;
+  --question-panel:#17231F;
+  --question-border:rgba(255,255,255,.92);
+
+  --tile-red:#ef203c;
+  --tile-blue:#1260d0;
+  --tile-yellow:#d99f00;
+  --tile-green:#1d8f16;
+}
+html,body{background:var(--green-bg)!important}
+body{
+  background:
+    radial-gradient(74% 120% at 108% 18%, rgba(38,78,57,.78) 0 32%, transparent 32.5%),
+    radial-gradient(95% 120% at -15% 106%, rgba(35,70,52,.68) 0 33%, transparent 33.5%),
+    linear-gradient(180deg,#17251F 0%,#173026 54%,#102019 100%) !important;
+}
+.app{width:min(760px,100%)!important}
+.panel{
+  background:rgba(18,31,25,.94)!important;
+  border:1px solid rgba(255,255,255,.08);
+}
+.v10-top{min-height:118px!important}
+.hud-row{
+  height:90px!important;
+  grid-template-columns:82px 1fr 100px!important;
+  align-items:start!important;
+}
+.timer-track{stroke:rgba(255,255,255,.14)!important}
+.timer-progress{stroke:#fff!important}
+.timer-dial.urgent .timer-progress{stroke:#ffcf4a!important}
+.timer-dial.danger .timer-progress{stroke:#ff6d78!important}
+.question-counter-label{opacity:.58!important}
+.question-number{font-size:50px!important}
+.question-total{opacity:.55!important}
+.icon-btn{
+  background:rgba(5,19,13,.58)!important;
+  box-shadow:none!important;
+}
+.progress-timeline{top:93px!important}
+.progress-timeline .seg{
+  background:rgba(225,239,229,.25)!important;
+  height:4px!important;
+}
+.progress-timeline .seg.done{background:rgba(255,255,255,.72)!important}
+.progress-timeline .seg.current{background:#fff!important}
+.question-zone{
+  justify-content:flex-end!important;
+  padding-top:0!important;
+  padding-bottom:40px!important;
+}
+.question-card{
+  background:rgba(18,31,25,.92)!important;
+  border:2px solid var(--question-border)!important;
+  border-radius:7px!important;
+  min-height:120px!important;
+  padding:20px 20px!important;
+  margin-bottom:12px!important;
+  box-shadow:none!important;
+}
+.question{
+  font-size:var(--question-size)!important;
+  line-height:1.12!important;
+  font-weight:560!important;
+  letter-spacing:-.012em!important;
+  max-width:22ch!important;
+  color:#fff!important;
+  text-shadow:none!important;
+}
+.answers{gap:11px!important}
+.answer{
+  height:166px!important;
+  min-height:166px!important;
+  border-radius:8px!important;
+  padding:18px 14px!important;
+  font-size:var(--answer-size)!important;
+  font-weight:820!important;
+  letter-spacing:-.014em!important;
+  text-shadow:0 1px 0 rgba(0,0,0,.18)!important;
+  box-shadow:
+    inset 0 -5px 0 rgba(0,0,0,.14),
+    0 0 0 2px rgba(0,0,0,.12)!important;
+}
+.answer:nth-child(1){background:var(--tile-red)!important}
+.answer:nth-child(2){background:var(--tile-blue)!important}
+.answer:nth-child(3){background:var(--tile-yellow)!important}
+.answer:nth-child(4){background:var(--tile-green)!important}
+.answer-shape{
+  width:25px!important;height:25px!important;top:10px!important;left:10px!important;opacity:1!important;
+}
+.answer-shape svg{width:24px!important;height:24px!important}
+.answer-label{max-width:18ch!important;padding:0 18px!important}
+.result-toast.correct{background:rgba(35,126,72,.98)!important}
+.result-toast.incorrect{background:rgba(177,48,65,.98)!important}
+.result-toast.timeout{background:rgba(28,43,36,.98)!important}
+.result-toast{border:1px solid rgba(255,255,255,.16)}
+body.focus-mode .answer{
+  box-shadow:
+    inset 0 -4px 0 rgba(0,0,0,.12),
+    0 0 0 1px rgba(0,0,0,.10)!important;
+}
+body.focus-mode .answer-shape{opacity:1!important}
+.final-section,.final-chip{background:rgba(7,20,14,.25)!important}
+.prompt-box{background:rgba(6,16,11,.72)!important}
+@media(max-width:700px){
+  .v10-top{min-height:108px!important}
+  .question-zone{justify-content:flex-end!important;padding-bottom:34px!important}
+  .question-card{min-height:106px!important;padding:18px 15px!important}
+  .answer{height:132px!important;min-height:132px!important}
+}
+@media(max-width:480px){
+  .v10-top{min-height:102px!important}
+  .hud-row{height:79px!important;grid-template-columns:70px 1fr 86px!important}
+  .timer-dial,.timer-svg{width:64px!important;height:64px!important}
+  .question-number{font-size:45px!important}
+  .progress-timeline{top:84px!important}
+  .question-zone{padding-bottom:30px!important}
+  .question-card{min-height:98px!important;padding:16px 13px!important;margin-bottom:10px!important}
+  .answer{height:118px!important;min-height:118px!important;padding:15px 10px!important}
+  .answers{gap:8px!important}
+}
+</style>
+
+
+<style id="reference-match-final">
+/* ==========================================================
+   REFERENCE MATCH
+   Master reference: 864x1536 (9:16)
+   Visual goal: preserve the same spatial hierarchy:
+   huge empty upper field, compact question card, four equal
+   answer tiles, minimal top controls, segmented timer.
+   ========================================================== */
+
+:root{
+  --ref-bg:#17251F;
+  --ref-bg-top:#153021;
+  --ref-bg-bottom:#0D2017;
+  --ref-arc-right:#224433;
+  --ref-arc-left:#1C392B;
+  --ref-panel:#16251F;
+
+  --ref-red:#EB2232;
+  --ref-blue:#055CDF;
+  --ref-yellow:#E3A502;
+  --ref-green:#23A51F;
+
+  --ref-margin:14px;
+  --ref-gap:9px;
+}
+
+/* 1. Canvas */
+html,body{
+  margin:0!important;
+  width:100%;
+  min-height:100%;
+  background:var(--ref-bg)!important;
+}
+body{
+  color:#fff;
+  background:
+    radial-gradient(
+      82% 118% at 112% 18%,
+      rgba(37,76,56,.98) 0 31.5%,
+      transparent 31.9%
+    ),
+    radial-gradient(
+      95% 116% at -14% 107%,
+      rgba(31,62,46,.88) 0 33%,
+      transparent 33.4%
+    ),
+    linear-gradient(
+      180deg,
+      var(--ref-bg-top) 0%,
+      #173426 47%,
+      #123024 71%,
+      var(--ref-bg-bottom) 100%
+    )!important;
+}
+.app{
+  width:min(760px,100%)!important;
+  min-height:100dvh!important;
+  margin:0 auto!important;
+}
+.screen{
+  min-height:100dvh!important;
+  padding:
+    max(18px, env(safe-area-inset-top, 0px))
+    var(--ref-margin)
+    max(28px, env(safe-area-inset-bottom, 0px))
+    !important;
+}
+
+/* 2. Start / end screens retain functionality but use same palette */
+.start,.end{
+  background:transparent!important;
+}
+.panel{
+  background:rgba(15,31,23,.95)!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+  box-shadow:none!important;
+}
+
+/* 3. Game screen */
+.game{
+  position:relative;
+  justify-content:flex-start!important;
+}
+
+/* Hide V10 large timer/question-number HUD.
+   The reference uses only the segmented line and two top-right circles. */
+.hud-row{
+  height:74px!important;
+  display:flex!important;
+  justify-content:flex-end!important;
+  align-items:flex-start!important;
+}
+.timer-dial,
+.question-counter{
+  display:none!important;
+}
+
+/* 4. Top-right circular controls */
+.v10-top{
+  min-height:108px!important;
+  position:relative!important;
+}
+.v10-top .top-icons{
+  position:absolute!important;
+  top:10px!important;
+  right:4px!important;
+  display:flex!important;
+  gap:10px!important;
+  padding:0!important;
+  opacity:1!important;
+}
+.icon-btn{
+  width:43px!important;
+  height:43px!important;
+  border-radius:50%!important;
+  background:rgba(6,23,16,.62)!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+.icon-sound::before{
+  width:5px!important;
+  height:23px!important;
+  left:20px!important;
+  top:10px!important;
+}
+.icon-sound::after{
+  width:15px!important;
+  height:14px!important;
+  left:8px!important;
+  top:15px!important;
+}
+
+/* 5. Segmented countdown bar */
+.progress-timeline{
+  position:absolute!important;
+  left:12px!important;
+  right:12px!important;
+  top:79px!important;
+  padding:0!important;
+  display:grid!important;
+  grid-template-columns:repeat(10,1fr)!important;
+  gap:6px!important;
+}
+.progress-timeline .seg{
+  display:block!important;
+  height:4px!important;
+  border-radius:999px!important;
+  background:rgba(218,235,223,.32)!important;
+  transform:none!important;
+  opacity:1!important;
+}
+.progress-timeline .seg:nth-child(n+11){
+  display:none!important;
+}
+.progress-timeline .seg.done{
+  background:rgba(218,235,223,.32)!important;
+}
+.progress-timeline .seg.current{
+  background:#fff!important;
+  transform:none!important;
+}
+
+/* 6. Main layout.
+   Reference: question begins at ~44.8% of viewport height.
+   The whole interaction block lives in the lower half. */
+.question-zone{
+  flex:1!important;
+  min-height:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  padding:0!important;
+  margin:0!important;
+  position:relative!important;
+}
+
+/* push the interaction block to approximately the reference Y position */
+.question-zone::before{
+  content:"";
+  display:block;
+  height:calc(44.5dvh - 108px);
+  min-height:210px;
+  flex:0 0 auto;
+}
+.spacer{
+  display:none!important;
+}
+
+/* 7. Question card */
+.question-card{
+  width:100%!important;
+  min-height:100px!important;
+  max-height:none!important;
+  margin:0 0 var(--ref-gap) 0!important;
+  padding:18px 24px!important;
+
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+
+  background:rgba(16,31,24,.90)!important;
+  border:2px solid rgba(255,255,255,.94)!important;
+  border-radius:8px!important;
+  box-shadow:none!important;
+}
+.question{
+  width:100%!important;
+  margin:0 auto!important;
+  max-width:25ch!important;
+
+  font-family:
+    Roboto,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Arial,
+    sans-serif!important;
+
+  font-size:var(--question-size)!important;
+  font-weight:500!important;
+  line-height:1.14!important;
+  letter-spacing:-.012em!important;
+
+  color:#fff!important;
+  text-align:center!important;
+  text-wrap:balance;
+  text-shadow:none!important;
+  hyphens:none!important;
+  word-break:normal!important;
+  overflow-wrap:normal!important;
+}
+
+/* 8. Answers grid */
+.answers{
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  grid-template-rows:1fr 1fr!important;
+  gap:var(--ref-gap)!important;
+  margin:0!important;
+  align-items:stretch!important;
+}
+.answer{
+  width:100%!important;
+  height:115px!important;
+  min-height:115px!important;
+  margin:0!important;
+  padding:15px 12px!important;
+
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+
+  border:0!important;
+  border-radius:7px!important;
+  color:#fff!important;
+  box-shadow:
+    inset 0 -4px 0 rgba(0,0,0,.15),
+    0 0 0 2px rgba(0,0,0,.11)!important;
+
+  font-family:
+    Roboto,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Arial,
+    sans-serif!important;
+
+  font-size:var(--answer-size)!important;
+  line-height:1.03!important;
+  font-weight:800!important;
+  letter-spacing:-.015em!important;
+  text-shadow:0 1px 0 rgba(0,0,0,.15)!important;
+}
+.answer:nth-child(1){background:var(--ref-red)!important}
+.answer:nth-child(2){background:var(--ref-blue)!important}
+.answer:nth-child(3){background:var(--ref-yellow)!important}
+.answer:nth-child(4){background:var(--ref-green)!important}
+
+/* 9. Shapes: top-left, small and independent from text centering */
+.answer-shape{
+  position:absolute!important;
+  top:9px!important;
+  left:9px!important;
+  width:24px!important;
+  height:24px!important;
+  display:grid!important;
+  place-items:center!important;
+  opacity:1!important;
+  pointer-events:none!important;
+}
+.answer-shape svg{
+  width:23px!important;
+  height:23px!important;
+  display:block!important;
+  filter:none!important;
+}
+.answer-label{
+  width:100%!important;
+  height:100%!important;
+  max-width:18ch!important;
+  margin:0 auto!important;
+  padding:0 16px!important;
+
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+
+  text-align:center!important;
+  text-wrap:balance;
+  word-break:normal!important;
+  overflow-wrap:normal!important;
+  hyphens:none!important;
+}
+
+/* 10. Result states remain deliberately minimal */
+.answer.result-dim{
+  opacity:.38!important;
+  filter:saturate(.62) brightness(.79)!important;
+}
+.answer.result-correct{
+  background:#2FA45A!important;
+  outline:none!important;
+  box-shadow:none!important;
+}
+.answer.result-wrong{
+  background:#C84457!important;
+  outline:none!important;
+  box-shadow:none!important;
+}
+
+/* Result banner: large but very brief */
+.result-toast{
+  top:calc(92px + env(safe-area-inset-top,0px))!important;
+  min-width:min(390px,calc(100vw - 28px))!important;
+  max-width:min(500px,calc(100vw - 28px))!important;
+  padding:12px 20px!important;
+  border-radius:7px!important;
+  font-size:27px!important;
+  line-height:1!important;
+  font-weight:900!important;
+  letter-spacing:.01em!important;
+  text-transform:uppercase!important;
+  box-shadow:none!important;
+}
+.result-toast.correct{background:rgba(35,126,72,.98)!important}
+.result-toast.incorrect{background:rgba(177,48,65,.98)!important}
+.result-toast.timeout{background:rgba(26,45,34,.98)!important}
+
+/* 11. Quiet default */
+body.focus-mode .answer{
+  box-shadow:
+    inset 0 -4px 0 rgba(0,0,0,.15),
+    0 0 0 2px rgba(0,0,0,.10)!important;
+}
+
+/* 12. Small screens: preserve the same percentages, not arbitrary compression */
+@media(max-width:700px){
+  :root{
+    --ref-margin:14px;
+    --ref-gap:9px;
+  }
+  .v10-top{min-height:102px!important}
+  .progress-timeline{top:76px!important}
+  .question-zone::before{
+    height:calc(44.5dvh - 102px);
+    min-height:190px;
+  }
+  .question-card{
+    min-height:98px!important;
+    padding:16px 20px!important;
+  }
+  .answer{
+    height:112px!important;
+    min-height:112px!important;
+  }
+}
+@media(max-width:480px){
+  :root{
+    --ref-margin:13px;
+    --ref-gap:8px;
+  }
+  .screen{
+    padding:
+      max(12px, env(safe-area-inset-top,0px))
+      var(--ref-margin)
+      max(22px, env(safe-area-inset-bottom,0px))
+      !important;
+  }
+  .v10-top{min-height:96px!important}
+  .v10-top .top-icons{
+    top:7px!important;
+    right:1px!important;
+    gap:8px!important;
+  }
+  .icon-btn{
+    width:40px!important;
+    height:40px!important;
+  }
+  .progress-timeline{
+    top:71px!important;
+    left:7px!important;
+    right:7px!important;
+    gap:5px!important;
+  }
+  .question-zone::before{
+    height:calc(44.4dvh - 96px);
+    min-height:170px;
+  }
+  .question-card{
+    min-height:96px!important;
+    padding:15px 18px!important;
+    margin-bottom:8px!important;
+  }
+  .answers{gap:8px!important}
+  .answer{
+    height:111px!important;
+    min-height:111px!important;
+    padding:14px 10px!important;
+  }
+  .answer-shape{
+    top:8px!important;
+    left:8px!important;
+    width:23px!important;
+    height:23px!important;
+  }
+  .answer-shape svg{
+    width:22px!important;
+    height:22px!important;
+  }
+}
+
+/* Very short screens: keep everything visible */
+@media(max-height:720px){
+  .question-zone::before{
+    height:calc(41dvh - 96px);
+    min-height:135px;
+  }
+  .question-card{
+    min-height:88px!important;
+    padding-top:13px!important;
+    padding-bottom:13px!important;
+  }
+  .answer{
+    height:100px!important;
+    min-height:100px!important;
+  }
+}
+</style>
+
+
+<style id="overlay-result-banner">
+/* Large, slanted, full-scene result banner */
+.result-toast{
+  position:fixed!important;
+  z-index:9999!important;
+
+  top:50%!important;
+  left:50%!important;
+
+  width:min(112vw,900px)!important;
+  min-width:0!important;
+  max-width:none!important;
+
+  padding:24px 28px 26px!important;
+  margin:0!important;
+
+  border:0!important;
+  border-radius:4px!important;
+
+  color:#fff!important;
+  text-align:center!important;
+  text-transform:uppercase!important;
+
+  font-family:
+    Roboto,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Arial,
+    sans-serif!important;
+
+  font-size:clamp(46px,13vw,88px)!important;
+  line-height:.94!important;
+  font-weight:950!important;
+  letter-spacing:.025em!important;
+
+  opacity:0!important;
+  pointer-events:none!important;
+
+  transform:
+    translate(-50%,-50%)
+    rotate(-5deg)
+    scale(.88)!important;
+
+  box-shadow:
+    0 16px 42px rgba(0,0,0,.28),
+    inset 0 0 0 2px rgba(255,255,255,.10)!important;
+
+  transition:
+    opacity .11s linear,
+    transform .16s cubic-bezier(.2,.9,.2,1)!important;
+
+  clip-path:polygon(
+    1.5% 12%,
+    100% 0,
+    98.5% 88%,
+    0 100%
+  )!important;
+}
+
+.result-toast.show{
+  opacity:1!important;
+  transform:
+    translate(-50%,-50%)
+    rotate(-5deg)
+    scale(1)!important;
+}
+
+.result-toast.correct{
+  background:#2E9F5B!important;
+}
+
+.result-toast.incorrect{
+  background:#C84457!important;
+}
+
+.result-toast.timeout{
+  background:#263B31!important;
+}
+
+/* subtle oversized highlight to make the banner feel like it crosses the scene */
+.result-toast::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(
+      100deg,
+      rgba(255,255,255,.12) 0%,
+      rgba(255,255,255,.03) 34%,
+      rgba(255,255,255,0) 58%
+    );
+  pointer-events:none;
+}
+
+/* Slightly different tilt in Game mode */
+body.game-mode .result-toast{
+  transform:
+    translate(-50%,-50%)
+    rotate(-6deg)
+    scale(.86)!important;
+}
+body.game-mode .result-toast.show{
+  transform:
+    translate(-50%,-50%)
+    rotate(-6deg)
+    scale(1.02)!important;
+}
+
+@media(max-width:480px){
+  .result-toast{
+    top:49%!important;
+    width:116vw!important;
+    padding:22px 20px 24px!important;
+    font-size:clamp(48px,15vw,72px)!important;
+  }
+}
+</style>
+
+
+<style id="balanced-hud-final">
+/* =========================================================
+   BALANCED HUD
+   Keep the previous, smaller slanted result banner.
+   Restore a very clear timer + question number.
+   ========================================================= */
+
+.v10-top{
+  min-height:122px!important;
+  position:relative!important;
+}
+
+.hud-row{
+  height:92px!important;
+  display:grid!important;
+  grid-template-columns:76px 1fr 94px!important;
+  gap:8px!important;
+  align-items:start!important;
+}
+
+/* TIMER: visible and easy to read, but not oversized */
+.timer-dial{
+  display:grid!important;
+  width:68px!important;
+  height:68px!important;
+  margin-top:5px!important;
+  position:relative!important;
+  place-items:center!important;
+}
+.timer-svg{
+  display:block!important;
+  width:68px!important;
+  height:68px!important;
+}
+.timer-track,
+.timer-progress{
+  display:block!important;
+}
+.timer-number{
+  font-size:27px!important;
+  line-height:.9!important;
+  font-weight:900!important;
+}
+.timer-unit{
+  display:block!important;
+  margin-top:4px!important;
+  font-size:7px!important;
+  letter-spacing:.12em!important;
+  opacity:.70!important;
+}
+
+/* QUESTION NUMBER: central and unmistakable */
+.question-counter{
+  display:grid!important;
+  height:78px!important;
+  grid-template-columns:auto auto!important;
+  grid-template-rows:15px 1fr!important;
+  justify-content:center!important;
+  align-items:center!important;
+  align-content:start!important;
+  column-gap:5px!important;
+  padding-top:5px!important;
+}
+.question-counter-label{
+  display:block!important;
+  grid-column:1 / -1!important;
+  font-size:9px!important;
+  line-height:1!important;
+  font-weight:900!important;
+  letter-spacing:.15em!important;
+  opacity:.60!important;
+}
+.question-number{
+  display:block!important;
+  font-size:47px!important;
+  line-height:.92!important;
+  font-weight:900!important;
+  letter-spacing:-.05em!important;
+}
+.question-total{
+  display:block!important;
+  align-self:end!important;
+  padding-bottom:5px!important;
+  font-size:14px!important;
+  font-weight:800!important;
+  opacity:.62!important;
+}
+
+/* top-right controls remain compact */
+.v10-top .top-icons{
+  position:static!important;
+  display:flex!important;
+  justify-content:flex-end!important;
+  gap:7px!important;
+  padding-top:8px!important;
+}
+.v10-top .icon-btn{
+  width:39px!important;
+  height:39px!important;
+}
+
+/* ten-second segmented strip below the HUD */
+.progress-timeline{
+  top:96px!important;
+  left:7px!important;
+  right:7px!important;
+  padding-right:0!important;
+  gap:5px!important;
+}
+
+/* Keep the question card at essentially the same vertical position
+   as the reference-matched version despite the restored HUD. */
+.question-zone::before{
+  height:calc(44.5dvh - 122px)!important;
+  min-height:170px!important;
+}
+
+/* Keep the PREVIOUS overlay proportions. Do not make it full-screen. */
+.result-toast{
+  top:50%!important;
+  left:50%!important;
+  width:min(112vw,900px)!important;
+  height:auto!important;
+  inset:auto!important;
+
+  min-width:0!important;
+  max-width:none!important;
+  padding:24px 28px 26px!important;
+
+  display:block!important;
+
+  font-size:clamp(46px,13vw,88px)!important;
+  line-height:.94!important;
+  font-weight:950!important;
+
+  opacity:0!important;
+  transform:
+    translate(-50%,-50%)
+    rotate(-5deg)
+    scale(.88)!important;
+
+  clip-path:polygon(
+    1.5% 12%,
+    100% 0,
+    98.5% 88%,
+    0 100%
+  )!important;
+}
+.result-toast.show{
+  opacity:1!important;
+  transform:
+    translate(-50%,-50%)
+    rotate(-5deg)
+    scale(1)!important;
+}
+
+/* Mobile balance */
+@media(max-width:480px){
+  .v10-top{
+    min-height:114px!important;
+  }
+  .hud-row{
+    height:86px!important;
+    grid-template-columns:68px 1fr 86px!important;
+    gap:5px!important;
+  }
+  .timer-dial,
+  .timer-svg{
+    width:62px!important;
+    height:62px!important;
+  }
+  .timer-number{
+    font-size:25px!important;
+  }
+  .question-counter{
+    height:72px!important;
+    padding-top:4px!important;
+  }
+  .question-number{
+    font-size:43px!important;
+  }
+  .question-total{
+    font-size:13px!important;
+  }
+  .progress-timeline{
+    top:89px!important;
+  }
+  .question-zone::before{
+    height:calc(44.4dvh - 114px)!important;
+    min-height:150px!important;
+  }
+  .result-toast{
+    width:114vw!important;
+    padding:21px 18px 23px!important;
+    font-size:clamp(44px,14vw,68px)!important;
+  }
+}
+</style>
+
+
+<style id="compact-one-glance-final">
+/* =========================================================
+   ONE-GLANCE LAYOUT
+   Goal: question + four answers readable almost simultaneously
+   with minimal eye travel.
+   ========================================================= */
+
+/* Keep HUD clear but compact */
+.v10-top{
+  min-height:108px!important;
+}
+.hud-row{
+  height:82px!important;
+  grid-template-columns:66px 1fr 86px!important;
+  gap:6px!important;
+}
+.timer-dial,
+.timer-svg{
+  width:60px!important;
+  height:60px!important;
+}
+.timer-number{
+  font-size:24px!important;
+}
+.timer-unit{
+  font-size:7px!important;
+}
+.question-counter{
+  height:69px!important;
+  padding-top:3px!important;
+}
+.question-counter-label{
+  font-size:8px!important;
+}
+.question-number{
+  font-size:40px!important;
+}
+.question-total{
+  font-size:12px!important;
+  padding-bottom:4px!important;
+}
+.v10-top .icon-btn{
+  width:36px!important;
+  height:36px!important;
+}
+.progress-timeline{
+  top:84px!important;
+}
+
+/* Move the interaction block slightly higher */
+.question-zone::before{
+  height:calc(40.5dvh - 108px)!important;
+  min-height:125px!important;
+}
+
+/* More compact question card */
+.question-card{
+  min-height:80px!important;
+  padding:12px 18px!important;
+  margin-bottom:7px!important;
+  border-radius:7px!important;
+}
+
+/* Smaller question typography = faster scan */
+.question{
+  max-width:27ch!important;
+  line-height:1.10!important;
+  font-weight:520!important;
+  letter-spacing:-.008em!important;
+}
+
+/* Reduce total vertical distance between all four options */
+.answers{
+  gap:7px!important;
+}
+.answer{
+  height:92px!important;
+  min-height:92px!important;
+  padding:12px 10px!important;
+  border-radius:7px!important;
+  line-height:1.02!important;
+}
+.answer-label{
+  max-width:20ch!important;
+  padding:0 13px!important;
+}
+.answer-shape{
+  top:7px!important;
+  left:7px!important;
+  width:20px!important;
+  height:20px!important;
+}
+.answer-shape svg{
+  width:19px!important;
+  height:19px!important;
+}
+
+/* =========================================================
+   FIXED RESULT BANNER
+   Centered above the app, slightly tilted, no odd clipping.
+   ========================================================= */
+.result-toast{
+  position:fixed!important;
+  z-index:99999!important;
+
+  top:56%!important;
+  left:50%!important;
+
+  width:min(88vw,610px)!important;
+  min-width:0!important;
+  max-width:610px!important;
+  height:auto!important;
+
+  padding:15px 22px 17px!important;
+  margin:0!important;
+
+  display:block!important;
+
+  border:0!important;
+  border-radius:8px!important;
+  clip-path:none!important;
+
+  color:#fff!important;
+  text-align:center!important;
+  text-transform:uppercase!important;
+
+  font-size:clamp(34px,9vw,56px)!important;
+  line-height:.98!important;
+  font-weight:950!important;
+  letter-spacing:.015em!important;
+
+  opacity:0!important;
+  pointer-events:none!important;
+
+  transform:
+    translate(-50%,-50%)
+    rotate(-2.5deg)
+    scale(.94)!important;
+
+  transition:
+    opacity .10s linear,
+    transform .14s cubic-bezier(.18,.9,.22,1)!important;
+
+  box-shadow:0 10px 28px rgba(0,0,0,.24)!important;
+}
+
+.result-toast.show{
+  opacity:1!important;
+  transform:
+    translate(-50%,-50%)
+    rotate(-2.5deg)
+    scale(1)!important;
+}
+
+.result-toast.correct{
+  background:#2E9F5B!important;
+}
+.result-toast.incorrect{
+  background:#C84457!important;
+}
+.result-toast.timeout{
+  background:#293D33!important;
+}
+
+body.game-mode .result-toast,
+body.game-mode .result-toast.show{
+  transform:
+    translate(-50%,-50%)
+    rotate(-2.5deg)
+    scale(1)!important;
+}
+
+/* Prevent legacy pseudo-elements from disturbing alignment */
+.result-toast::before,
+.result-toast::after{
+  display:none!important;
+}
+
+/* Mobile refinement */
+@media(max-width:480px){
+  .v10-top{
+    min-height:101px!important;
+  }
+  .hud-row{
+    height:76px!important;
+    grid-template-columns:61px 1fr 80px!important;
+    gap:4px!important;
+  }
+  .timer-dial,
+  .timer-svg{
+    width:56px!important;
+    height:56px!important;
+  }
+  .timer-number{
+    font-size:23px!important;
+  }
+  .question-number{
+    font-size:37px!important;
+  }
+  .progress-timeline{
+    top:79px!important;
+  }
+  .question-zone::before{
+    height:calc(39.5dvh - 101px)!important;
+    min-height:112px!important;
+  }
+  .question-card{
+    min-height:76px!important;
+    padding:11px 14px!important;
+    margin-bottom:7px!important;
+  }
+  .answer{
+    height:87px!important;
+    min-height:87px!important;
+    padding:11px 8px!important;
+  }
+  .answers{
+    gap:6px!important;
+  }
+  .result-toast{
+    top:55%!important;
+    width:90vw!important;
+    padding:14px 16px 15px!important;
+    font-size:clamp(32px,10.5vw,48px)!important;
+  }
+}
+
+@media(max-height:720px){
+  .question-zone::before{
+    height:calc(37dvh - 101px)!important;
+    min-height:90px!important;
+  }
+  .question-card{
+    min-height:72px!important;
+  }
+  .answer{
+    height:82px!important;
+    min-height:82px!important;
+  }
+}
+</style>
+
+
+<style id="compact-plus-readability">
+/* =========================================================
+   COMPACT+ FINE TUNING
+   Slightly larger question, slightly smaller answers,
+   deeper tile colors and a cleaner central reading zone.
+   ========================================================= */
+
+:root{
+  --ref-red:#C92943;
+  --ref-blue:#1769C4;
+  --ref-yellow:#946A00;
+  --ref-green:#2C7D2B;
+}
+
+/* Question: just a little larger */
+.question{
+  font-weight:540!important;
+  line-height:1.105!important;
+  letter-spacing:-.009em!important;
+  max-width:26ch!important;
+}
+
+/* Tiles: deeper colors for stronger white-text contrast */
+.answer:nth-child(1){background:var(--ref-red)!important}
+.answer:nth-child(2){background:var(--ref-blue)!important}
+.answer:nth-child(3){background:var(--ref-yellow)!important}
+.answer:nth-child(4){background:var(--ref-green)!important}
+
+/* subtle central contrast zone without turning into a separate box */
+.answer::before{
+  content:"";
+  position:absolute;
+  left:7px;
+  right:7px;
+  top:32%;
+  bottom:19%;
+  border-radius:6px;
+  background:rgba(0,0,0,.075);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* text above the contrast layer */
+.answer-label{
+  position:relative!important;
+  z-index:1!important;
+  font-weight:790!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.22)!important;
+}
+
+/* Symbols: slightly clearer but still secondary */
+.answer-shape{
+  z-index:2!important;
+  width:21px!important;
+  height:21px!important;
+}
+.answer-shape svg{
+  width:20px!important;
+  height:20px!important;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.28))!important;
+}
+
+/* Keep pressed/result states clean */
+.answer.result-correct::before,
+.answer.result-wrong::before{
+  background:rgba(0,0,0,.05)!important;
+}
+</style>
+
+
+<style id="reference-typography-final">
+/* =========================================================
+   TYPOGRAPHY MATCH
+   Keep geometry/layout intact. Only change how text reads.
+   ========================================================= */
+
+/* Cleaner rasterization */
+html, body, button{
+  -webkit-font-smoothing:antialiased!important;
+  -moz-osx-font-smoothing:grayscale!important;
+  text-rendering:optimizeLegibility!important;
+}
+
+/* QUESTION: regular/medium, calmer, closer to reference */
+.question{
+  font-family:
+    Arial,
+    Helvetica,
+    Roboto,
+    system-ui,
+    sans-serif!important;
+
+  font-weight:450!important;
+  line-height:1.16!important;
+  letter-spacing:-.004em!important;
+
+  text-shadow:none!important;
+  max-width:25.5ch!important;
+}
+
+/* ANSWERS: still bold, but not extra-heavy */
+.answer{
+  font-family:
+    Arial,
+    Helvetica,
+    Roboto,
+    system-ui,
+    sans-serif!important;
+
+  font-weight:700!important;
+  letter-spacing:-.006em!important;
+  line-height:1.06!important;
+
+  text-shadow:none!important;
+}
+
+.answer-label{
+  font-weight:700!important;
+  text-shadow:none!important;
+}
+
+/* Keep symbols crisp and secondary */
+.answer-shape svg{
+  filter:none!important;
+}
+
+/* Remove the extra dark reading band added in Compact+ */
+.answer::before{
+  display:none!important;
+}
+</style>
+
+
+<style id="level18-sound">
+.sound-note{
+  margin-top:8px;
+  font-size:11px;
+  font-weight:750;
+  line-height:1.3;
+  opacity:.72;
+}
+</style>
+
+
+<style id="level20-fluency-readability">
+:root{
+  --tile-red:#CF2D42;
+  --tile-blue:#1766BC;
+  --tile-yellow:#946500;
+  --tile-green:#287B34;
+}
+
+/* Calmer, more uniform rendering */
+html,body,button{
+  -webkit-font-smoothing:antialiased!important;
+  -moz-osx-font-smoothing:grayscale!important;
+  text-rendering:optimizeLegibility!important;
+}
+
+/* Slightly tighter interaction field */
+.question-zone::before{
+  height:calc(38.5dvh - 101px)!important;
+  min-height:102px!important;
+}
+
+/* Question: readable first, not visually dominant */
+.question-card{
+  min-height:72px!important;
+  padding:10px 16px!important;
+  margin-bottom:6px!important;
+  background:rgba(18,36,29,.78)!important;
+  border:1.5px solid rgba(255,255,255,.88)!important;
+}
+
+.question{
+  font-family:Roboto,Arial,Helvetica,system-ui,sans-serif!important;
+  font-weight:500!important;
+  line-height:1.14!important;
+  letter-spacing:-.006em!important;
+  max-width:27ch!important;
+  text-wrap:balance!important;
+  text-shadow:none!important;
+}
+
+/* Answers: slightly smaller and less heavy */
+.answers{
+  gap:6px!important;
+}
+
+.answer{
+  height:84px!important;
+  min-height:84px!important;
+  padding:10px 9px!important;
+  border-radius:7px!important;
+  font-family:Roboto,Arial,Helvetica,system-ui,sans-serif!important;
+  font-weight:690!important;
+  line-height:1.04!important;
+  letter-spacing:-.008em!important;
+  box-shadow:none!important;
+}
+
+.answer:nth-child(1){background:var(--tile-red)!important}
+.answer:nth-child(2){background:var(--tile-blue)!important}
+.answer:nth-child(3){background:var(--tile-yellow)!important}
+.answer:nth-child(4){background:var(--tile-green)!important}
+
+.answer-label{
+  position:relative!important;
+  z-index:2!important;
+  max-width:18ch!important;
+  padding:0 10px!important;
+  font-weight:690!important;
+  text-shadow:none!important;
+  text-wrap:balance!important;
+}
+
+/* Symbols are useful landmarks, but must not compete with the words */
+.answer-shape{
+  top:7px!important;
+  left:7px!important;
+  width:17px!important;
+  height:17px!important;
+  opacity:.88!important;
+}
+.answer-shape svg{
+  width:17px!important;
+  height:17px!important;
+  filter:none!important;
+}
+
+/* Cleaner timer digits */
+.timer-number,
+.question-number,
+.question-total{
+  font-variant-numeric:tabular-nums!important;
+}
+
+@media(max-width:480px){
+  .question-zone::before{
+    height:calc(37.5dvh - 101px)!important;
+    min-height:94px!important;
+  }
+
+  .question-card{
+    min-height:70px!important;
+    padding:9px 14px!important;
+  }
+
+  .answer{
+    height:81px!important;
+    min-height:81px!important;
+    padding:9px 8px!important;
+  }
+}
+
+@media(max-height:720px){
+  .question-zone::before{
+    height:calc(35.5dvh - 101px)!important;
+    min-height:78px!important;
+  }
+  .answer{
+    height:77px!important;
+    min-height:77px!important;
+  }
+}
+</style>
+
+
+<style id="level21-ultra-compact">
+/* The interaction block becomes one visual unit. */
+.question-zone::before{
+  height:calc(35.8dvh - 101px)!important;
+  min-height:78px!important;
+}
+
+/* Question: clear, medium weight, slightly generous line height. */
+.question-card{
+  min-height:66px!important;
+  padding:9px 14px!important;
+  margin-bottom:6px!important;
+  border-radius:8px!important;
+}
+
+.question{
+  max-width:28ch!important;
+  font-weight:520!important;
+  line-height:1.16!important;
+  letter-spacing:-.004em!important;
+  text-shadow:none!important;
+}
+
+/* Answers: much lower height, still comfortable to tap. */
+.answers{
+  gap:7px!important;
+}
+
+.answer{
+  height:68px!important;
+  min-height:68px!important;
+  padding:8px 8px!important;
+  border-radius:8px!important;
+  font-weight:670!important;
+  line-height:1.03!important;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.16)!important;
+}
+
+.answer-label{
+  max-width:18ch!important;
+  padding:0 8px!important;
+  font-weight:670!important;
+  line-height:1.03!important;
+  text-shadow:none!important;
+}
+
+/* Symbols stay as landmarks, but very quiet. */
+.answer-shape{
+  top:6px!important;
+  left:6px!important;
+  width:15px!important;
+  height:15px!important;
+  opacity:.78!important;
+}
+.answer-shape svg{
+  width:15px!important;
+  height:15px!important;
+}
+
+/* Slightly reduce HUD competition. */
+.question-number{
+  font-size:35px!important;
+}
+.question-total{
+  font-size:11px!important;
+}
+.timer-number{
+  font-size:22px!important;
+}
+
+/* Mobile tuning */
+@media(max-width:480px){
+  .question-zone::before{
+    height:calc(34.8dvh - 101px)!important;
+    min-height:70px!important;
+  }
+
+  .question-card{
+    min-height:64px!important;
+    padding:8px 13px!important;
+  }
+
+  .answer{
+    height:64px!important;
+    min-height:64px!important;
+  }
+}
+
+@media(max-height:720px){
+  .question-zone::before{
+    height:calc(33dvh - 101px)!important;
+    min-height:60px!important;
+  }
+  .answer{
+    height:61px!important;
+    min-height:61px!important;
+  }
+}
+</style>
+
+
+<style id="level22-initial-tips">
+.tip-screen{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100dvh;
+  padding:18px;
+}
+.tip-panel{
+  width:min(560px,100%);
+  padding:22px 18px;
+  border-radius:14px;
+  background:rgba(18,36,29,.94);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 18px 48px rgba(0,0,0,.28);
+}
+.tip-kicker{
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.12em;
+  opacity:.62;
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.tip-title{
+  margin:0 0 14px;
+  font-size:27px;
+  line-height:1;
+  font-weight:850;
+}
+.tip-list{
+  display:grid;
+  gap:8px;
+}
+.tip{
+  padding:10px 11px;
+  border-radius:8px;
+  background:rgba(255,255,255,.055);
+  text-align:left;
+}
+.tip b{
+  display:block;
+  font-size:14px;
+  line-height:1.15;
+  margin-bottom:3px;
+}
+.tip span{
+  display:block;
+  font-size:12px;
+  line-height:1.25;
+  opacity:.76;
+}
+.tip-example{
+  margin-top:3px;
+  font-size:11px!important;
+  opacity:.58!important;
+}
+.tip-nav{
+  display:flex;
+  gap:8px;
+  margin-top:15px;
+}
+.tip-nav button{
+  flex:1;
+}
+</style>
+
+
+<style id="level23-one-page-tips">
+.tip-panel-one{
+  max-width:470px!important;
+  padding:24px 18px 20px!important;
+}
+.test-level-row{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  padding-bottom:15px;
+  margin-bottom:12px;
+  border-bottom:1px solid rgba(255,255,255,.12);
+}
+.test-level-label{
+  font-size:24px;
+  font-weight:900;
+  letter-spacing:-.02em;
+  line-height:1;
+}
+.test-level-value{
+  font-size:54px;
+  line-height:.86;
+  font-weight:950;
+  letter-spacing:-.05em;
+}
+.test-level-value span{
+  font-size:24px;
+  opacity:.72;
+  margin-left:2px;
+}
+.tip-list-big{
+  gap:8px!important;
+}
+.tip-big{
+  padding:12px 13px!important;
+  background:rgba(255,255,255,.065)!important;
+}
+.tip-big b{
+  font-size:17px!important;
+  line-height:1.05!important;
+  margin:0 0 5px!important;
+  letter-spacing:.01em;
+}
+.tip-big span{
+  font-size:17px!important;
+  line-height:1.08!important;
+  font-weight:750;
+  opacity:.82!important;
+}
+.tip-start{
+  width:100%;
+  margin-top:14px;
+  min-height:50px;
+  font-size:16px;
+  font-weight:900;
+}
+@media(max-height:700px){
+  .tip-panel-one{padding:18px 16px 16px!important}
+  .test-level-value{font-size:46px}
+  .tip-big{padding:9px 11px!important}
+  .tip-big b,.tip-big span{font-size:15px!important}
+  .tip-start{min-height:44px;margin-top:10px}
+}
+</style>
+
+
+<style id="level24-single-tip">
+.single-teacher-tip{
+  margin-top:14px;
+  padding:18px 16px;
+  border-radius:12px;
+  background:rgba(255,255,255,.065);
+  text-align:center;
+}
+.single-tip-title{
+  font-size:30px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:-.03em;
+  margin-bottom:16px;
+}
+.single-tip-rule{
+  font-size:20px;
+  line-height:1.22;
+  font-weight:650;
+}
+.single-tip-formula{
+  margin:16px auto 10px;
+  padding:12px 10px;
+  border-radius:9px;
+  background:rgba(255,255,255,.10);
+  font-size:22px;
+  line-height:1.05;
+  font-weight:950;
+  letter-spacing:-.02em;
+}
+.single-tip-example{
+  font-size:17px;
+  line-height:1.2;
+  opacity:.83;
+  font-weight:700;
+}
+.single-tip-contrast{
+  margin-top:15px;
+  padding-top:13px;
+  border-top:1px solid rgba(255,255,255,.12);
+  font-size:15px;
+  line-height:1.35;
+  opacity:.78;
+}
+@media(max-height:700px){
+  .single-teacher-tip{padding:13px 13px;margin-top:10px}
+  .single-tip-title{font-size:26px;margin-bottom:11px}
+  .single-tip-rule{font-size:17px}
+  .single-tip-formula{font-size:19px;margin:11px auto 8px;padding:9px}
+  .single-tip-example{font-size:15px}
+  .single-tip-contrast{font-size:13px;margin-top:10px;padding-top:9px}
+}
+</style>
+
+
+<style id="level25-ui-refinement">
+/* Remove unused typography/menu controls */
+#fontBtn,#fontToggle,#sizeBtn,#sizeToggle,.font-menu,.size-menu,.text-size-control,.large-text-control{
+  display:none!important;
+}
+
+/* Make question number more prominent */
+.question-number{
+  font-size:46px!important;
+  line-height:.9!important;
+  font-weight:950!important;
+  letter-spacing:-.04em!important;
+}
+.question-total{
+  font-size:12px!important;
+  opacity:.7!important;
+}
+
+/* Countdown sits immediately above the question card */
+.question-zone{
+  position:relative;
+}
+.level25-countdown{
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(10,1fr);
+  gap:4px;
+  margin:0 0 7px;
+  padding:0 2px;
+}
+.level25-countdown-seg{
+  height:5px;
+  border-radius:3px;
+  background:rgba(255,255,255,.15);
+  overflow:hidden;
+}
+.level25-countdown-seg.on{
+  background:rgba(255,255,255,.95);
+}
+.level25-countdown-seg.warn{
+  background:rgba(255,196,91,.95);
+}
+.level25-countdown-seg.danger{
+  background:rgba(232,84,102,.98);
+}
+
+/* Old timer bar/number is visually suppressed; timing engine remains intact */
+.timer-bar,.timer-segments,.timer-number,.countdown-bar{
+  display:none!important;
+}
+</style>
+
+
+<style id="level26-countdown-refinement">
+.level25-countdown{
+  width:92%!important;
+  margin:0 auto 18px!important;
+  padding:0!important;
+  display:grid!important;
+  grid-template-columns:repeat(10,1fr)!important;
+  gap:6px!important;
+  transform:translateY(-8px);
+}
+.level25-countdown-seg{
+  height:7px!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.12)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+  transition:background .12s ease, transform .12s ease, opacity .12s ease;
+}
+.level25-countdown-seg.on{
+  background:rgba(255,255,255,.30)!important;
+}
+.level25-countdown-seg.current{
+  background:#fff!important;
+  transform:scaleY(1.45);
+  box-shadow:0 0 10px rgba(255,255,255,.28);
+}
+.level25-countdown-seg.past{
+  background:rgba(255,255,255,.06)!important;
+  opacity:.45;
+}
+.level25-countdown-seg.warn.current{
+  background:rgba(255,196,91,.98)!important;
+}
+.level25-countdown-seg.danger.current{
+  background:rgba(232,84,102,.98)!important;
+}
+.question-card{
+  margin-top:0!important;
+}
+</style>
+
+
+<style id="test-level-color-scale">
+:root{
+  --level-0:#241317;
+  --level-10:#2C1818;
+  --level-20:#322018;
+  --level-30:#17251F;
+  --level-40:#163027;
+  --level-50:#123337;
+  --level-60:#142F43;
+  --level-70:#182A50;
+  --level-80:#24264F;
+  --level-90:#332449;
+  --level-100:#3B3218;
+}
+</style>
+
+
+<style id="level27-answer-feedback">
+.answer{
+  position:relative;
+}
+.answer.correct-reveal::after{
+  content:"✓";
+  position:absolute;
+  top:6px;
+  right:8px;
+  font-size:18px;
+  line-height:1;
+  font-weight:900;
+  color:#fff;
+  opacity:.88;
+  text-shadow:0 1px 3px rgba(0,0,0,.35);
+}
+.answer.wrong-choice{
+  background:#B92C42!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.55), inset 0 -2px 0 rgba(0,0,0,.18)!important;
+}
+.answer.wrong-choice::after{
+  content:"×";
+  position:absolute;
+  top:5px;
+  right:8px;
+  font-size:19px;
+  line-height:1;
+  font-weight:950;
+  color:#fff;
+  opacity:.92;
+}
+.answer.correct-reveal{
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.46), inset 0 -2px 0 rgba(0,0,0,.14)!important;
+}
+</style>
+
+
+<!-- Fixed-app / PWA shell -->
+<meta name="theme-color" content="#17251F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Adaptive English">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+
+</head>
+<body>
+<div class="app">
+
+<section id="startScreen" class="screen start">
+  <div class="panel">
+    <div class="kicker">LEVEL 28 · B2 → C1</div>
+    <h1>LEVEL 28 · Adaptive English</h1>
+    <p>A fast, high-legibility adaptive English trainer built around a dark green learning interface and a direct handoff to ChatGPT.</p>
+    <div class="mode-picker">
+      <button id="focusModeBtn" class="mode-option active">Focus</button>
+      <button id="gameModeBtn" class="mode-option">Game</button>
+    </div>
+    <div id="modeHint" class="mode-hint">Focus: quieter, flatter feedback and fewer visual effects.</div>
+    <div class="btns" style="margin-top:16px">
+      <button id="startBtn" class="primary">Initial Tips →</button>
+      <button id="resetBtn" class="secondary">Reset progress</button>
+    <div class="sound-note">Sound: soft clock tick · stronger 3–2–1 · cartoon answer sounds</div>
+    </div>
+  </div>
+</section>
+
+
+<section id="tipsScreen" class="screen tip-screen hidden">
+  <div class="tip-panel tip-panel-one">
+    <div class="test-level-row">
+      <div>
+        <div class="tip-kicker">LEVEL 28 · INITIAL TIP</div>
+        <div class="test-level-label">TEST LEVEL</div>
+      </div>
+      <div class="test-level-value">36<span>%</span></div>
+    </div>
+
+    <div class="single-teacher-tip">
+      <div class="single-tip-title">UNLESS</div>
+      <div class="single-tip-rule">
+        Piensa siempre: <b>“A MENOS QUE” = “SI NO”</b>.
+      </div>
+      <div class="single-tip-formula">
+        UNLESS = IF NOT
+      </div>
+      <div class="single-tip-example">
+        I won't go <b>unless</b> you come.
+      </div>
+      <div class="single-tip-contrast">
+        = No iré <b>si no</b> vienes.
+      </div>
+    </div>
+
+    <button id="tipStartBtn" class="primary tip-start">START LEVEL 28</button>
+  </div>
+</section>
+
+<section id="gameScreen" class="screen game hidden">
+  <div class="top v10-top">
+    <div class="hud-row">
+      <div class="timer-dial" id="timerDial" aria-label="Countdown timer">
+        <svg class="timer-svg" viewBox="0 0 80 80" aria-hidden="true">
+          <circle class="timer-track" cx="40" cy="40" r="31"></circle>
+          <circle id="timerProgress" class="timer-progress" cx="40" cy="40" r="31"></circle>
+        </svg>
+        <div class="timer-center">
+          <span id="timerNumber" class="timer-number">10</span>
+          <span class="timer-unit">SEC</span>
+        </div>
+      </div>
+
+      <div class="question-counter" aria-label="Question number">
+        <span class="question-counter-label">QUESTION</span>
+        <span id="questionNumber" class="question-number">1</span>
+        <span class="question-total">/ 15</span>
+      </div>
+
+      <div class="top-icons">
+        <button id="soundBtn" class="icon-btn" aria-label="Toggle sound"><span class="icon-sound"></span></button>
+        <button id="textBtn" class="icon-btn" aria-label="Large text"><span class="icon-menu" style="opacity:0"></span><span style="font-size:15px;font-weight:900">Aa</span></button>
+      </div>
+    </div>
+    <div id="timeline" class="timeline progress-timeline"></div>
+  </div>
+
+  <div class="question-zone">
+    <div class="spacer"></div>
+    <div id="level25Countdown" class="level25-countdown" aria-hidden="true"></div>
+<div class="question-card">
+      <h2 id="question" class="question"></h2>
+    </div>
+    <div id="answers" class="answers"></div>
+    <div id="miniStatus" class="mini-status empty"> </div>
+  </div>
+</section>
+
+<section id="endScreen" class="screen end hidden">
+  <div class="panel">
+    <div class="kicker">LEVEL 28 COMPLETE</div>
+    <h1 id="endTitle">0 / 15</h1>
+
+    <div class="final-strip">
+      <div class="final-chip"><b id="finalScore">0/15</b><span>correct</span></div>
+      <div class="final-chip"><b id="avgTime">0.0s</b><span>avg time</span></div>
+      <div class="final-chip"><b id="autoCount">0</b><span>automatic</span></div>
+    </div>
+
+    <div class="final-section">
+      <h3>What to improve next</h3>
+      <div id="nextFocusCompact" class="next-focus-compact"></div>
+    </div>
+
+    <div class="final-section">
+      <h3>Errors</h3>
+      <div id="compactErrors"></div>
+    </div>
+
+    <div class="final-section">
+      <h3>Send this to ChatGPT</h3>
+      <div class="error-why">Copy this block and paste it into the chat. It contains the useful results from this session and asks for the next adaptive test.</div>
+      <textarea id="handoffPrompt" class="prompt-box" readonly></textarea>
+      <div class="copy-row">
+        <button id="copyPromptBtn" class="copy-btn">Copy Level 28 result</button>
+        <button id="sharePromptBtn" class="copy-btn">Share result</button>
+        <span id="copyStatus" class="copy-status"></span>
+      </div>
+    </div>
+
+    <div class="btns" style="margin-top:16px">
+      <button id="againBtn" class="primary">Repeat Level 28</button>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<div id="resultToast" class="result-toast"></div>
+
+<div id="flash" class="flash">
+  <div class="flash-card">
+    <div id="flashIcon" class="flash-icon">✓</div>
+    <div id="flashTitle" class="flash-title"></div>
+    <div id="flashAnswer" class="flash-answer"></div>
+    <div id="flashRule" class="flash-rule"></div>
+    <div id="flashTrigger" class="flash-trigger"></div>
+    <div id="flashType" class="flash-type"></div>
+  </div>
+</div>
+
+<script>
+const MAX_Q=15, LIMIT=10, KEY="adaptive_english_level28_v1";
+const NEW_CATS=new Set(["inversion","mixed_conditional","causative","reporting_verbs"]);
+const SPACED_CATS=new Set(["wish_past","mustnt_have_to","third_conditional","whose","used_to","make_bare","look_forward"]);
+
+const TEST_LEVEL=36;
+const LEVEL_BG_SCALE=[
+  [0,"#241317"],[10,"#2C1818"],[20,"#322018"],[30,"#17251F"],[40,"#163027"],
+  [50,"#123337"],[60,"#142F43"],[70,"#182A50"],[80,"#24264F"],[90,"#332449"],[100,"#3B3218"]
+];
+
+function getLevelBackground(level){
+  if(level>=100) return LEVEL_BG_SCALE[10][1];
+  const band=Math.max(0,Math.min(9,Math.floor(level/10)));
+  return LEVEL_BG_SCALE[band][1];
+}
+
+function applyLevelBackground(){
+  const bg=getLevelBackground(TEST_LEVEL);
+  document.documentElement.style.setProperty("--bg",bg);
+  document.documentElement.style.setProperty("--bg-deep",bg);
+  document.body.style.background=bg;
+}
+
+const priors={
+ would_rather:{k:.14,a:.10,t:.14},
+ allow_to:{k:.22,a:.14,t:.18},
+ so_such:{k:.46,a:.30,t:.36},
+ modal_perfect:{k:.22,a:.11,t:.20},
+ backshift:{k:.72,a:.47,t:.55},
+ past_perfect:{k:.72,a:.60,t:.60},
+ despite:{k:.21,a:.15,t:.19},
+ unless:{k:.04,a:.04,t:.06},
+ look_forward:{k:.82,a:.74,t:.72},
+ third_conditional:{k:.34,a:.22,t:.28},
+ wish_past:{k:.88,a:.79,t:.78},
+ mustnt_have_to:{k:.86,a:.76,t:.74},
+ whose:{k:.86,a:.79,t:.78},
+ used_to:{k:.84,a:.73,t:.72},
+ make_bare:{k:.84,a:.74,t:.73},
+ inversion:{k:.06,a:.05,t:.09},
+ mixed_conditional:{k:.58,a:.43,t:.47},
+ causative:{k:.34,a:.22,t:.28},
+ reporting_verbs:{k:.27,a:.18,t:.23},
+ collocation:{k:.61,a:.50,t:.50},
+ phrasal:{k:.60,a:.49,t:.49},
+ functional:{k:.66,a:.56,t:.56}
+};
+
+const bank=[
+{id:2801,cat:"unless",domain:"daily life",q:"I won't call a taxi ___ the bus is delayed.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
+{id:2802,cat:"unless",domain:"technology",q:"The file won't open ___ you enter the correct password.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
+{id:2803,cat:"unless",domain:"work",q:"We can't publish the report ___ legal approves it.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
+
+{id:2804,cat:"inversion",domain:"daily life",q:"Only after the meeting ___ how serious the issue was.",a:["we understood","did we understand","we had understood","had we understand"],c:1,rule:"Only after at the front triggers inversion.",trigger:"ONLY AFTER → DID + SUBJECT + VERB"},
+{id:2805,cat:"inversion",domain:"science",q:"Rarely ___ such consistent results across all groups.",a:["researchers find","do researchers find","researchers found","did researchers found"],c:1,rule:"Rarely at the front triggers inversion.",trigger:"RARELY → AUXILIARY + SUBJECT"},
+{id:2806,cat:"inversion",domain:"culture",q:"Not until the lights came on ___ the painting's hidden detail.",a:["I noticed","did I notice","I had noticed","had I notice"],c:1,rule:"Not until at the front triggers inversion.",trigger:"NOT UNTIL → DID + SUBJECT + VERB"},
+
+{id:2807,cat:"would_rather",domain:"home",q:"I'd rather your friends ___ their shoes at the door.",a:["leave","left","will leave","have left"],c:1,rule:"Would rather + another subject takes past simple.",trigger:"RATHER + OTHER PERSON → PAST"},
+{id:2808,cat:"would_rather",domain:"work",q:"She'd rather the client ___ by email.",a:["replies","replied","will reply","has replied"],c:1,rule:"Would rather + another subject takes past simple.",trigger:"RATHER + OTHER PERSON → PAST"},
+
+{id:2809,cat:"modal_perfect",domain:"travel",q:"I bought water, but the hotel gave us bottles for free. I ___ bought any.",a:["shouldn't have","needn't have","mustn't have","wouldn't have"],c:1,rule:"Needn't have = it happened, but it wasn't necessary.",trigger:"DONE + UNNECESSARY → NEEDN'T HAVE"},
+{id:2810,cat:"allow_to",domain:"technology",q:"The service allows customers ___ their data at any time.",a:["download","downloading","to download","downloaded"],c:2,rule:"Allow + object + to-infinitive.",trigger:"ALLOW CUSTOMERS → TO + VERB"},
+{id:2811,cat:"reporting_verbs",domain:"media",q:"The presenter admitted ___ the figures incorrectly.",a:["read","to read","reading","readed"],c:2,rule:"Admit is followed by -ing.",trigger:"ADMIT → -ING"},
+{id:2812,cat:"third_conditional",domain:"daily life",q:"If I ___ the door, the dog wouldn't have escaped.",a:["closed","had closed","would close","have closed"],c:1,rule:"Third conditional uses past perfect in the if-clause.",trigger:"IF + HAD + PARTICIPLE"},
+{id:2813,cat:"causative",domain:"home",q:"We had the heating system ___ yesterday.",a:["check","checking","checked","to check"],c:2,rule:"Have + object + past participle = arrange for someone else to do it.",trigger:"HAVE + OBJECT + PARTICIPLE"},
+{id:2814,cat:"so_such",domain:"media",q:"It was ___ a convincing performance that everyone applauded.",a:["so","such","too","enough"],c:1,rule:"Use such + noun phrase + that.",trigger:"SUCH + NOUN PHRASE + THAT"},
+{id:2815,cat:"despite",domain:"daily life",q:"___ being late, he stopped to help.",a:["Although","Despite","Even though","Because"],c:1,rule:"Despite can be followed directly by -ing.",trigger:"DESPITE + -ING"}
+];
+
+const SHAPES_SVG = [
+ '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,8 95,88 5,88" fill="white" stroke="rgba(0,0,0,.35)" stroke-width="4"/></svg>',
+ '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,5 95,50 50,95 5,50" fill="white" stroke="rgba(0,0,0,.35)" stroke-width="4"/></svg>',
+ '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40" fill="white" stroke="rgba(0,0,0,.35)" stroke-width="4"/></svg>',
+ '<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="10" y="10" width="80" height="80" fill="white" stroke="rgba(0,0,0,.35)" stroke-width="4"/></svg>'
+];
+
+const CAT_NAMES = {
+  would_rather:"would rather + subject + past",
+  allow_to:"allow + object + to-infinitive",
+  so_such:"so / such / too / enough",
+  modal_perfect:"modal perfects",
+  backshift:"reported speech / backshift",
+  past_perfect:"past perfect",
+  despite:"despite / although",
+  unless:"unless",
+  look_forward:"look forward to + -ing",
+  third_conditional:"third conditional",
+  wish_past:"wish + past perfect",
+  mustnt_have_to:"mustn't / don't have to",
+  whose:"whose",
+  used_to:"get used to + -ing",
+  make_bare:"make + bare infinitive",
+  inversion:"inversion",
+  mixed_conditional:"mixed conditional",
+  causative:"causative",
+  reporting_verbs:"reporting verbs",
+  collocation:"collocation",
+  phrasal:"phrasal verbs",
+  functional:"functional English"
+};
+
+let state = loadState();
+let session = null;
+let current = null;
+let startStamp = 0;
+let timeoutId = null;
+let rafId = null;
+let countdownIntervalId = null;
+let soundOn = true;
+let audioCtx = null;
+let playMode = "focus";
+let toastTimer = null;
+
+function loadState(){
+  try{
+    const s = JSON.parse(localStorage.getItem(KEY) || "{}");
+    const metrics = {};
+    for(const [cat,p] of Object.entries(priors)){
+      const old = s.metrics?.[cat] || {};
+      metrics[cat] = {
+        k: old.k ?? p.k,
+        a: old.a ?? p.a,
+        t: old.t ?? p.t,
+        lastSession: old.lastSession ?? -99,
+        interval: old.interval ?? 1,
+        domains: old.domains || {}
+      };
+    }
+    return { metrics, sessions:s.sessions || 0, seen:s.seen || {}, history:s.history || [] };
+  }catch(e){
+    const metrics={};
+    for(const [cat,p] of Object.entries(priors)){
+      metrics[cat]={...p,lastSession:-99,interval:1,domains:{}};
+    }
+    return { metrics, sessions:0, seen:{}, history:[] };
+  }
+}
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+
+const el = id => document.getElementById(id);
+
+async function unlockAudio(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC) return false;
+
+    if(!audioCtx){
+      audioCtx=new AC();
+    }
+
+    if(audioCtx.state==="suspended"){
+      await audioCtx.resume();
+    }
+
+    const buffer=audioCtx.createBuffer(1,1,22050);
+    const source=audioCtx.createBufferSource();
+    source.buffer=buffer;
+    source.connect(audioCtx.destination);
+    source.start(0);
+
+    return audioCtx.state==="running";
+  }catch(e){
+    return false;
+  }
+}
+
+function initAudio(){
+  if(!audioCtx){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(AC) audioCtx=new AC();
+  }
+  if(audioCtx?.state==="suspended"){
+    audioCtx.resume().catch(()=>{});
+  }
+}
+
+function tone(freq,dur=.07,type="sine",gain=.07,delay=0,slideTo=null){
+  if(!soundOn) return;
+  initAudio();
+  if(!audioCtx || audioCtx.state!=="running") return;
+
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+
+  o.type=type;
+  o.frequency.setValueAtTime(freq,audioCtx.currentTime+delay);
+
+  if(slideTo){
+    o.frequency.exponentialRampToValueAtTime(
+      Math.max(1,slideTo),
+      audioCtx.currentTime+delay+dur
+    );
+  }
+
+  g.gain.setValueAtTime(.0001,audioCtx.currentTime+delay);
+  g.gain.exponentialRampToValueAtTime(
+    Math.max(.0002,gain),
+    audioCtx.currentTime+delay+.005
+  );
+  g.gain.exponentialRampToValueAtTime(
+    .0001,
+    audioCtx.currentTime+delay+dur
+  );
+
+  o.connect(g);
+  g.connect(audioCtx.destination);
+
+  o.start(audioCtx.currentTime+delay);
+  o.stop(audioCtx.currentTime+delay+dur+.02);
+}
+
+function noiseClick(delay=0,gain=.018){
+  if(!soundOn) return;
+  initAudio();
+  if(!audioCtx || audioCtx.state!=="running") return;
+
+  const duration=.018;
+  const length=Math.max(1,Math.floor(audioCtx.sampleRate*duration));
+  const buffer=audioCtx.createBuffer(1,length,audioCtx.sampleRate);
+  const data=buffer.getChannelData(0);
+
+  for(let i=0;i<length;i++){
+    // short mechanical click: fast decay, no hiss tail
+    const env=Math.pow(1-i/length,5);
+    data[i]=(Math.random()*2-1)*env;
+  }
+
+  const source=audioCtx.createBufferSource();
+  const filter=audioCtx.createBiquadFilter();
+  const g=audioCtx.createGain();
+
+  filter.type="bandpass";
+  filter.frequency.value=2300;
+  filter.Q.value=1.2;
+  g.gain.value=gain;
+
+  source.buffer=buffer;
+  source.connect(filter);
+  filter.connect(g);
+  g.connect(audioCtx.destination);
+  source.start(audioCtx.currentTime+delay);
+}
+
+
+function arcadeTone(freq,dur,type="square",gain=.045,delay=0){
+  if(!soundOn || !audioCtx) return;
+  const t=audioCtx.currentTime+delay;
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.type=type;
+  o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(gain,t);
+  g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t+dur);
+}
+function sCorrect(){
+  if(!soundOn || !audioCtx) return;
+  arcadeTone(520,.07,"square",.05,0);
+  arcadeTone(780,.07,"square",.05,.07);
+  arcadeTone(1040,.11,"square",.045,.14);
+}
+function sWrong(){
+  if(!soundOn || !audioCtx) return;
+  arcadeTone(300,.08,"sawtooth",.05,0);
+  arcadeTone(220,.09,"square",.045,.08);
+  arcadeTone(150,.13,"square",.04,.17);
+}
+
+function sStart(){
+  tone(480,.045,"sine",.045,0,620);
+  tone(680,.060,"sine",.055,.045,820);
+}
+
+/* Cartoon-like positive pop: rising two-note "boing/ding" */
+
+
+/* Cartoon-like negative wobble: descending "wah-wah" */
+
+
+/* Quiet, dry mechanical tick. Last 3 seconds only slightly stronger. */
+function sTick(strong=false){
+  noiseClick(0,strong ? .026 : .014);
+  tone(
+    strong ? 1450 : 1250,
+    .014,
+    "square",
+    strong ? .014 : .007
+  );
+}
+function vibrate(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
+
+
+function setMode(mode){
+  playMode=mode;
+  document.body.classList.toggle("focus-mode", mode==="focus");
+  document.body.classList.toggle("game-mode", mode==="game");
+  el("focusModeBtn")?.classList.toggle("active", mode==="focus");
+  el("gameModeBtn")?.classList.toggle("active", mode==="game");
+  if(el("modeHint")){
+    el("modeHint").textContent = mode==="focus"
+      ? "Focus: quieter, flatter feedback and fewer visual effects."
+      : "Game: slightly stronger sound and visual reinforcement.";
+  }
+}
+setMode("focus");
+
+function showToast(type){
+  clearTimeout(toastTimer);
+  const t=el("resultToast");
+  t.className="result-toast";
+  const label = type==="correct" ? "CORRECT!" : type==="incorrect" ? "INCORRECT!" : "TIME!";
+  t.textContent=label;
+  t.classList.add(type,"show");
+  toastTimer=setTimeout(()=>t.classList.remove("show"), 960);
+}
+
+function buildTimeline(){
+  const wrap = el("timeline");
+  wrap.innerHTML = "";
+  for(let i=0;i<MAX_Q;i++){
+    const d = document.createElement("div");
+    d.className = "seg";
+    wrap.appendChild(d);
+  }
+}
+buildTimeline();
+
+function paintTimeline(){
+  const segs=[...document.querySelectorAll(".seg")];
+  segs.forEach((s,i)=>{
+    s.className="seg";
+    if(i<session.index) s.classList.add("done");
+    if(i===session.index) s.classList.add("current");
+  });
+}
+
+function clamp(x){ return Math.max(.03, Math.min(.99, x)); }
+function updateMetrics(q, ok, t){
+  const m = state.metrics[q.cat];
+  const speed = Math.max(0, 1-(t/LIMIT));
+
+  m.k = clamp(m.k*.78 + (ok?1:0)*.22);
+  m.a = clamp(m.a*.82 + (ok?Math.pow(speed,.75):0)*.18);
+
+  const seenDomains = m.domains || {};
+  const isNewDomain = !seenDomains[q.domain];
+  const transferSignal = ok ? (isNewDomain ? 1 : 0.82) : 0;
+  m.t = clamp(m.t*.86 + transferSignal*.14);
+  seenDomains[q.domain] = (seenDomains[q.domain] || 0) + 1;
+  m.domains = seenDomains;
+
+  if(ok && t<=6) m.interval = Math.min(20, Math.max(1, Math.round(m.interval*1.8)));
+  else m.interval = 1;
+
+  m.lastSession = state.sessions;
+}
+function errType(ok,t,timeout=false){
+  if(ok && t<=3) return "automatic";
+  if(ok && t<=6) return "secure";
+  if(ok) return "slow-correct";
+  if(timeout) return "timeout";
+  if(t<=3.2) return "fast-wrong";
+  return "slow-wrong";
+}
+function categoryScore(cat){
+  const m=state.metrics[cat];
+  return (1-m.k)*.48 + (1-m.a)*.34 + (1-m.t)*.18;
+}
+function due(cat){
+  const m=state.metrics[cat];
+  return (state.sessions - m.lastSession) >= m.interval;
+}
+function unusedQuestion(cat, usedIds, preferNewDomain=false){
+  const m=state.metrics[cat];
+  let cand=bank.filter(q=>q.cat===cat && !usedIds.has(q.id));
+  if(preferNewDomain){
+    const nd=cand.filter(q=>!m.domains?.[q.domain]);
+    if(nd.length) cand=nd;
+  }
+  cand.sort((a,b)=>(state.seen[a.id]||0)-(state.seen[b.id]||0));
+  return cand.length ? cand[Math.floor(Math.random()*Math.min(2,cand.length))] : null;
+}
+function buildPlan(){
+  // LEVEL 28: reinforce unless and inversion, then retrieve the persistent B2 core.
+  return bank.slice(0,15);
+}
+function buildBalancedPositions(){
+  const p=[]; while(p.length<MAX_Q) p.push(0,1,2,3);
+  p.length=MAX_Q;
+  for(let i=p.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [p[i],p[j]]=[p[j],p[i]];
+  }
+  return p;
+}
+function shuffleOptions(q,targetPos){
+  const correctText=q.a[q.c];
+  const others=q.a.filter((_,i)=>i!==q.c);
+  for(let i=others.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [others[i],others[j]]=[others[j],others[i]];
+  }
+  const arr=[...others];
+  arr.splice(targetPos,0,correctText);
+  return {...q, display:arr, correctPos:targetPos};
+}
+
+function cancelTimers(){
+  clearTimeout(timeoutId);
+  cancelAnimationFrame(rafId);
+  clearInterval(countdownIntervalId);
+  countdownIntervalId=null;
+}
+function setMiniStatus(text="", show=false){
+  const ms=el("miniStatus");
+  ms.textContent=text || " ";
+  ms.classList.toggle("empty", !show);
+}
+
+function startSession(){
+  initAudio();
+  const rawPlan=buildPlan();
+  const positions=buildBalancedPositions();
+  session={
+    index:0,
+    correct:0,
+    answered:0,
+    times:[],
+    automatic:0,
+    records:[],
+    plan:rawPlan.map((q,i)=>shuffleOptions(q,positions[i]))
+  };
+  el("startScreen").classList.add("hidden");
+  el("tipsScreen")?.classList.add("hidden");
+  el("endScreen").classList.add("hidden");
+  el("gameScreen").classList.remove("hidden");
+  nextQuestion();
+}
+function nextQuestion(){
+  if(session.index>=MAX_Q){ finish(); return; }
+  current=session.plan[session.index];
+  renderQuestion();
+}
+
+function setDynamicType(){
+  const qLen=current.q.replace(/\s+/g," ").trim().length;
+
+  let qSize;
+  if(qLen<=40) qSize=23;
+  else if(qLen<=58) qSize=22;
+  else if(qLen<=76) qSize=21;
+  else if(qLen<=96) qSize=20;
+  else if(qLen<=118) qSize=19;
+  else qSize=18;
+
+  const longest=Math.max(
+    ...current.display.map(x=>x.replace(/\s+/g," ").trim().length)
+  );
+
+  let aSize;
+  if(longest<=10) aSize=19;
+  else if(longest<=16) aSize=18;
+  else if(longest<=24) aSize=17;
+  else if(longest<=34) aSize=16;
+  else if(longest<=48) aSize=15;
+  else aSize=14;
+
+  if(document.body.classList.contains("large")){
+    qSize=Math.min(qSize+3,26);
+    aSize=Math.min(aSize+3,22);
+  }
+
+  document.documentElement.style.setProperty("--question-size",qSize+"px");
+  document.documentElement.style.setProperty("--answer-size",aSize+"px");
+}
+
+function renderLevel25Countdown(){
+  const box=el("level25Countdown");
+  if(!box) return;
+  box.innerHTML="";
+  for(let i=0;i<10;i++){
+    const s=document.createElement("div");
+    s.className="level25-countdown-seg on";
+    if(i===0) s.classList.add("current");
+    box.appendChild(s);
+  }
+}
+
+function updateLevel25Countdown(elapsedSec){
+  const box=el("level25Countdown");
+  if(!box) return;
+  const segs=[...box.children];
+  const step=Math.min(9, Math.max(0, Math.floor(elapsedSec)));
+  const remaining=10-step;
+
+  segs.forEach((s,i)=>{
+    s.className="level25-countdown-seg";
+    if(i<step) s.classList.add("past");
+    else s.classList.add("on");
+
+    if(i===step){
+      s.classList.add("current");
+      if(remaining<=3) s.classList.add("danger");
+      else if(remaining<=6) s.classList.add("warn");
+    }
+  });
+}
+
+function renderQuestion(){
+  renderLevel25Countdown();
+  cancelTimers();
+  paintTimeline();
+
+  el("questionNumber").textContent=String(session.index+1);
+  el("question").textContent=current.q;
+  setMiniStatus("", false);
+  setDynamicType();
+
+  const wrap=el("answers");
+  wrap.innerHTML="";
+  current.display.forEach((txt,i)=>{
+    const b=document.createElement("button");
+    b.className="answer";
+    b.innerHTML=`
+      <span class="answer-shape">${SHAPES_SVG[i]}</span>
+      <span class="answer-label">${txt}</span>
+      <span class="answer-mark left"></span>
+      <span class="answer-mark right"></span>
+    `;
+    b.onclick=()=>answer(i,false);
+    wrap.appendChild(b);
+  });
+
+  const dial=el("timerDial");
+  const ring=el("timerProgress");
+  const timerNumber=el("timerNumber");
+
+  dial.classList.remove("urgent","danger");
+  timerNumber.textContent=String(LIMIT);
+
+  ring.style.animationPlayState="running";
+  ring.style.animation="none";
+  ring.style.strokeDashoffset="0";
+  void ring.getBoundingClientRect();
+  ring.style.animation="";
+  ring.classList.remove("running");
+  void ring.getBoundingClientRect();
+  ring.classList.add("running");
+
+  startStamp=performance.now();
+  timeoutId=setTimeout(()=>answer(-1,true),LIMIT*1000);
+
+  let lastShown=LIMIT+1;
+
+  const updateCountdown=()=>{
+    const elapsed=(performance.now()-startStamp)/1000;
+  updateLevel25Countdown(elapsed);
+    const left=Math.max(0,LIMIT-elapsed);
+    const shown=Math.ceil(left);
+
+    timerNumber.textContent=String(shown);
+
+    dial.classList.toggle("urgent",left<=3 && left>1.2);
+    dial.classList.toggle("danger",left<=1.2);
+
+    const segs=[...document.querySelectorAll(".progress-timeline .seg")].slice(0,10);
+    const remaining=Math.max(0,Math.min(10,shown));
+    segs.forEach((seg,idx)=>{
+      seg.style.opacity="";
+      seg.className="seg";
+      if(idx<remaining){
+        seg.style.background=idx===remaining-1
+          ? "#fff"
+          : "rgba(218,235,223,.32)";
+      }else{
+        seg.style.background="rgba(218,235,223,.13)";
+      }
+    });
+
+    if(shown!==lastShown){
+      if(shown>0 && shown<LIMIT){
+        sTick(shown<=3);
+      }
+      lastShown=shown;
+    }
+  };
+
+  updateCountdown();
+  countdownIntervalId=setInterval(updateCountdown,160);
+}
+function flashFor(type, elapsed){
+  const f=el("flash");
+  const ok=["automatic","secure","slow-correct"].includes(type);
+  el("flashIcon").textContent=ok ? "✓" : type==="timeout" ? "⏱" : "×";
+
+  let title="", kind="", delay=800, showRule=false;
+  if(type==="automatic"){ title=`Automatic · ${elapsed.toFixed(1)}s`; kind="FAST CORRECT"; delay=330; }
+  if(type==="secure"){ title=`Secure · ${elapsed.toFixed(1)}s`; kind="CORRECT"; delay=520; }
+  if(type==="slow-correct"){ title=`Correct · ${elapsed.toFixed(1)}s`; kind="NOT YET AUTOMATIC"; delay=1050; showRule=true; }
+  if(type==="fast-wrong"){ title=`Fast error · ${elapsed.toFixed(1)}s`; kind="LIKELY MISCONCEPTION"; delay=1800; showRule=true; }
+  if(type==="slow-wrong"){ title=`Not yet · ${elapsed.toFixed(1)}s`; kind="UNCERTAINTY"; delay=1550; showRule=true; }
+  if(type==="timeout"){ title="Time"; kind="UNDER PRESSURE"; delay=1650; showRule=true; }
+
+  el("flashTitle").textContent=title;
+  el("flashAnswer").textContent=ok ? "" : `Correct: ${current.display[current.correctPos]}`;
+  el("flashRule").textContent=showRule ? current.rule : "";
+  el("flashTrigger").textContent=showRule ? current.trigger : "";
+  el("flashType").textContent=kind;
+  f.classList.add("show");
+  setTimeout(()=>{
+    f.classList.remove("show");
+    session.index++;
+    nextQuestion();
+  }, delay);
+}
+
+function answer(pos, timeout=false){
+  const elapsed=Math.min(LIMIT,(performance.now()-startStamp)/1000);
+  cancelTimers();
+  const remaining=Math.max(0,LIMIT-elapsed);
+  if(el("timerNumber")) el("timerNumber").textContent=String(Math.ceil(remaining));
+  if(el("timerProgress")) el("timerProgress").style.animationPlayState="paused";
+  const ok = pos===current.correctPos;
+  const type=errType(ok, elapsed, timeout);
+
+  const buttons=[...document.querySelectorAll(".answer")];
+  buttons.forEach((b,i)=>{
+    b.disabled=true;
+
+    if(i===current.correctPos){
+      b.classList.add("result-correct");
+    }else{
+      b.classList.add("result-dim");
+    }
+
+    if(i===pos && !ok && pos!==-1){
+      b.classList.remove("result-dim");
+      b.classList.add("result-wrong");
+    }
+  });
+
+  if(ok && pos!==-1 && buttons[pos]){
+    buttons[pos].classList.add("result-correct");
+  }
+  if(timeout && buttons[current.correctPos]){
+    buttons[current.correctPos].classList.remove("result-dim");
+  }
+
+  session.answered++;
+  if(ok) session.correct++;
+  session.times.push(elapsed);
+  if(type==="automatic") session.automatic++;
+
+  updateMetrics(current, ok, elapsed);
+  state.seen[current.id]=(state.seen[current.id]||0)+1;
+  const rec={session:state.sessions,qid:current.id,cat:current.cat,domain:current.domain,correct:ok,ms:Math.round(elapsed*1000),type,ts:Date.now(),question:current.q,userAnswer:pos===-1?"No answer":current.display[pos],correctAnswer:current.display[current.correctPos],rule:current.rule,trigger:current.trigger};
+  session.records.push(rec);
+  state.history.push(rec);
+  if(state.history.length>1200) state.history=state.history.slice(-1200);
+  save();
+
+  if(ok){
+    sCorrect();
+    if(playMode==="game") vibrate(18);
+    showToast("correct");
+  }else if(timeout){
+    if(playMode==="game") sWrong();
+    if(playMode==="game") vibrate([28,22,28]);
+    showToast("timeout");
+  }else{
+    sWrong();
+    if(playMode==="game") vibrate(type==="fast-wrong" ? [44,24,44] : [32,24,32]);
+    showToast("incorrect");
+  }
+
+  const delay = 1040;
+
+  const zone=document.querySelector(".question-zone");
+  setTimeout(()=>zone?.classList.add("fade-out"), Math.max(0,delay-85));
+  setTimeout(()=>{
+    zone?.classList.remove("fade-out");
+    session.index++;
+    nextQuestion();
+  }, delay);
+}
+
+function averageMetric(key){
+  const cats=[...new Set(session.records.map(r=>r.cat))];
+  if(!cats.length) return 0;
+  return cats.reduce((s,c)=>s+state.metrics[c][key],0)/cats.length;
+}
+function setBar(id,val){ el(id).style.width=`${Math.round(val*100)}%`; }
+
+function escapeHTML(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function finish(){
+  cancelTimers();
+  state.sessions++;
+  save();
+
+  el("gameScreen").classList.add("hidden");
+  el("endScreen").classList.remove("hidden");
+
+  const pct=Math.round(session.correct/MAX_Q*100);
+  const avg=session.times.reduce((a,b)=>a+b,0)/Math.max(1,session.times.length);
+
+  el("endTitle").textContent=`${session.correct}/15 · ${pct}%`;
+  el("finalScore").textContent=`${session.correct}/15`;
+  el("avgTime").textContent=`${avg.toFixed(1)}s`;
+  el("autoCount").textContent=session.automatic;
+
+  const cats=[...new Set(session.records.map(r=>r.cat))];
+  const weak=cats
+    .map(c=>({c,m:state.metrics[c],score:categoryScore(c)}))
+    .sort((x,y)=>y.score-x.score)
+    .slice(0,3);
+
+  const wrong=session.records.filter(r=>!r.correct);
+  const slowCorrect=session.records.filter(r=>r.correct && r.ms>3000);
+  const fastWrong=session.records.filter(r=>r.type==="fast-wrong");
+
+  const primary=weak[0];
+  const primaryName=primary ? (CAT_NAMES[primary.c]||primary.c) : "maintenance";
+  const secondaryName=weak[1] ? (CAT_NAMES[weak[1].c]||weak[1].c) : null;
+
+  let focusText=`Prioritise <b>${escapeHTML(primaryName)}</b>`;
+  if(secondaryName) focusText+=` and <b>${escapeHTML(secondaryName)}</b>`;
+  if(fastWrong.length) focusText+=`. ${fastWrong.length} fast error${fastWrong.length===1?"":"s"} may indicate a wrongly automated pattern`;
+  if(slowCorrect.length) focusText+=`. ${slowCorrect.length} correct answer${slowCorrect.length===1?" was":"s were"} still slower than automatic`;
+  focusText+=".";
+  el("nextFocusCompact").innerHTML=focusText;
+
+  if(wrong.length){
+    el("compactErrors").innerHTML=wrong.map((r,i)=>`
+      <div class="error-row">
+        <span class="error-q">${i+1}. ${escapeHTML(r.question)}</span>
+        <div class="error-line"><b>You:</b> ${escapeHTML(r.userAnswer)} · <b>Correct:</b> ${escapeHTML(r.correctAnswer)} · ${(r.ms/1000).toFixed(1)}s</div>
+        <div class="error-why">${escapeHTML(r.rule || "")}</div>
+      </div>
+    `).join("");
+  }else{
+    el("compactErrors").innerHTML=`<div class="error-why">No errors in this round.</div>`;
+  }
+
+  const focusLines=weak.length
+    ? weak.map(x=>`- ${CAT_NAMES[x.c]||x.c}: knowledge ${Math.round(x.m.k*100)}%, automaticity ${Math.round(x.m.a*100)}%, transfer ${Math.round(x.m.t*100)}%`).join("\n")
+    : "- General maintenance";
+
+  const errorLines=wrong.length
+    ? wrong.map((r,i)=>`${i+1}. ${r.question}
+   My answer: ${r.userAnswer}
+   Correct: ${r.correctAnswer}
+   Time: ${(r.ms/1000).toFixed(1)}s
+   Pattern: ${CAT_NAMES[r.cat]||r.cat}
+   Rule: ${r.rule}`).join("\n")
+    : "No incorrect answers.";
+
+  const slowLines=slowCorrect.length
+    ? slowCorrect.slice(0,6).map(r=>`- ${CAT_NAMES[r.cat]||r.cat}: correct in ${(r.ms/1000).toFixed(1)}s`).join("\n")
+    : "None.";
+
+  const prompt=`ADAPTIVE ENGLISH · LEVEL 28 RESULT
+
+Use these LEVEL 28 results to create LEVEL 29 of my adaptive English B2→C1 sequence.
+
+SESSION RESULT
+- Score: ${session.correct}/15 (${pct}%)
+- Average response time: ${avg.toFixed(1)}s
+- Automatic answers (≤3s): ${session.automatic}/15
+
+PRIORITY PATTERNS
+${focusLines}
+
+ERRORS
+${errorLines}
+
+CORRECT BUT SLOW / NOT FULLY AUTOMATIC
+${slowLines}
+
+LEVEL 29
+- Generate LEVEL 29 with exactly 15 new questions.
+- Keep 10 seconds per question.
+- Do not repeat the same sentence or surface wording.
+- Re-test weak grammar through different vocabulary, topics and situations.
+- Give most weight to the errors and priority patterns above.
+- Include spaced retrieval of stable structures.
+- Include transfer questions in clearly different contexts.
+- Add a small amount of new B2+/early C1 only if appropriate.
+- Use four plausible options with one clearly defensible answer.
+- Before the test, show ONE INITIAL TIP only. Choose the single most useful error pattern from the previous level; the tip may change from one level to the next. Explain it very briefly in Spanish, teacher-style, with a simple Spanish↔English trick, large typography and one minimal example/contrast. Include TEST LEVEL as a 0–100 longitudinal score. Then do not show grammar labels or clues during questions.
+- Keep this exact reference-matched visual system: #17251F dark green background, large empty upper field, compact centered question card, smaller question typography, equal 2x2 answer tiles, white geometric symbols, a prominent question number, and a clearly separated 10-segment progressive countdown above the question card, with a visible active segment moving from left to right. Do not include font-size/menu controls. Use the fixed TEST LEVEL background scale by 10-point bands (0–9 granate, 10–19 red, 20–29 terracotta, 30–39 forest green, 40–49 green, 50–59 teal, 60–69 petroleum blue, 70–79 deep blue, 80–89 indigo, 90–99 violet, 100 dark gold). After an answer, mark the user's wrong choice clearly red and reveal the correct tile with a subtle white ✓. Use short retro arcade/video-game sounds for correct and incorrect feedback.
+- Title it LEVEL 29 and return an updated standalone HTML app ready to open and use.`;
+
+  el("handoffPrompt").value=prompt;
+}
+
+async function copyHandoffPrompt(){
+  const box=el("handoffPrompt");
+  const status=el("copyStatus");
+  const text=box.value;
+
+  let copied=false;
+
+  // 1) Modern Clipboard API when the origin/browser permits it.
+  try{
+    if(navigator.clipboard && typeof navigator.clipboard.writeText==="function"){
+      await navigator.clipboard.writeText(text);
+      copied=true;
+    }
+  }catch(e){}
+
+  // 2) Android/local-file fallback: copy from a temporary editable textarea.
+  if(!copied){
+    try{
+      const temp=document.createElement("textarea");
+      temp.value=text;
+      temp.setAttribute("aria-hidden","true");
+      temp.style.position="fixed";
+      temp.style.left="-9999px";
+      temp.style.top="0";
+      temp.style.width="1px";
+      temp.style.height="1px";
+      temp.style.opacity="0";
+      temp.style.fontSize="16px";
+      document.body.appendChild(temp);
+
+      temp.focus({preventScroll:true});
+      temp.select();
+      temp.setSelectionRange(0,temp.value.length);
+
+      copied=document.execCommand("copy")===true;
+      temp.remove();
+    }catch(e){}
+  }
+
+  if(copied){
+    status.textContent="Copied ✓";
+    setTimeout(()=>status.textContent="",1600);
+    return;
+  }
+
+  // 3) Last-resort local-file behaviour:
+  // select the visible text so Android's native Copy action can be used.
+  try{
+    box.removeAttribute("readonly");
+    box.focus({preventScroll:false});
+    box.select();
+    box.setSelectionRange(0,box.value.length);
+    box.setAttribute("readonly","");
+    status.textContent="Selected — tap Copy";
+  }catch(e){
+    status.textContent="Long-press the result and choose Copy";
+  }
+}
+
+async function shareHandoffPrompt(){
+  const text=el("handoffPrompt").value;
+  const status=el("copyStatus");
+
+  if(navigator.share){
+    try{
+      await navigator.share({
+        title:"Adaptive English · Level 28 Result",
+        text
+      });
+      status.textContent="Shared ✓";
+      setTimeout(()=>status.textContent="",1600);
+      return;
+    }catch(e){}
+  }
+
+  // If Share is unavailable, fall back to the copy routine.
+  copyHandoffPrompt();
+}
+
+el("focusModeBtn").onclick=()=>setMode("focus");
+el("gameModeBtn").onclick=()=>setMode("game");
+function showTips(){
+  el("startScreen").classList.add("hidden");
+  el("endScreen").classList.add("hidden");
+  el("gameScreen").classList.add("hidden");
+  el("tipsScreen").classList.remove("hidden");
+}
+
+el("startBtn").onclick=async()=>{
+  await unlockAudio();
+  sStart();
+  showTips();
+};
+
+el("tipStartBtn").onclick=async()=>{
+  await unlockAudio();
+  sStart();
+  el("tipsScreen").classList.add("hidden");
+  startSession();
+};
+
+el("againBtn").onclick=async()=>{
+  await unlockAudio();
+  sStart();
+  el("endScreen").classList.add("hidden");
+  showTips();
+};
+el("copyPromptBtn").onclick=copyHandoffPrompt;
+el("sharePromptBtn").onclick=shareHandoffPrompt;
+el("resetBtn").onclick=()=>{
+  localStorage.removeItem(KEY);
+  state=loadState();
+  alert("Progress reset.");
+};
+el("soundBtn").onclick=async()=>{
+  soundOn=!soundOn;
+  el("soundBtn").classList.toggle("off",!soundOn);
+  if(soundOn){
+    await unlockAudio();
+    tone(720,.08,"sine",.07);
+  }
+};
+el("textBtn").onclick=()=>{document.body.classList.toggle("large"); if(current && !el("gameScreen").classList.contains("hidden")) setDynamicType();};
+</script>
+
+<script>
+// Fixed Adaptive English app shell. Update version.json + this build id with each new level.
+window.ADAPTIVE_APP_BUILD = "L28-2026-09-06";
+(function(){
+  async function checkForAdaptiveUpdate(){
+    try{
+      const r = await fetch('./version.json?t=' + Date.now(), {cache:'no-store'});
+      if(!r.ok) return;
+      const v = await r.json();
+      if(v && v.build && v.build !== window.ADAPTIVE_APP_BUILD){
+        const key='adaptive_update_'+v.build;
+        if(!sessionStorage.getItem(key)){
+          sessionStorage.setItem(key,'1');
+          location.replace('./?build=' + encodeURIComponent(v.build));
+        }
+      }
+    }catch(e){}
+  }
+  window.addEventListener('load', function(){
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('./service-worker.js').then(function(reg){
+        try{ reg.update(); }catch(e){}
+      }).catch(function(){});
+    }
+    checkForAdaptiveUpdate();
+  });
+})();
+</script>
+
+</body>
+</html>
