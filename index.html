@@ -2882,8 +2882,8 @@ html,body,button{
 
 <section id="startScreen" class="screen start">
   <div class="panel">
-    <div class="kicker">LEVEL 28 · B2 → C1</div>
-    <h1>LEVEL 28 · Adaptive English</h1>
+    <div class="kicker">LEVEL 29 · B2 → C1</div>
+    <h1>LEVEL 29 · Adaptive English</h1>
     <p>A fast, high-legibility adaptive English trainer built around a dark green learning interface and a direct handoff to ChatGPT.</p>
     <div class="mode-picker">
       <button id="focusModeBtn" class="mode-option active">Focus</button>
@@ -2903,29 +2903,29 @@ html,body,button{
   <div class="tip-panel tip-panel-one">
     <div class="test-level-row">
       <div>
-        <div class="tip-kicker">LEVEL 28 · INITIAL TIP</div>
+        <div class="tip-kicker">LEVEL 29 · INITIAL TIP</div>
         <div class="test-level-label">TEST LEVEL</div>
       </div>
-      <div class="test-level-value">36<span>%</span></div>
+      <div class="test-level-value">37<span>%</span></div>
     </div>
 
     <div class="single-teacher-tip">
       <div class="single-tip-title">UNLESS</div>
       <div class="single-tip-rule">
-        Piensa siempre: <b>“A MENOS QUE” = “SI NO”</b>.
+        Truco rápido: si en español piensas <b>“si no”</b>, en inglés casi siempre te pide <b>unless</b>.
       </div>
       <div class="single-tip-formula">
         UNLESS = IF NOT
       </div>
       <div class="single-tip-example">
-        I won't go <b>unless</b> you come.
+        The file won't open <b>unless</b> you enter the password.
       </div>
       <div class="single-tip-contrast">
-        = No iré <b>si no</b> vienes.
+        = No se abrirá <b>si no</b> metes la contraseña.
       </div>
     </div>
 
-    <button id="tipStartBtn" class="primary tip-start">START LEVEL 28</button>
+    <button id="tipStartBtn" class="primary tip-start">START LEVEL 29</button>
   </div>
 </section>
 
@@ -2970,7 +2970,7 @@ html,body,button{
 
 <section id="endScreen" class="screen end hidden">
   <div class="panel">
-    <div class="kicker">LEVEL 28 COMPLETE</div>
+    <div class="kicker">LEVEL 29 COMPLETE</div>
     <h1 id="endTitle">0 / 15</h1>
 
     <div class="final-strip">
@@ -3022,11 +3022,11 @@ html,body,button{
 </div>
 
 <script>
-const MAX_Q=15, LIMIT=10, KEY="adaptive_english_level28_v1";
+const MAX_Q=15, LIMIT=10, KEY="adaptive_english_level29_v1";
 const NEW_CATS=new Set(["inversion","mixed_conditional","causative","reporting_verbs"]);
 const SPACED_CATS=new Set(["wish_past","mustnt_have_to","third_conditional","whose","used_to","make_bare","look_forward"]);
 
-const TEST_LEVEL=36;
+const TEST_LEVEL=37;
 const LEVEL_BG_SCALE=[
   [0,"#241317"],[10,"#2C1818"],[20,"#322018"],[30,"#17251F"],[40,"#163027"],
   [50,"#123337"],[60,"#142F43"],[70,"#182A50"],[80,"#24264F"],[90,"#332449"],[100,"#3B3218"]
@@ -3046,49 +3046,50 @@ function applyLevelBackground(){
 }
 
 const priors={
- would_rather:{k:.14,a:.10,t:.14},
- allow_to:{k:.22,a:.14,t:.18},
- so_such:{k:.46,a:.30,t:.36},
- modal_perfect:{k:.22,a:.11,t:.20},
+ would_rather:{k:.09,a:.07,t:.10},
+ allow_to:{k:.18,a:.12,t:.14},
+ so_such:{k:.52,a:.40,t:.42},
+ modal_perfect:{k:.28,a:.17,t:.25},
  backshift:{k:.72,a:.47,t:.55},
  past_perfect:{k:.72,a:.60,t:.60},
- despite:{k:.21,a:.15,t:.19},
- unless:{k:.04,a:.04,t:.06},
+ despite:{k:.28,a:.19,t:.24},
+ unless:{k:.03,a:.03,t:.04},
  look_forward:{k:.82,a:.74,t:.72},
- third_conditional:{k:.34,a:.22,t:.28},
+ third_conditional:{k:.40,a:.28,t:.32},
  wish_past:{k:.88,a:.79,t:.78},
  mustnt_have_to:{k:.86,a:.76,t:.74},
  whose:{k:.86,a:.79,t:.78},
  used_to:{k:.84,a:.73,t:.72},
  make_bare:{k:.84,a:.74,t:.73},
- inversion:{k:.06,a:.05,t:.09},
+ inversion:{k:.03,a:.03,t:.06},
  mixed_conditional:{k:.58,a:.43,t:.47},
- causative:{k:.34,a:.22,t:.28},
- reporting_verbs:{k:.27,a:.18,t:.23},
+ causative:{k:.46,a:.33,t:.38},
+ reporting_verbs:{k:.42,a:.30,t:.34},
  collocation:{k:.61,a:.50,t:.50},
  phrasal:{k:.60,a:.49,t:.49},
  functional:{k:.66,a:.56,t:.56}
 };
 
 const bank=[
-{id:2801,cat:"unless",domain:"daily life",q:"I won't call a taxi ___ the bus is delayed.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
-{id:2802,cat:"unless",domain:"technology",q:"The file won't open ___ you enter the correct password.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
-{id:2803,cat:"unless",domain:"work",q:"We can't publish the report ___ legal approves it.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
+{id:2901,cat:"unless",domain:"technology",q:"The printer won't respond ___ you reconnect it to the network.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
+{id:2902,cat:"unless",domain:"work",q:"We can't send the application ___ the final form is signed.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
+{id:2903,cat:"unless",domain:"home",q:"The soup will burn ___ you turn the heat down.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
 
-{id:2804,cat:"inversion",domain:"daily life",q:"Only after the meeting ___ how serious the issue was.",a:["we understood","did we understand","we had understood","had we understand"],c:1,rule:"Only after at the front triggers inversion.",trigger:"ONLY AFTER → DID + SUBJECT + VERB"},
-{id:2805,cat:"inversion",domain:"science",q:"Rarely ___ such consistent results across all groups.",a:["researchers find","do researchers find","researchers found","did researchers found"],c:1,rule:"Rarely at the front triggers inversion.",trigger:"RARELY → AUXILIARY + SUBJECT"},
-{id:2806,cat:"inversion",domain:"culture",q:"Not until the lights came on ___ the painting's hidden detail.",a:["I noticed","did I notice","I had noticed","had I notice"],c:1,rule:"Not until at the front triggers inversion.",trigger:"NOT UNTIL → DID + SUBJECT + VERB"},
+{id:2904,cat:"inversion",domain:"research",q:"Only when the data was checked again ___ where the discrepancy came from.",a:["we saw","did we see","we had seen","had we saw"],c:1,rule:"Only + clause at the front triggers inversion.",trigger:"ONLY WHEN/AFTER → DID + SUBJECT + VERB"},
+{id:2905,cat:"inversion",domain:"society",q:"Seldom ___ such a calm response in a public debate.",a:["we witness","do we witness","did we witnessed","have we witness"],c:1,rule:"Fronted limiting adverbials such as seldom trigger inversion.",trigger:"SELDOM/RARELY → AUXILIARY + SUBJECT"},
+{id:2906,cat:"inversion",domain:"daily life",q:"Not until the door closed ___ that he had left his keys inside.",a:["he realised","did he realise","had he realised","he had realised"],c:1,rule:"Not until at the front triggers inversion in the main clause.",trigger:"NOT UNTIL → AUXILIARY + SUBJECT"},
 
-{id:2807,cat:"would_rather",domain:"home",q:"I'd rather your friends ___ their shoes at the door.",a:["leave","left","will leave","have left"],c:1,rule:"Would rather + another subject takes past simple.",trigger:"RATHER + OTHER PERSON → PAST"},
-{id:2808,cat:"would_rather",domain:"work",q:"She'd rather the client ___ by email.",a:["replies","replied","will reply","has replied"],c:1,rule:"Would rather + another subject takes past simple.",trigger:"RATHER + OTHER PERSON → PAST"},
+{id:2907,cat:"would_rather",domain:"family",q:"I'd rather your brother ___ us a message before dropping by.",a:["sends","sent","will send","has sent"],c:1,rule:"With a different subject, would rather is followed by past simple.",trigger:"WOULD RATHER + ANOTHER SUBJECT → PAST SIMPLE"},
+{id:2908,cat:"would_rather",domain:"work",q:"She'd rather the team ___ the draft one more time.",a:["revise","revised","will revise","have revised"],c:1,rule:"Would rather + a different subject takes past simple.",trigger:"WOULD RATHER + ANOTHER SUBJECT → PAST SIMPLE"},
+{id:2909,cat:"would_rather",domain:"neighbours",q:"We'd rather our neighbours ___ music so late at night.",a:["don't play","didn't play","won't play","haven't played"],c:1,rule:"A present/future preference about another subject uses past simple after would rather.",trigger:"WOULD RATHER + ANOTHER SUBJECT → PAST SIMPLE"},
 
-{id:2809,cat:"modal_perfect",domain:"travel",q:"I bought water, but the hotel gave us bottles for free. I ___ bought any.",a:["shouldn't have","needn't have","mustn't have","wouldn't have"],c:1,rule:"Needn't have = it happened, but it wasn't necessary.",trigger:"DONE + UNNECESSARY → NEEDN'T HAVE"},
-{id:2810,cat:"allow_to",domain:"technology",q:"The service allows customers ___ their data at any time.",a:["download","downloading","to download","downloaded"],c:2,rule:"Allow + object + to-infinitive.",trigger:"ALLOW CUSTOMERS → TO + VERB"},
-{id:2811,cat:"reporting_verbs",domain:"media",q:"The presenter admitted ___ the figures incorrectly.",a:["read","to read","reading","readed"],c:2,rule:"Admit is followed by -ing.",trigger:"ADMIT → -ING"},
-{id:2812,cat:"third_conditional",domain:"daily life",q:"If I ___ the door, the dog wouldn't have escaped.",a:["closed","had closed","would close","have closed"],c:1,rule:"Third conditional uses past perfect in the if-clause.",trigger:"IF + HAD + PARTICIPLE"},
-{id:2813,cat:"causative",domain:"home",q:"We had the heating system ___ yesterday.",a:["check","checking","checked","to check"],c:2,rule:"Have + object + past participle = arrange for someone else to do it.",trigger:"HAVE + OBJECT + PARTICIPLE"},
-{id:2814,cat:"so_such",domain:"media",q:"It was ___ a convincing performance that everyone applauded.",a:["so","such","too","enough"],c:1,rule:"Use such + noun phrase + that.",trigger:"SUCH + NOUN PHRASE + THAT"},
-{id:2815,cat:"despite",domain:"daily life",q:"___ being late, he stopped to help.",a:["Although","Despite","Even though","Because"],c:1,rule:"Despite can be followed directly by -ing.",trigger:"DESPITE + -ING"}
+{id:2910,cat:"allow_to",domain:"work",q:"The portal allows employees ___ their tax forms online.",a:["upload","uploading","to upload","uploaded"],c:2,rule:"Allow + object + to-infinitive.",trigger:"ALLOW + PERSON/GROUP + TO + VERB"},
+{id:2911,cat:"allow_to",domain:"culture",q:"The gallery doesn't allow visitors ___ flash photography inside.",a:["use","using","to use","used"],c:2,rule:"Allow + person/group is followed by to-infinitive.",trigger:"ALLOW + PERSON/GROUP + TO + VERB"},
+
+{id:2912,cat:"modal_perfect",domain:"work",q:"I reserved a workspace, but the office was empty all morning. I ___ a desk.",a:["shouldn't have booked","needn't have booked","mustn't have booked","can't have booked"],c:1,rule:"The action happened but was unnecessary: needn't have + past participle.",trigger:"DID IT + WASN'T NECESSARY → NEEDN'T HAVE"},
+{id:2913,cat:"reporting_verbs",domain:"communication",q:"The witness denied ___ the warning email.",a:["receive","to receive","receiving","received"],c:2,rule:"Deny is followed by -ing.",trigger:"DENY / ADMIT / SUGGEST → -ING"},
+{id:2914,cat:"third_conditional",domain:"travel",q:"If Maya ___ the map, she wouldn't have taken the wrong train.",a:["checked","had checked","would check","has checked"],c:1,rule:"Third conditional uses past perfect in the if-clause.",trigger:"IF + HAD + PARTICIPLE → WOULD HAVE + PARTICIPLE"},
+{id:2915,cat:"despite",domain:"events",q:"___ living far from the venue, they arrived before everyone else.",a:["Although","Despite","Because","Unless"],c:1,rule:"Despite can be followed directly by an -ing form.",trigger:"DESPITE + NOUN / -ING"}
 ];
 
 const SHAPES_SVG = [
@@ -3406,7 +3407,7 @@ function unusedQuestion(cat, usedIds, preferNewDomain=false){
   return cand.length ? cand[Math.floor(Math.random()*Math.min(2,cand.length))] : null;
 }
 function buildPlan(){
-  // LEVEL 28: reinforce unless and inversion, then retrieve the persistent B2 core.
+  // LEVEL 29: reinforce unless, inversion and would rather, then retrieve the persistent B2 core.
   return bank.slice(0,15);
 }
 function buildBalancedPositions(){
@@ -3791,9 +3792,9 @@ function finish(){
     ? slowCorrect.slice(0,6).map(r=>`- ${CAT_NAMES[r.cat]||r.cat}: correct in ${(r.ms/1000).toFixed(1)}s`).join("\n")
     : "None.";
 
-  const prompt=`ADAPTIVE ENGLISH · LEVEL 28 RESULT
+  const prompt=`ADAPTIVE ENGLISH · LEVEL 29 RESULT
 
-Use these LEVEL 28 results to create LEVEL 29 of my adaptive English B2→C1 sequence.
+Use these LEVEL 29 results to create LEVEL 30 of my adaptive English B2→C1 sequence.
 
 SESSION RESULT
 - Score: ${session.correct}/15 (${pct}%)
@@ -3809,8 +3810,8 @@ ${errorLines}
 CORRECT BUT SLOW / NOT FULLY AUTOMATIC
 ${slowLines}
 
-LEVEL 29
-- Generate LEVEL 29 with exactly 15 new questions.
+LEVEL 30
+- Generate LEVEL 30 with exactly 15 new questions.
 - Keep 10 seconds per question.
 - Do not repeat the same sentence or surface wording.
 - Re-test weak grammar through different vocabulary, topics and situations.
@@ -3821,7 +3822,7 @@ LEVEL 29
 - Use four plausible options with one clearly defensible answer.
 - Before the test, show ONE INITIAL TIP only. Choose the single most useful error pattern from the previous level; the tip may change from one level to the next. Explain it very briefly in Spanish, teacher-style, with a simple Spanish↔English trick, large typography and one minimal example/contrast. Include TEST LEVEL as a 0–100 longitudinal score. Then do not show grammar labels or clues during questions.
 - Keep this exact reference-matched visual system: #17251F dark green background, large empty upper field, compact centered question card, smaller question typography, equal 2x2 answer tiles, white geometric symbols, a prominent question number, and a clearly separated 10-segment progressive countdown above the question card, with a visible active segment moving from left to right. Do not include font-size/menu controls. Use the fixed TEST LEVEL background scale by 10-point bands (0–9 granate, 10–19 red, 20–29 terracotta, 30–39 forest green, 40–49 green, 50–59 teal, 60–69 petroleum blue, 70–79 deep blue, 80–89 indigo, 90–99 violet, 100 dark gold). After an answer, mark the user's wrong choice clearly red and reveal the correct tile with a subtle white ✓. Use short retro arcade/video-game sounds for correct and incorrect feedback.
-- Title it LEVEL 29 and return an updated standalone HTML app ready to open and use.`;
+- Title it LEVEL 30 and return an updated standalone HTML app ready to open and use.`;
 
   el("handoffPrompt").value=prompt;
 }
@@ -3953,7 +3954,7 @@ el("textBtn").onclick=()=>{document.body.classList.toggle("large"); if(current &
 
 <script>
 // Fixed Adaptive English app shell. Update version.json + this build id with each new level.
-window.ADAPTIVE_APP_BUILD = "L28-2026-09-06";
+window.ADAPTIVE_APP_BUILD = "L29-2026-09-07";
 (function(){
   async function checkForAdaptiveUpdate(){
     try{
