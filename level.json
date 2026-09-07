@@ -3,7 +3,7 @@
   "level": 33,
   "nextLevel": 34,
   "testLevel": 37,
-  "build": "L33-20260907-012345",
+  "build": "L33-20260907-013705",
   "updated": "2026-09-07",
   "tip": {
     "title": "INVERSION = ORDEN DE PREGUNTA",
@@ -129,12 +129,12 @@
       "id": 3301,
       "cat": "inversion",
       "domain": "archaeology",
-      "q": "Only after the soil was removed ___ the outline of the ancient wall.",
+      "q": "Only after the dig ended ___ the hidden wall.",
       "a": [
-        "the team could see",
-        "could the team see",
-        "the team saw",
-        "did the team saw"
+        "they noticed",
+        "did they notice",
+        "they had noticed",
+        "had they notice"
       ],
       "c": 1,
       "rule": "Only + time expression at the front triggers inversion.",
@@ -144,7 +144,7 @@
       "id": 3304,
       "cat": "allow_to",
       "domain": "housing",
-      "q": "The building policy allows residents ___ bicycles in the basement.",
+      "q": "The building allows residents ___ bikes downstairs.",
       "a": [
         "store",
         "storing",
@@ -159,12 +159,12 @@
       "id": 3307,
       "cat": "third_conditional",
       "domain": "laboratory",
-      "q": "If the samples ___ at a lower temperature, the results might have been more reliable.",
+      "q": "If the samples ___ colder, the results might have improved.",
       "a": [
         "were stored",
         "had been stored",
-        "would be stored",
-        "have been stored"
+        "would store",
+        "have stored"
       ],
       "c": 1,
       "rule": "Third conditional uses past perfect in the if-clause.",
@@ -174,12 +174,12 @@
       "id": 3310,
       "cat": "would_rather",
       "domain": "family",
-      "q": "I'd rather my brother ___ the news himself instead of hearing it from someone else.",
+      "q": "I'd rather my brother ___ me tonight.",
       "a": [
-        "explains",
-        "explained",
-        "will explain",
-        "has explained"
+        "calls",
+        "called",
+        "will call",
+        "has called"
       ],
       "c": 1,
       "rule": "Would rather + another subject uses past simple for a present/future preference.",
@@ -189,7 +189,7 @@
       "id": 3312,
       "cat": "unless",
       "domain": "cooking",
-      "q": "The sauce won't thicken ___ you leave it on the heat a little longer.",
+      "q": "The sauce won't thicken ___ you heat it longer.",
       "a": [
         "although",
         "unless",
@@ -204,12 +204,12 @@
       "id": 3302,
       "cat": "inversion",
       "domain": "weather",
-      "q": "Choose the only natural sentence.",
+      "q": "Rarely ___ direction so quickly.",
       "a": [
-        "Rarely storms change direction this quickly.",
-        "Rarely do storms change direction this quickly.",
-        "Rarely did storms changed direction this quickly.",
-        "Rarely storms do change direction this quickly."
+        "storms change",
+        "do storms change",
+        "did storms changed",
+        "storms do change"
       ],
       "c": 1,
       "rule": "Rarely at the front triggers inversion.",
@@ -219,7 +219,7 @@
       "id": 3314,
       "cat": "modal_perfect",
       "domain": "fitness",
-      "q": "I packed a towel, but the gym provided clean ones at reception. I ___ mine.",
+      "q": "The gym gave me a towel. I ___ mine.",
       "a": [
         "shouldn't have packed",
         "needn't have packed",
@@ -234,12 +234,12 @@
       "id": 3305,
       "cat": "allow_to",
       "domain": "photography",
-      "q": "Which sentence is correct?",
+      "q": "The permit allows photographers ___ tripods.",
       "a": [
-        "The permit allows photographers use tripods.",
-        "The permit allows photographers using tripods.",
-        "The permit allows photographers to use tripods.",
-        "The permit allows photographers used tripods."
+        "use",
+        "using",
+        "to use",
+        "used"
       ],
       "c": 2,
       "rule": "Allow + object + to-infinitive.",
@@ -249,12 +249,12 @@
       "id": 3308,
       "cat": "third_conditional",
       "domain": "navigation",
-      "q": "Which sentence means: 'Because she didn't charge her phone, she couldn't use the map'?",
+      "q": "If she ___ her phone, she could have used the map.",
       "a": [
-        "If she charged her phone, she could use the map.",
-        "If she had charged her phone, she could have used the map.",
-        "If she would charge her phone, she could have used the map.",
-        "If she has charged her phone, she can use the map."
+        "charged",
+        "had charged",
+        "would charge",
+        "has charged"
       ],
       "c": 1,
       "rule": "Third conditional describes an unreal past result.",
@@ -264,12 +264,12 @@
       "id": 3311,
       "cat": "would_rather",
       "domain": "work",
-      "q": "Choose the correct sentence.",
+      "q": "The director would rather we ___ early tomorrow.",
       "a": [
-        "The director would rather we leave early tomorrow.",
-        "The director would rather we left early tomorrow.",
-        "The director would rather we will leave early tomorrow.",
-        "The director would rather we have left early tomorrow."
+        "leave",
+        "left",
+        "will leave",
+        "have left"
       ],
       "c": 1,
       "rule": "Would rather + another subject takes past simple.",
@@ -279,7 +279,7 @@
       "id": 3303,
       "cat": "inversion",
       "domain": "cinema",
-      "q": "Not until the credits began ___ who had been narrating the story.",
+      "q": "Not until the credits ___ who the narrator was.",
       "a": [
         "we realised",
         "did we realise",
@@ -294,12 +294,12 @@
       "id": 3313,
       "cat": "unless",
       "domain": "documents",
-      "q": "Which sentence has the same meaning as 'The certificate is invalid if it isn't signed'?",
+      "q": "The certificate is invalid ___ it is signed.",
       "a": [
-        "The certificate is invalid although it is signed.",
-        "The certificate is invalid unless it is signed.",
-        "The certificate is invalid despite it is signed.",
-        "The certificate is invalid because it is signed."
+        "although",
+        "unless",
+        "despite",
+        "because"
       ],
       "c": 1,
       "rule": "Unless can replace if ... not.",
@@ -309,7 +309,7 @@
       "id": 3315,
       "cat": "causative",
       "domain": "electronics",
-      "q": "We had the damaged screen ___ before selling the tablet.",
+      "q": "We had the cracked screen ___ yesterday.",
       "a": [
         "replace",
         "replacing",
@@ -324,12 +324,12 @@
       "id": 3306,
       "cat": "allow_to",
       "domain": "workshop",
-      "q": "The workshop rules don't allow apprentices ___ power tools unsupervised.",
+      "q": "The rules don't allow trainees ___ this saw alone.",
       "a": [
-        "operate",
-        "operating",
-        "to operate",
-        "operated"
+        "use",
+        "using",
+        "to use",
+        "used"
       ],
       "c": 2,
       "rule": "Allow + object is followed by to-infinitive.",
@@ -339,12 +339,12 @@
       "id": 3309,
       "cat": "third_conditional",
       "domain": "music",
-      "q": "The band's late soundcheck delayed the opening song. Which sentence correctly imagines a different past?",
+      "q": "If the band ___ earlier, the show wouldn't have started late.",
       "a": [
-        "If they finished earlier, the song wouldn't start late.",
-        "If they had finished earlier, the song wouldn't have started late.",
-        "If they would finish earlier, the song hadn't started late.",
-        "If they have finished earlier, the song wouldn't start late."
+        "finished",
+        "had finished",
+        "would finish",
+        "has finished"
       ],
       "c": 1,
       "rule": "An unreal past condition uses past perfect plus would have + past participle.",

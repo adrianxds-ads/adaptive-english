@@ -532,105 +532,105 @@
       "id": 3301,
       "cat": "inversion",
       "domain": "archaeology",
-      "q": "Only after the soil was removed ___ the outline of the ancient wall."
+      "q": "Only after the dig ended ___ the hidden wall."
     },
     {
       "level": 33,
       "id": 3302,
       "cat": "inversion",
       "domain": "weather",
-      "q": "Choose the only natural sentence."
+      "q": "Rarely ___ direction so quickly."
     },
     {
       "level": 33,
       "id": 3303,
       "cat": "inversion",
       "domain": "cinema",
-      "q": "Not until the credits began ___ who had been narrating the story."
+      "q": "Not until the credits ___ who the narrator was."
     },
     {
       "level": 33,
       "id": 3304,
       "cat": "allow_to",
       "domain": "housing",
-      "q": "The building policy allows residents ___ bicycles in the basement."
+      "q": "The building allows residents ___ bikes downstairs."
     },
     {
       "level": 33,
       "id": 3305,
       "cat": "allow_to",
       "domain": "photography",
-      "q": "Which sentence is correct?"
+      "q": "The permit allows photographers ___ tripods."
     },
     {
       "level": 33,
       "id": 3306,
       "cat": "allow_to",
       "domain": "workshop",
-      "q": "The workshop rules don't allow apprentices ___ power tools unsupervised."
+      "q": "The rules don't allow trainees ___ this saw alone."
     },
     {
       "level": 33,
       "id": 3307,
       "cat": "third_conditional",
       "domain": "laboratory",
-      "q": "If the samples ___ at a lower temperature, the results might have been more reliable."
+      "q": "If the samples ___ colder, the results might have improved."
     },
     {
       "level": 33,
       "id": 3308,
       "cat": "third_conditional",
       "domain": "navigation",
-      "q": "Which sentence means: 'Because she didn't charge her phone, she couldn't use the map'?"
+      "q": "If she ___ her phone, she could have used the map."
     },
     {
       "level": 33,
       "id": 3309,
       "cat": "third_conditional",
       "domain": "music",
-      "q": "The band's late soundcheck delayed the opening song. Which sentence correctly imagines a different past?"
+      "q": "If the band ___ earlier, the show wouldn't have started late."
     },
     {
       "level": 33,
       "id": 3310,
       "cat": "would_rather",
       "domain": "family",
-      "q": "I'd rather my brother ___ the news himself instead of hearing it from someone else."
+      "q": "I'd rather my brother ___ me tonight."
     },
     {
       "level": 33,
       "id": 3311,
       "cat": "would_rather",
       "domain": "work",
-      "q": "Choose the correct sentence."
+      "q": "The director would rather we ___ early tomorrow."
     },
     {
       "level": 33,
       "id": 3312,
       "cat": "unless",
       "domain": "cooking",
-      "q": "The sauce won't thicken ___ you leave it on the heat a little longer."
+      "q": "The sauce won't thicken ___ you heat it longer."
     },
     {
       "level": 33,
       "id": 3313,
       "cat": "unless",
       "domain": "documents",
-      "q": "Which sentence has the same meaning as 'The certificate is invalid if it isn't signed'?"
+      "q": "The certificate is invalid ___ it is signed."
     },
     {
       "level": 33,
       "id": 3314,
       "cat": "modal_perfect",
       "domain": "fitness",
-      "q": "I packed a towel, but the gym provided clean ones at reception. I ___ mine."
+      "q": "The gym gave me a towel. I ___ mine."
     },
     {
       "level": 33,
       "id": 3315,
       "cat": "causative",
       "domain": "electronics",
-      "q": "We had the damaged screen ___ before selling the tablet."
+      "q": "We had the cracked screen ___ yesterday."
     }
   ]
 }
