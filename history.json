@@ -946,6 +946,111 @@
       "cat": "reporting_verbs",
       "domain": "delivery",
       "q": "She admitted ___ the wrong address."
+    },
+    {
+      "level": 37,
+      "id": 3701,
+      "cat": "allow_to",
+      "domain": "concert",
+      "q": "The ticket allows guests ___ the rooftop after six."
+    },
+    {
+      "level": 37,
+      "id": 3702,
+      "cat": "modal_perfect",
+      "domain": "school",
+      "q": "Lunch was included, so we ___ sandwiches."
+    },
+    {
+      "level": 37,
+      "id": 3703,
+      "cat": "unless",
+      "domain": "electronics",
+      "q": "The battery stays empty ___ the cable is connected."
+    },
+    {
+      "level": 37,
+      "id": 3704,
+      "cat": "inversion",
+      "domain": "theatre",
+      "q": "Only much later ___ why the lights had failed."
+    },
+    {
+      "level": 37,
+      "id": 3705,
+      "cat": "allow_to",
+      "domain": "cycling",
+      "q": "This pass allows cyclists ___ the tunnel at night."
+    },
+    {
+      "level": 37,
+      "id": 3706,
+      "cat": "modal_perfect",
+      "domain": "hotel",
+      "q": "Robes were provided, so I ___ mine."
+    },
+    {
+      "level": 37,
+      "id": 3707,
+      "cat": "unless",
+      "domain": "weather",
+      "q": "The ice stays solid ___ the temperature rises."
+    },
+    {
+      "level": 37,
+      "id": 3708,
+      "cat": "third_conditional",
+      "domain": "driving",
+      "q": "If Ben ___ the sign, he wouldn't have turned left."
+    },
+    {
+      "level": 37,
+      "id": 3709,
+      "cat": "allow_to",
+      "domain": "cloud",
+      "q": "The software allows teams ___ files securely."
+    },
+    {
+      "level": 37,
+      "id": 3710,
+      "cat": "modal_perfect",
+      "domain": "gallery",
+      "q": "Entry was free, so she ___ a ticket."
+    },
+    {
+      "level": 37,
+      "id": 3711,
+      "cat": "unless",
+      "domain": "pets",
+      "q": "The dog stays restless ___ the room is quiet."
+    },
+    {
+      "level": 37,
+      "id": 3712,
+      "cat": "inversion",
+      "domain": "winter",
+      "q": "Seldom ___ skies this clear in winter."
+    },
+    {
+      "level": 37,
+      "id": 3713,
+      "cat": "would_rather",
+      "domain": "booking",
+      "q": "I'd rather Mia ___ me before changing the booking."
+    },
+    {
+      "level": 37,
+      "id": 3714,
+      "cat": "causative",
+      "domain": "salon",
+      "q": "The salon had its mirrors ___ before opening."
+    },
+    {
+      "level": 37,
+      "id": 3715,
+      "cat": "allow_to",
+      "domain": "laboratory",
+      "q": "The badge allows staff ___ the lab after hours."
     }
   ]
 }
