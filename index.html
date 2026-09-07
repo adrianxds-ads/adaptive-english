@@ -2882,8 +2882,8 @@ html,body,button{
 
 <section id="startScreen" class="screen start">
   <div class="panel">
-    <div class="kicker">LEVEL 31 · B2 → C1</div>
-    <h1>LEVEL 31 · Adaptive English</h1>
+    <div class="kicker">LEVEL 32 · B2 → C1</div>
+    <h1>LEVEL 32 · Adaptive English</h1>
     <p>A fast, high-legibility adaptive English trainer built around a dark green learning interface and a direct handoff to ChatGPT.</p>
     <div class="mode-picker">
       <button id="focusModeBtn" class="mode-option active">Focus</button>
@@ -2891,9 +2891,9 @@ html,body,button{
     </div>
     <div id="modeHint" class="mode-hint">Focus: quieter, flatter feedback and fewer visual effects.</div>
     <div class="btns" style="margin-top:16px">
-      <button id="startBtn" class="primary">Initial Tips →</button>
+      <button id="startBtn" class="primary">Initial Tip →</button>
       <button id="resetBtn" class="secondary">Reset progress</button>
-    <div class="sound-note">Sound: soft clock tick · stronger 3–2–1 · cartoon answer sounds</div>
+    <div class="sound-note">Sound: soft clock tick · stronger 3–2–1 · retro arcade answer sounds</div>
     </div>
   </div>
 </section>
@@ -2903,29 +2903,29 @@ html,body,button{
   <div class="tip-panel tip-panel-one">
     <div class="test-level-row">
       <div>
-        <div class="tip-kicker">LEVEL 31 · INITIAL TIP</div>
+        <div class="tip-kicker">LEVEL 32 · INITIAL TIP</div>
         <div class="test-level-label">TEST LEVEL</div>
       </div>
       <div class="test-level-value">39<span>%</span></div>
     </div>
 
     <div class="single-teacher-tip">
-      <div class="single-tip-title">UNLESS</div>
+      <div class="single-tip-title">INVERSION</div>
       <div class="single-tip-rule">
-        Truco rapido: cuando en espanol pienses <b>"si no"</b>, prueba primero con <b>unless</b>.
+        Truco rapido: si empiezas con <b>Only / Rarely / Seldom / Not until</b>, piensa en una pregunta: primero va el auxiliar.
       </div>
       <div class="single-tip-formula">
-        UNLESS = IF NOT
+        ONLY / RARELY / NOT UNTIL → AUXILIARY + SUBJECT + VERB
       </div>
       <div class="single-tip-example">
-        I won't leave <b>unless</b> you call me.
+        Only later <b>did she realise</b> the mistake.
       </div>
       <div class="single-tip-contrast">
-        = No me ire <b>si no</b> me llamas.
+        No: <b>she realised</b> · Si: <b>did she realise</b>.
       </div>
     </div>
 
-    <button id="tipStartBtn" class="primary tip-start">START LEVEL 31</button>
+    <button id="tipStartBtn" class="primary tip-start">START LEVEL 32</button>
   </div>
 </section>
 
@@ -2951,7 +2951,7 @@ html,body,button{
 
       <div class="top-icons">
         <button id="soundBtn" class="icon-btn" aria-label="Toggle sound"><span class="icon-sound"></span></button>
-        <button id="textBtn" class="icon-btn" aria-label="Large text"><span class="icon-menu" style="opacity:0"></span><span style="font-size:15px;font-weight:900">Aa</span></button>
+        
       </div>
     </div>
     <div id="timeline" class="timeline progress-timeline"></div>
@@ -2970,7 +2970,7 @@ html,body,button{
 
 <section id="endScreen" class="screen end hidden">
   <div class="panel">
-    <div class="kicker">LEVEL 31 COMPLETE</div>
+    <div class="kicker">LEVEL 32 COMPLETE</div>
     <h1 id="endTitle">0 / 15</h1>
 
     <div class="final-strip">
@@ -3022,8 +3022,8 @@ html,body,button{
 </div>
 
 <script>
-const MAX_Q=15, LIMIT=10, KEY="adaptive_english_level31_v1";
-const CURRENT_LEVEL=31, NEXT_LEVEL=32;
+const MAX_Q=15, LIMIT=10, KEY="adaptive_english_level32_v1";
+const CURRENT_LEVEL=32, NEXT_LEVEL=33;
 const NEW_CATS=new Set(["inversion","mixed_conditional","causative","reporting_verbs"]);
 const SPACED_CATS=new Set(["wish_past","mustnt_have_to","third_conditional","whose","used_to","make_bare","look_forward"]);
 
@@ -3047,48 +3047,50 @@ function applyLevelBackground(){
 }
 
 const priors={
- would_rather:{k:.21,a:.10,t:.17},
- allow_to:{k:.31,a:.18,t:.23},
+ would_rather:{k:.23,a:.12,t:.21},
+ allow_to:{k:.35,a:.20,t:.28},
  so_such:{k:.60,a:.46,t:.48},
- modal_perfect:{k:.32,a:.20,t:.27},
+ modal_perfect:{k:.38,a:.24,t:.30},
  backshift:{k:.72,a:.47,t:.55},
  past_perfect:{k:.72,a:.60,t:.60},
  despite:{k:.42,a:.31,t:.36},
- unless:{k:.03,a:.03,t:.04}, look_forward:{k:.82,a:.74,t:.72},
- third_conditional:{k:.38,a:.24,t:.31},
+ unless:{k:.32,a:.12,t:.25},
+ look_forward:{k:.82,a:.74,t:.72},
+ third_conditional:{k:.31,a:.18,t:.26},
  wish_past:{k:.88,a:.79,t:.78},
  mustnt_have_to:{k:.86,a:.76,t:.74},
  whose:{k:.86,a:.79,t:.78},
  used_to:{k:.84,a:.73,t:.72},
  make_bare:{k:.84,a:.74,t:.73},
- inversion:{k:.24,a:.11,t:.14},
+ inversion:{k:.11,a:.06,t:.09},
  mixed_conditional:{k:.58,a:.43,t:.47},
- causative:{k:.46,a:.33,t:.38},
- reporting_verbs:{k:.55,a:.40,t:.45},
+ causative:{k:.52,a:.38,t:.43},
+ reporting_verbs:{k:.60,a:.45,t:.50},
  collocation:{k:.61,a:.50,t:.50},
  phrasal:{k:.60,a:.49,t:.49},
  functional:{k:.66,a:.56,t:.56}
 };
 
 const bank=[
-{id:3101,cat:"unless",domain:"technology",q:"The backup won't start ___ the external drive is connected.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
-{id:3102,cat:"unless",domain:"home",q:"The plants will dry out ___ someone waters them while we're away.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
-{id:3103,cat:"unless",domain:"work",q:"We can't approve the payment ___ the receipt is attached.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
-{id:3104,cat:"would_rather",domain:"home",q:"I'd rather your cousin ___ the window before leaving.",a:["closes","closed","will close","has closed"],c:1,rule:"With a different subject, would rather is followed by past simple.",trigger:"WOULD RATHER + ANOTHER SUBJECT → PAST SIMPLE"},
-{id:3105,cat:"would_rather",domain:"work",q:"She'd rather the designer ___ a simpler layout for the homepage.",a:["uses","used","will use","has used"],c:1,rule:"Would rather + a different subject takes past simple.",trigger:"WOULD RATHER + ANOTHER SUBJECT → PAST SIMPLE"},
-{id:3106,cat:"would_rather",domain:"social life",q:"We'd rather our friends ___ us before changing the plan.",a:["tell","told","will tell","have told"],c:1,rule:"A present/future preference about another subject uses past simple after would rather.",trigger:"WOULD RATHER + ANOTHER SUBJECT → PAST SIMPLE"},
+{id:3201,cat:"inversion",domain:"art",q:"Only after the restoration was finished ___ how much detail had been hidden beneath the varnish.",a:["experts realised","did experts realise","experts had realised","had experts realise"],c:1,rule:"Only + time expression at the front triggers inversion.",trigger:"ONLY AFTER → DID + SUBJECT + VERB"},
+{id:3202,cat:"inversion",domain:"finance",q:"Rarely ___ so calmly to an unexpected rise in interest rates.",a:["investors react","do investors react","did investors reacted","investors reacted"],c:1,rule:"Rarely at the front triggers inversion.",trigger:"RARELY → AUXILIARY + SUBJECT"},
+{id:3203,cat:"inversion",domain:"environment",q:"Not until the river level fell ___ the full extent of the damage.",a:["residents saw","did residents see","had residents seen","residents had seen"],c:1,rule:"Not until at the front triggers inversion in the main clause.",trigger:"NOT UNTIL → AUXILIARY + SUBJECT"},
+{id:3204,cat:"inversion",domain:"sport",q:"Only when the replay was shown ___ that the ball had crossed the line.",a:["the referee realised","did the referee realise","the referee had realised","had the referee realise"],c:1,rule:"Only when at the front triggers inversion in the main clause.",trigger:"ONLY WHEN → DID + SUBJECT + VERB"},
 
-{id:3107,cat:"inversion",domain:"culture",q:"Only after reading the final chapter ___ why the title mattered.",a:["I understood","did I understand","I had understood","had I understand"],c:1,rule:"Only + time expression at the front triggers inversion.",trigger:"ONLY AFTER → DID + SUBJECT + VERB"},
-{id:3108,cat:"inversion",domain:"science",q:"Seldom ___ results this consistent across three separate trials.",a:["researchers obtain","do researchers obtain","did researchers obtained","researchers obtained"],c:1,rule:"Seldom at the front triggers inversion.",trigger:"SELDOM → AUXILIARY + SUBJECT"},
-{id:3109,cat:"inversion",domain:"daily life",q:"Not until I reached the station ___ that my wallet was missing.",a:["I noticed","did I notice","had I noticed","I had noticed"],c:1,rule:"Not until at the front triggers inversion in the main clause.",trigger:"NOT UNTIL → AUXILIARY + SUBJECT"},
+{id:3205,cat:"would_rather",domain:"travel",q:"I'd rather my sister ___ the tickets before prices go up.",a:["books","booked","will book","has booked"],c:1,rule:"With a different subject, would rather is followed by past simple.",trigger:"WOULD RATHER + ANOTHER SUBJECT → PAST SIMPLE"},
+{id:3206,cat:"would_rather",domain:"media",q:"The producer would rather the team ___ the announcement until Monday.",a:["delays","delayed","will delay","has delayed"],c:1,rule:"Would rather + a different subject takes past simple.",trigger:"WOULD RATHER + ANOTHER SUBJECT → PAST SIMPLE"},
+{id:3207,cat:"would_rather",domain:"safety",q:"Would you rather the children ___ indoors while the storm passes?",a:["stay","stayed","will stay","have stayed"],c:1,rule:"A present or future preference about another subject uses past simple after would rather.",trigger:"WOULD RATHER + ANOTHER SUBJECT → PAST SIMPLE"},
 
-{id:3110,cat:"allow_to",domain:"education",q:"The course allows students ___ assignments up to midnight.",a:["submit","submitting","to submit","submitted"],c:2,rule:"Allow + object + to-infinitive.",trigger:"ALLOW + PERSON/GROUP + TO + VERB"},
-{id:3111,cat:"allow_to",domain:"technology",q:"This setting doesn't allow users ___ their location publicly.",a:["share","sharing","to share","shared"],c:2,rule:"Allow + person/group is followed by to-infinitive.",trigger:"ALLOW + PERSON/GROUP + TO + VERB"},
+{id:3208,cat:"unless",domain:"nature",q:"The seedlings will die ___ they get several more hours of sunlight each day.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
+{id:3209,cat:"unless",domain:"film",q:"Production will remain on hold ___ the insurer approves the stunt sequence.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
+{id:3210,cat:"unless",domain:"logistics",q:"The parcel will be returned to the sender ___ you collect it by Friday.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
 
-{id:3112,cat:"third_conditional",domain:"travel",q:"If Leo ___ the departure board, he wouldn't have gone to the wrong gate.",a:["checked","had checked","would check","has checked"],c:1,rule:"Third conditional uses past perfect in the if-clause.",trigger:"IF + HAD + PARTICIPLE → WOULD HAVE + PARTICIPLE"},
-{id:3113,cat:"modal_perfect",domain:"shopping",q:"I ordered two chargers, but one came free with the phone. I ___ the second one.",a:["shouldn't have ordered","needn't have ordered","mustn't have ordered","can't have ordered"],c:1,rule:"The action happened but was unnecessary: needn't have + past participle.",trigger:"DID IT + WASN'T NECESSARY → NEEDN'T HAVE"},
-{id:3114,cat:"reporting_verbs",domain:"work",q:"The manager denied ___ the confidential document outside the team.",a:["share","to share","sharing","shared"],c:2,rule:"Deny is followed by -ing.",trigger:"DENY / ADMIT / SUGGEST → -ING"},
-{id:3115,cat:"causative",domain:"home",q:"We had the front door ___ after the lock became unreliable.",a:["repair","repairing","repaired","to repair"],c:2,rule:"Have + object + past participle means arranging for someone else to do it.",trigger:"HAVE + OBJECT + PAST PARTICIPLE"}
+{id:3211,cat:"allow_to",domain:"transport",q:"The rail pass allows passengers ___ bicycles after 9 a.m.",a:["carry","carrying","to carry","carried"],c:2,rule:"Allow + object + to-infinitive.",trigger:"ALLOW + PERSON/GROUP + TO + VERB"},
+{id:3212,cat:"allow_to",domain:"privacy",q:"The privacy controls don't allow apps ___ your microphone without permission.",a:["access","accessing","to access","accessed"],c:2,rule:"Allow + person or thing + to-infinitive.",trigger:"ALLOW + OBJECT + TO + VERB"},
+
+{id:3213,cat:"third_conditional",domain:"science",q:"If the technician ___ the sample earlier, the delay could have been avoided.",a:["tested","had tested","would test","has tested"],c:1,rule:"Third conditional uses past perfect in the if-clause.",trigger:"IF + HAD + PARTICIPLE → WOULD/COULD HAVE + PARTICIPLE"},
+{id:3214,cat:"modal_perfect",domain:"recreation",q:"I brought my own helmet, but the climbing centre supplied one for free. I ___ mine.",a:["shouldn't have brought","needn't have brought","mustn't have brought","can't have brought"],c:1,rule:"The action happened but was unnecessary: needn't have + past participle.",trigger:"DID IT + WASN'T NECESSARY → NEEDN'T HAVE"},
+{id:3215,cat:"causative",domain:"workplace",q:"They had the office windows ___ before the safety inspection.",a:["clean","cleaning","cleaned","to clean"],c:2,rule:"Have + object + past participle means arranging for someone else to do it.",trigger:"HAVE + OBJECT + PAST PARTICIPLE"}
 ];
 
 const SHAPES_SVG = [
@@ -3406,7 +3408,7 @@ function unusedQuestion(cat, usedIds, preferNewDomain=false){
   return cand.length ? cand[Math.floor(Math.random()*Math.min(2,cand.length))] : null;
 }
 function buildPlan(){
-  // LEVEL 31: reinforce unless, would rather and inversion, then retrieve allow, third conditional and slower core structures.
+  // LEVEL 32: target fresh transfer for inversion, would rather and unless; retrieve allow, third conditional, modal perfect and causative.
   return bank.slice(0,15);
 }
 function buildBalancedPositions(){
@@ -3950,12 +3952,11 @@ el("soundBtn").onclick=async()=>{
     tone(720,.08,"sine",.07);
   }
 };
-el("textBtn").onclick=()=>{document.body.classList.toggle("large"); if(current && !el("gameScreen").classList.contains("hidden")) setDynamicType();};
 </script>
 
 <script>
 // Fixed Adaptive English app shell. Update version.json + this build id with each new level.
-window.ADAPTIVE_APP_BUILD = "L31-2026-09-07";
+window.ADAPTIVE_APP_BUILD = "L32-2026-09-07";
 (function(){
   async function checkForAdaptiveUpdate(){
     try{
