@@ -3057,21 +3057,231 @@ const priors={
 };
 
 const bank=[
-{id:3301,cat:"inversion",domain:"archaeology",q:"Only after the soil was removed ___ the outline of the ancient wall.",a:["the team could see","could the team see","the team saw","did the team saw"],c:1,rule:"Only + time expression at the front triggers inversion.",trigger:"ONLY AFTER → AUXILIARY + SUBJECT"},
-{id:3302,cat:"inversion",domain:"weather",q:"Choose the only natural sentence.",a:["Rarely storms change direction this quickly.","Rarely do storms change direction this quickly.","Rarely did storms changed direction this quickly.","Rarely storms do change direction this quickly."],c:1,rule:"Rarely at the front triggers inversion.",trigger:"RARELY → AUXILIARY + SUBJECT"},
-{id:3303,cat:"inversion",domain:"cinema",q:"Not until the credits began ___ who had been narrating the story.",a:["we realised","did we realise","we had realised","had we realise"],c:1,rule:"Not until at the front triggers inversion in the main clause.",trigger:"NOT UNTIL → AUXILIARY + SUBJECT"},
-{id:3304,cat:"allow_to",domain:"housing",q:"The building policy allows residents ___ bicycles in the basement.",a:["store","storing","to store","stored"],c:2,rule:"Allow + object + to-infinitive.",trigger:"ALLOW + PERSON/GROUP + TO + VERB"},
-{id:3305,cat:"allow_to",domain:"photography",q:"Which sentence is correct?",a:["The permit allows photographers use tripods.","The permit allows photographers using tripods.","The permit allows photographers to use tripods.","The permit allows photographers used tripods."],c:2,rule:"Allow + object + to-infinitive.",trigger:"ALLOW + OBJECT + TO + VERB"},
-{id:3306,cat:"allow_to",domain:"workshop",q:"The workshop rules don't allow apprentices ___ power tools unsupervised.",a:["operate","operating","to operate","operated"],c:2,rule:"Allow + object is followed by to-infinitive.",trigger:"ALLOW + PERSON/GROUP + TO + VERB"},
-{id:3307,cat:"third_conditional",domain:"laboratory",q:"If the samples ___ at a lower temperature, the results might have been more reliable.",a:["were stored","had been stored","would be stored","have been stored"],c:1,rule:"Third conditional uses past perfect in the if-clause.",trigger:"IF + HAD + PAST PARTICIPLE"},
-{id:3308,cat:"third_conditional",domain:"navigation",q:"Which sentence means: 'Because she didn't charge her phone, she couldn't use the map'?",a:["If she charged her phone, she could use the map.","If she had charged her phone, she could have used the map.","If she would charge her phone, she could have used the map.","If she has charged her phone, she can use the map."],c:1,rule:"Third conditional describes an unreal past result.",trigger:"IF + HAD + PP → COULD/WOULD HAVE + PP"},
-{id:3309,cat:"third_conditional",domain:"music",q:"The band's late soundcheck delayed the opening song. Which sentence correctly imagines a different past?",a:["If they finished earlier, the song wouldn't start late.","If they had finished earlier, the song wouldn't have started late.","If they would finish earlier, the song hadn't started late.","If they have finished earlier, the song wouldn't start late."],c:1,rule:"An unreal past condition uses past perfect plus would have + past participle.",trigger:"IF + HAD + PP → WOULD HAVE + PP"},
-{id:3310,cat:"would_rather",domain:"family",q:"I'd rather my brother ___ the news himself instead of hearing it from someone else.",a:["explains","explained","will explain","has explained"],c:1,rule:"Would rather + another subject uses past simple for a present/future preference.",trigger:"WOULD RATHER + ANOTHER SUBJECT → PAST SIMPLE"},
-{id:3311,cat:"would_rather",domain:"work",q:"Choose the correct sentence.",a:["The director would rather we leave early tomorrow.","The director would rather we left early tomorrow.","The director would rather we will leave early tomorrow.","The director would rather we have left early tomorrow."],c:1,rule:"Would rather + another subject takes past simple.",trigger:"WOULD RATHER + SUBJECT + PAST"},
-{id:3312,cat:"unless",domain:"cooking",q:"The sauce won't thicken ___ you leave it on the heat a little longer.",a:["although","unless","despite","because"],c:1,rule:"Unless means if not.",trigger:"UNLESS = IF NOT"},
-{id:3313,cat:"unless",domain:"documents",q:"Which sentence has the same meaning as 'The certificate is invalid if it isn't signed'?",a:["The certificate is invalid although it is signed.","The certificate is invalid unless it is signed.","The certificate is invalid despite it is signed.","The certificate is invalid because it is signed."],c:1,rule:"Unless can replace if ... not.",trigger:"IF NOT = UNLESS"},
-{id:3314,cat:"modal_perfect",domain:"fitness",q:"I packed a towel, but the gym provided clean ones at reception. I ___ mine.",a:["shouldn't have packed","needn't have packed","mustn't have packed","can't have packed"],c:1,rule:"Needn't have means the action happened but was unnecessary.",trigger:"DID IT + NOT NECESSARY → NEEDN'T HAVE"},
-{id:3315,cat:"causative",domain:"electronics",q:"We had the damaged screen ___ before selling the tablet.",a:["replace","replacing","replaced","to replace"],c:2,rule:"Have + object + past participle means arranging for someone else to do it.",trigger:"HAVE + OBJECT + PAST PARTICIPLE"}
+  {
+    "id": 3301,
+    "cat": "inversion",
+    "domain": "archaeology",
+    "q": "Only after the soil was removed ___ the outline of the ancient wall.",
+    "a": [
+      "the team could see",
+      "could the team see",
+      "the team saw",
+      "did the team saw"
+    ],
+    "c": 1,
+    "rule": "Only + time expression at the front triggers inversion.",
+    "trigger": "ONLY AFTER → AUXILIARY + SUBJECT"
+  },
+  {
+    "id": 3304,
+    "cat": "allow_to",
+    "domain": "housing",
+    "q": "The building policy allows residents ___ bicycles in the basement.",
+    "a": [
+      "store",
+      "storing",
+      "to store",
+      "stored"
+    ],
+    "c": 2,
+    "rule": "Allow + object + to-infinitive.",
+    "trigger": "ALLOW + PERSON/GROUP + TO + VERB"
+  },
+  {
+    "id": 3307,
+    "cat": "third_conditional",
+    "domain": "laboratory",
+    "q": "If the samples ___ at a lower temperature, the results might have been more reliable.",
+    "a": [
+      "were stored",
+      "had been stored",
+      "would be stored",
+      "have been stored"
+    ],
+    "c": 1,
+    "rule": "Third conditional uses past perfect in the if-clause.",
+    "trigger": "IF + HAD + PAST PARTICIPLE"
+  },
+  {
+    "id": 3310,
+    "cat": "would_rather",
+    "domain": "family",
+    "q": "I'd rather my brother ___ the news himself instead of hearing it from someone else.",
+    "a": [
+      "explains",
+      "explained",
+      "will explain",
+      "has explained"
+    ],
+    "c": 1,
+    "rule": "Would rather + another subject uses past simple for a present/future preference.",
+    "trigger": "WOULD RATHER + ANOTHER SUBJECT → PAST SIMPLE"
+  },
+  {
+    "id": 3312,
+    "cat": "unless",
+    "domain": "cooking",
+    "q": "The sauce won't thicken ___ you leave it on the heat a little longer.",
+    "a": [
+      "although",
+      "unless",
+      "despite",
+      "because"
+    ],
+    "c": 1,
+    "rule": "Unless means if not.",
+    "trigger": "UNLESS = IF NOT"
+  },
+  {
+    "id": 3302,
+    "cat": "inversion",
+    "domain": "weather",
+    "q": "Choose the only natural sentence.",
+    "a": [
+      "Rarely storms change direction this quickly.",
+      "Rarely do storms change direction this quickly.",
+      "Rarely did storms changed direction this quickly.",
+      "Rarely storms do change direction this quickly."
+    ],
+    "c": 1,
+    "rule": "Rarely at the front triggers inversion.",
+    "trigger": "RARELY → AUXILIARY + SUBJECT"
+  },
+  {
+    "id": 3314,
+    "cat": "modal_perfect",
+    "domain": "fitness",
+    "q": "I packed a towel, but the gym provided clean ones at reception. I ___ mine.",
+    "a": [
+      "shouldn't have packed",
+      "needn't have packed",
+      "mustn't have packed",
+      "can't have packed"
+    ],
+    "c": 1,
+    "rule": "Needn't have means the action happened but was unnecessary.",
+    "trigger": "DID IT + NOT NECESSARY → NEEDN'T HAVE"
+  },
+  {
+    "id": 3305,
+    "cat": "allow_to",
+    "domain": "photography",
+    "q": "Which sentence is correct?",
+    "a": [
+      "The permit allows photographers use tripods.",
+      "The permit allows photographers using tripods.",
+      "The permit allows photographers to use tripods.",
+      "The permit allows photographers used tripods."
+    ],
+    "c": 2,
+    "rule": "Allow + object + to-infinitive.",
+    "trigger": "ALLOW + OBJECT + TO + VERB"
+  },
+  {
+    "id": 3308,
+    "cat": "third_conditional",
+    "domain": "navigation",
+    "q": "Which sentence means: 'Because she didn't charge her phone, she couldn't use the map'?",
+    "a": [
+      "If she charged her phone, she could use the map.",
+      "If she had charged her phone, she could have used the map.",
+      "If she would charge her phone, she could have used the map.",
+      "If she has charged her phone, she can use the map."
+    ],
+    "c": 1,
+    "rule": "Third conditional describes an unreal past result.",
+    "trigger": "IF + HAD + PP → COULD/WOULD HAVE + PP"
+  },
+  {
+    "id": 3311,
+    "cat": "would_rather",
+    "domain": "work",
+    "q": "Choose the correct sentence.",
+    "a": [
+      "The director would rather we leave early tomorrow.",
+      "The director would rather we left early tomorrow.",
+      "The director would rather we will leave early tomorrow.",
+      "The director would rather we have left early tomorrow."
+    ],
+    "c": 1,
+    "rule": "Would rather + another subject takes past simple.",
+    "trigger": "WOULD RATHER + SUBJECT + PAST"
+  },
+  {
+    "id": 3303,
+    "cat": "inversion",
+    "domain": "cinema",
+    "q": "Not until the credits began ___ who had been narrating the story.",
+    "a": [
+      "we realised",
+      "did we realise",
+      "we had realised",
+      "had we realise"
+    ],
+    "c": 1,
+    "rule": "Not until at the front triggers inversion in the main clause.",
+    "trigger": "NOT UNTIL → AUXILIARY + SUBJECT"
+  },
+  {
+    "id": 3313,
+    "cat": "unless",
+    "domain": "documents",
+    "q": "Which sentence has the same meaning as 'The certificate is invalid if it isn't signed'?",
+    "a": [
+      "The certificate is invalid although it is signed.",
+      "The certificate is invalid unless it is signed.",
+      "The certificate is invalid despite it is signed.",
+      "The certificate is invalid because it is signed."
+    ],
+    "c": 1,
+    "rule": "Unless can replace if ... not.",
+    "trigger": "IF NOT = UNLESS"
+  },
+  {
+    "id": 3315,
+    "cat": "causative",
+    "domain": "electronics",
+    "q": "We had the damaged screen ___ before selling the tablet.",
+    "a": [
+      "replace",
+      "replacing",
+      "replaced",
+      "to replace"
+    ],
+    "c": 2,
+    "rule": "Have + object + past participle means arranging for someone else to do it.",
+    "trigger": "HAVE + OBJECT + PAST PARTICIPLE"
+  },
+  {
+    "id": 3306,
+    "cat": "allow_to",
+    "domain": "workshop",
+    "q": "The workshop rules don't allow apprentices ___ power tools unsupervised.",
+    "a": [
+      "operate",
+      "operating",
+      "to operate",
+      "operated"
+    ],
+    "c": 2,
+    "rule": "Allow + object is followed by to-infinitive.",
+    "trigger": "ALLOW + PERSON/GROUP + TO + VERB"
+  },
+  {
+    "id": 3309,
+    "cat": "third_conditional",
+    "domain": "music",
+    "q": "The band's late soundcheck delayed the opening song. Which sentence correctly imagines a different past?",
+    "a": [
+      "If they finished earlier, the song wouldn't start late.",
+      "If they had finished earlier, the song wouldn't have started late.",
+      "If they would finish earlier, the song hadn't started late.",
+      "If they have finished earlier, the song wouldn't start late."
+    ],
+    "c": 1,
+    "rule": "An unreal past condition uses past perfect plus would have + past participle.",
+    "trigger": "IF + HAD + PP → WOULD HAVE + PP"
+  }
 ];
 
 const SHAPES_SVG = [
@@ -3937,7 +4147,7 @@ el("soundBtn").onclick=async()=>{
 
 <script>
 // Fixed Adaptive English app shell. Update version.json + this build id with each new level.
-window.ADAPTIVE_APP_BUILD = "L33-2026-09-07";
+window.ADAPTIVE_APP_BUILD = "L33-R2-2026-09-07";
 (function(){
   async function checkForAdaptiveUpdate(){
     try{
