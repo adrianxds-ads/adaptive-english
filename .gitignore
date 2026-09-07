@@ -1,0 +1,17 @@
+# Local migration / validation scratch files
+*.before_l*.html
+version.before_l*.json
+live_index*.html
+live_version*.json
+update_l*.js
+patch_l*.js
+validate_l*.js
+verify_l*.ps1
+fix_validate*.js
+bump_l*.js
+check_l*.js
+interleave_l*.js
+refactor_data_architecture.js
+patch_publisher_validate.js
+validate_architecture.js
+chrome-ae-test/

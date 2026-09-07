@@ -1,16 +1,23 @@
-# Adaptive English · fixed app
+# Adaptive English · fixed adaptive app
 
-This folder is the permanent GitHub Pages app. Upload all files to the root of the repository `adrianxds-ads/adaptive-english`.
+Permanent public app:
+`https://adrianxds-ads.github.io/adaptive-english/`
 
-## One-time GitHub setup
-1. Upload these files to the repository root: `index.html`, `manifest.webmanifest`, `service-worker.js`, `version.json`, `icon-192.png`, `icon-512.png`.
-2. In the repository open **Settings → Pages**.
-3. Under **Build and deployment**, choose **Deploy from a branch**.
-4. Select branch **main** and folder **/(root)**, then **Save**.
-5. The permanent app address will be: `https://adrianxds-ads.github.io/adaptive-english/`.
-6. Open that address in Chrome on Android → menu → **Add to Home screen / Install app**.
+The phone/PWA URL never changes.
 
-From then on, only the repository files are updated. The phone icon stays the same.
+## Architecture
+- `index.html` — fixed visual shell.
+- `app.js` — fixed quiz engine, timer, sounds, scoring and compact result handoff.
+- `level.json` — the only level-content file that normally changes: LEVEL, TEST LEVEL, tip, priors and 15 questions.
+- `history.json` — historical questions used to prevent repetition and excessive similarity.
+- `publish-level.js` — validates, versions, commits, pushes and verifies the live GitHub Pages deployment.
+- `service-worker.js` — network-first PWA shell with offline fallback.
 
-## Update contract for future levels
-For each new LEVEL, replace `index.html` and update `version.json`. Also change `window.ADAPTIVE_APP_BUILD` inside `index.html` to the same new build value. The app checks `version.json` with cache disabled and forces a fresh load when a new build is available.
+## Normal next-level workflow
+1. Finish the current test and copy its compact result.
+2. Generate the next adaptive 15-question `level.json` from that result.
+3. Run `node publish-level.js --validate-only` while drafting.
+4. Run `node publish-level.js` when ready.
+5. The publisher checks IDs, four-option integrity, domain diversity, historical repetition/similarity, updates `history.json` and `version.json`, commits, pushes, and verifies the public site.
+
+Do not edit `index.html` for ordinary LEVEL changes. Technical app changes are separate from pedagogical level updates.
