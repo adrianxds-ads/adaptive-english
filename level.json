@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "level": 37,
-  "nextLevel": 38,
-  "testLevel": 36,
-  "build": "L37-20260907-022334",
+  "level": 38,
+  "nextLevel": 39,
+  "testLevel": 34,
+  "build": "L38-20260907-022849",
   "updated": "2026-09-07",
   "tip": {
-    "title": "ALLOW + OBJECT + TO + VERB",
-    "ruleHtml": "Si <b>allow</b> lleva después una persona o cosa, añade <b>to</b> antes del verbo.",
+    "title": "ALLOW + OBJECT → TO + VERB",
+    "ruleHtml": "Si después de <b>allow</b> aparece alguien o algo, usa <b>to + verbo</b>.",
     "formulaHtml": "ALLOW + OBJECT + TO + VERB",
-    "exampleHtml": "The app allows users <b>to edit</b>.",
-    "contrastHtml": "No: allows users editing · Sí: allows users to edit."
+    "exampleHtml": "The app allows users <b>to save</b>.",
+    "contrastHtml": "No: allows users saving · Sí: allows users to save."
   },
   "priors": {
     "would_rather": {
-      "k": 0.2,
-      "a": 0.1,
-      "t": 0.19
+      "k": 0.16,
+      "a": 0.08,
+      "t": 0.16
     },
     "allow_to": {
-      "k": 0.09,
-      "a": 0.06,
-      "t": 0.12
+      "k": 0.03,
+      "a": 0.03,
+      "t": 0.07
     },
     "so_such": {
       "k": 0.6,
@@ -29,9 +29,9 @@
       "t": 0.48
     },
     "modal_perfect": {
-      "k": 0.11,
-      "a": 0.05,
-      "t": 0.11
+      "k": 0.12,
+      "a": 0.06,
+      "t": 0.12
     },
     "backshift": {
       "k": 0.72,
@@ -59,9 +59,9 @@
       "t": 0.72
     },
     "third_conditional": {
-      "k": 0.2,
-      "a": 0.14,
-      "t": 0.22
+      "k": 0.16,
+      "a": 0.08,
+      "t": 0.17
     },
     "wish_past": {
       "k": 0.88,
@@ -89,9 +89,9 @@
       "t": 0.73
     },
     "inversion": {
-      "k": 0.15,
-      "a": 0.07,
-      "t": 0.14
+      "k": 0.09,
+      "a": 0.05,
+      "t": 0.1
     },
     "mixed_conditional": {
       "k": 0.58,
@@ -99,14 +99,14 @@
       "t": 0.47
     },
     "causative": {
-      "k": 0.18,
-      "a": 0.1,
-      "t": 0.17
+      "k": 0.14,
+      "a": 0.08,
+      "t": 0.15
     },
     "reporting_verbs": {
-      "k": 0.56,
-      "a": 0.4,
-      "t": 0.45
+      "k": 0.58,
+      "a": 0.42,
+      "t": 0.47
     },
     "collocation": {
       "k": 0.61,
@@ -126,225 +126,225 @@
   },
   "questions": [
     {
-      "id": 3701,
+      "id": 3801,
       "cat": "allow_to",
-      "domain": "concert",
-      "q": "The ticket allows guests ___ the rooftop after six.",
+      "domain": "gaming",
+      "q": "The console allows players ___ custom controls.",
       "a": [
-        "enter",
-        "entering",
-        "to enter",
-        "entered"
+        "set",
+        "setting",
+        "to set",
+        "sets"
       ],
       "c": 2,
       "rule": "Allow + object + to-infinitive.",
       "trigger": "ALLOW + OBJECT + TO + VERB"
     },
     {
-      "id": 3702,
-      "cat": "modal_perfect",
-      "domain": "school",
-      "q": "Lunch was included, so we ___ sandwiches.",
-      "a": [
-        "shouldn't have bought",
-        "needn't have bought",
-        "mustn't have bought",
-        "can't have bought"
-      ],
-      "c": 1,
-      "rule": "Needn't have means it happened but was unnecessary.",
-      "trigger": "DID IT + NOT NECESSARY → NEEDN'T HAVE"
-    },
-    {
-      "id": 3703,
-      "cat": "unless",
-      "domain": "electronics",
-      "q": "The battery stays empty ___ the cable is connected.",
-      "a": [
-        "although",
-        "unless",
-        "despite",
-        "because"
-      ],
-      "c": 1,
-      "rule": "Unless means if not.",
-      "trigger": "UNLESS = IF NOT"
-    },
-    {
-      "id": 3704,
+      "id": 3802,
       "cat": "inversion",
-      "domain": "theatre",
-      "q": "Only much later ___ why the lights had failed.",
+      "domain": "archives",
+      "q": "Only after lunch ___ the missing page.",
       "a": [
-        "we discovered",
-        "did we discover",
-        "we had discovered",
-        "did we discovered"
+        "they found",
+        "did they find",
+        "they had found",
+        "did they found"
       ],
       "c": 1,
       "rule": "Only at the front triggers inversion.",
-      "trigger": "ONLY → AUXILIARY + SUBJECT"
+      "trigger": "ONLY AFTER → AUXILIARY + SUBJECT"
     },
     {
-      "id": 3705,
-      "cat": "allow_to",
-      "domain": "cycling",
-      "q": "This pass allows cyclists ___ the tunnel at night.",
-      "a": [
-        "use",
-        "using",
-        "to use",
-        "used"
-      ],
-      "c": 2,
-      "rule": "Allow + object + to-infinitive.",
-      "trigger": "ALLOW + OBJECT + TO + VERB"
-    },
-    {
-      "id": 3706,
-      "cat": "modal_perfect",
-      "domain": "hotel",
-      "q": "Robes were provided, so I ___ mine.",
-      "a": [
-        "shouldn't have packed",
-        "needn't have packed",
-        "mustn't have packed",
-        "can't have packed"
-      ],
-      "c": 1,
-      "rule": "Needn't have means it happened but was unnecessary.",
-      "trigger": "DID IT + NOT NECESSARY → NEEDN'T HAVE"
-    },
-    {
-      "id": 3707,
-      "cat": "unless",
-      "domain": "weather",
-      "q": "The ice stays solid ___ the temperature rises.",
-      "a": [
-        "although",
-        "unless",
-        "despite",
-        "because"
-      ],
-      "c": 1,
-      "rule": "Unless means if not.",
-      "trigger": "UNLESS = IF NOT"
-    },
-    {
-      "id": 3708,
-      "cat": "third_conditional",
-      "domain": "driving",
-      "q": "If Ben ___ the sign, he wouldn't have turned left.",
-      "a": [
-        "noticed",
-        "had noticed",
-        "would notice",
-        "has noticed"
-      ],
-      "c": 1,
-      "rule": "Third conditional uses past perfect after if.",
-      "trigger": "IF + HAD + PAST PARTICIPLE"
-    },
-    {
-      "id": 3709,
-      "cat": "allow_to",
-      "domain": "cloud",
-      "q": "The software allows teams ___ files securely.",
-      "a": [
-        "share",
-        "sharing",
-        "to share",
-        "shared"
-      ],
-      "c": 2,
-      "rule": "Allow + object + to-infinitive.",
-      "trigger": "ALLOW + OBJECT + TO + VERB"
-    },
-    {
-      "id": 3710,
-      "cat": "modal_perfect",
-      "domain": "gallery",
-      "q": "Entry was free, so she ___ a ticket.",
-      "a": [
-        "shouldn't have bought",
-        "needn't have bought",
-        "mustn't have bought",
-        "can't have bought"
-      ],
-      "c": 1,
-      "rule": "Needn't have means it happened but was unnecessary.",
-      "trigger": "DID IT + NOT NECESSARY → NEEDN'T HAVE"
-    },
-    {
-      "id": 3711,
-      "cat": "unless",
-      "domain": "pets",
-      "q": "The dog stays restless ___ the room is quiet.",
-      "a": [
-        "although",
-        "unless",
-        "despite",
-        "because"
-      ],
-      "c": 1,
-      "rule": "Unless means if not.",
-      "trigger": "UNLESS = IF NOT"
-    },
-    {
-      "id": 3712,
-      "cat": "inversion",
-      "domain": "winter",
-      "q": "Seldom ___ skies this clear in winter.",
-      "a": [
-        "we see",
-        "do we see",
-        "did we saw",
-        "we do see"
-      ],
-      "c": 1,
-      "rule": "Seldom at the front triggers inversion.",
-      "trigger": "SELDOM → AUXILIARY + SUBJECT"
-    },
-    {
-      "id": 3713,
-      "cat": "would_rather",
-      "domain": "booking",
-      "q": "I'd rather Mia ___ me before changing the booking.",
-      "a": [
-        "tells",
-        "told",
-        "will tell",
-        "has told"
-      ],
-      "c": 1,
-      "rule": "Would rather + another subject takes past simple.",
-      "trigger": "WOULD RATHER + SUBJECT + PAST"
-    },
-    {
-      "id": 3714,
+      "id": 3803,
       "cat": "causative",
-      "domain": "salon",
-      "q": "The salon had its mirrors ___ before opening.",
+      "domain": "footwear",
+      "q": "I had my boots ___ before the hike.",
       "a": [
-        "polish",
-        "polishing",
-        "polished",
-        "to polish"
+        "repair",
+        "repairing",
+        "repaired",
+        "to repair"
       ],
       "c": 2,
       "rule": "Have + object + past participle.",
       "trigger": "HAVE + OBJECT + PAST PARTICIPLE"
     },
     {
-      "id": 3715,
-      "cat": "allow_to",
-      "domain": "laboratory",
-      "q": "The badge allows staff ___ the lab after hours.",
+      "id": 3804,
+      "cat": "modal_perfect",
+      "domain": "venue",
+      "q": "The venue offered lockers, so we ___ bags.",
       "a": [
-        "access",
-        "accessing",
-        "to access",
-        "accessed"
+        "shouldn't have carried",
+        "needn't have carried",
+        "mustn't have carried",
+        "can't have carried"
+      ],
+      "c": 1,
+      "rule": "Needn't have means it happened but was unnecessary.",
+      "trigger": "DID IT + NOT NECESSARY → NEEDN'T HAVE"
+    },
+    {
+      "id": 3805,
+      "cat": "allow_to",
+      "domain": "banking",
+      "q": "This account allows clients ___ two cards.",
+      "a": [
+        "hold",
+        "holding",
+        "to hold",
+        "held"
+      ],
+      "c": 2,
+      "rule": "Allow + object + to-infinitive.",
+      "trigger": "ALLOW + OBJECT + TO + VERB"
+    },
+    {
+      "id": 3806,
+      "cat": "unless",
+      "domain": "printing",
+      "q": "The printer stays offline ___ the cable is replaced.",
+      "a": [
+        "although",
+        "unless",
+        "despite",
+        "because"
+      ],
+      "c": 1,
+      "rule": "Unless means if not.",
+      "trigger": "UNLESS = IF NOT"
+    },
+    {
+      "id": 3807,
+      "cat": "inversion",
+      "domain": "photography",
+      "q": "Seldom ___ light this soft at noon.",
+      "a": [
+        "photographers get",
+        "do photographers get",
+        "did photographers got",
+        "photographers do get"
+      ],
+      "c": 1,
+      "rule": "Seldom at the front triggers inversion.",
+      "trigger": "SELDOM → AUXILIARY + SUBJECT"
+    },
+    {
+      "id": 3808,
+      "cat": "causative",
+      "domain": "furniture",
+      "q": "We had the sofa ___ before moving in.",
+      "a": [
+        "clean",
+        "cleaning",
+        "cleaned",
+        "to clean"
+      ],
+      "c": 2,
+      "rule": "Have + object + past participle.",
+      "trigger": "HAVE + OBJECT + PAST PARTICIPLE"
+    },
+    {
+      "id": 3809,
+      "cat": "third_conditional",
+      "domain": "keys",
+      "q": "If Luis ___ the key, he would not have waited outside.",
+      "a": [
+        "took",
+        "had taken",
+        "would take",
+        "has taken"
+      ],
+      "c": 1,
+      "rule": "Third conditional uses past perfect after if.",
+      "trigger": "IF + HAD + PAST PARTICIPLE"
+    },
+    {
+      "id": 3810,
+      "cat": "allow_to",
+      "domain": "software",
+      "q": "The license allows firms ___ backups locally.",
+      "a": [
+        "store",
+        "storing",
+        "to store",
+        "stored"
+      ],
+      "c": 2,
+      "rule": "Allow + object + to-infinitive.",
+      "trigger": "ALLOW + OBJECT + TO + VERB"
+    },
+    {
+      "id": 3811,
+      "cat": "modal_perfect",
+      "domain": "camping",
+      "q": "The campsite lent tents, so they ___ theirs.",
+      "a": [
+        "shouldn't have brought",
+        "needn't have brought",
+        "mustn't have brought",
+        "can't have brought"
+      ],
+      "c": 1,
+      "rule": "Needn't have means it happened but was unnecessary.",
+      "trigger": "DID IT + NOT NECESSARY → NEEDN'T HAVE"
+    },
+    {
+      "id": 3812,
+      "cat": "inversion",
+      "domain": "payments",
+      "q": "Not until Friday ___ the payment had failed.",
+      "a": [
+        "she realised",
+        "did she realise",
+        "she had realised",
+        "did she realised"
+      ],
+      "c": 1,
+      "rule": "Not until at the front triggers inversion.",
+      "trigger": "NOT UNTIL → AUXILIARY + SUBJECT"
+    },
+    {
+      "id": 3813,
+      "cat": "causative",
+      "domain": "watch",
+      "q": "He had his watch ___ before the trip.",
+      "a": [
+        "service",
+        "servicing",
+        "serviced",
+        "to service"
+      ],
+      "c": 2,
+      "rule": "Have + object + past participle.",
+      "trigger": "HAVE + OBJECT + PAST PARTICIPLE"
+    },
+    {
+      "id": 3814,
+      "cat": "would_rather",
+      "domain": "neighbours",
+      "q": "I'd rather the neighbours ___ us before parking there.",
+      "a": [
+        "ask",
+        "asked",
+        "will ask",
+        "have asked"
+      ],
+      "c": 1,
+      "rule": "Would rather + another subject takes past simple.",
+      "trigger": "WOULD RATHER + SUBJECT + PAST"
+    },
+    {
+      "id": 3815,
+      "cat": "allow_to",
+      "domain": "workspace",
+      "q": "The new rule allows staff ___ rooms online.",
+      "a": [
+        "book",
+        "booking",
+        "to book",
+        "booked"
       ],
       "c": 2,
       "rule": "Allow + object + to-infinitive.",

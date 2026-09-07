@@ -1051,6 +1051,111 @@
       "cat": "allow_to",
       "domain": "laboratory",
       "q": "The badge allows staff ___ the lab after hours."
+    },
+    {
+      "level": 38,
+      "id": 3801,
+      "cat": "allow_to",
+      "domain": "gaming",
+      "q": "The console allows players ___ custom controls."
+    },
+    {
+      "level": 38,
+      "id": 3802,
+      "cat": "inversion",
+      "domain": "archives",
+      "q": "Only after lunch ___ the missing page."
+    },
+    {
+      "level": 38,
+      "id": 3803,
+      "cat": "causative",
+      "domain": "footwear",
+      "q": "I had my boots ___ before the hike."
+    },
+    {
+      "level": 38,
+      "id": 3804,
+      "cat": "modal_perfect",
+      "domain": "venue",
+      "q": "The venue offered lockers, so we ___ bags."
+    },
+    {
+      "level": 38,
+      "id": 3805,
+      "cat": "allow_to",
+      "domain": "banking",
+      "q": "This account allows clients ___ two cards."
+    },
+    {
+      "level": 38,
+      "id": 3806,
+      "cat": "unless",
+      "domain": "printing",
+      "q": "The printer stays offline ___ the cable is replaced."
+    },
+    {
+      "level": 38,
+      "id": 3807,
+      "cat": "inversion",
+      "domain": "photography",
+      "q": "Seldom ___ light this soft at noon."
+    },
+    {
+      "level": 38,
+      "id": 3808,
+      "cat": "causative",
+      "domain": "furniture",
+      "q": "We had the sofa ___ before moving in."
+    },
+    {
+      "level": 38,
+      "id": 3809,
+      "cat": "third_conditional",
+      "domain": "keys",
+      "q": "If Luis ___ the key, he would not have waited outside."
+    },
+    {
+      "level": 38,
+      "id": 3810,
+      "cat": "allow_to",
+      "domain": "software",
+      "q": "The license allows firms ___ backups locally."
+    },
+    {
+      "level": 38,
+      "id": 3811,
+      "cat": "modal_perfect",
+      "domain": "camping",
+      "q": "The campsite lent tents, so they ___ theirs."
+    },
+    {
+      "level": 38,
+      "id": 3812,
+      "cat": "inversion",
+      "domain": "payments",
+      "q": "Not until Friday ___ the payment had failed."
+    },
+    {
+      "level": 38,
+      "id": 3813,
+      "cat": "causative",
+      "domain": "watch",
+      "q": "He had his watch ___ before the trip."
+    },
+    {
+      "level": 38,
+      "id": 3814,
+      "cat": "would_rather",
+      "domain": "neighbours",
+      "q": "I'd rather the neighbours ___ us before parking there."
+    },
+    {
+      "level": 38,
+      "id": 3815,
+      "cat": "allow_to",
+      "domain": "workspace",
+      "q": "The new rule allows staff ___ rooms online."
     }
   ]
 }
