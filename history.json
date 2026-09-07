@@ -736,6 +736,111 @@
       "cat": "modal_perfect",
       "domain": "camping",
       "q": "They supplied blankets, so we ___ ours."
+    },
+    {
+      "level": 35,
+      "id": 3501,
+      "cat": "modal_perfect",
+      "domain": "hostel",
+      "q": "The hostel supplied towels, so I ___ mine."
+    },
+    {
+      "level": 35,
+      "id": 3502,
+      "cat": "third_conditional",
+      "domain": "cycling",
+      "q": "If Eva ___ the map, she wouldn't have got lost."
+    },
+    {
+      "level": 35,
+      "id": 3503,
+      "cat": "would_rather",
+      "domain": "family",
+      "q": "I'd rather Sam ___ before borrowing my laptop."
+    },
+    {
+      "level": 35,
+      "id": 3504,
+      "cat": "inversion",
+      "domain": "astronomy",
+      "q": "Only later ___ why the star looked brighter."
+    },
+    {
+      "level": 35,
+      "id": 3505,
+      "cat": "allow_to",
+      "domain": "library",
+      "q": "The library allows visitors ___ photos without flash."
+    },
+    {
+      "level": 35,
+      "id": 3506,
+      "cat": "causative",
+      "domain": "clothing",
+      "q": "I had my jacket ___ before the wedding."
+    },
+    {
+      "level": 35,
+      "id": 3507,
+      "cat": "unless",
+      "domain": "gardening",
+      "q": "The seeds won't sprout ___ the soil stays warm."
+    },
+    {
+      "level": 35,
+      "id": 3508,
+      "cat": "modal_perfect",
+      "domain": "hiking",
+      "q": "They lent us poles, so we ___ ours."
+    },
+    {
+      "level": 35,
+      "id": 3509,
+      "cat": "third_conditional",
+      "domain": "cooking",
+      "q": "If Tom ___ the oven, dinner wouldn't have burned."
+    },
+    {
+      "level": 35,
+      "id": 3510,
+      "cat": "would_rather",
+      "domain": "office",
+      "q": "The manager would rather we ___ tomorrow."
+    },
+    {
+      "level": 35,
+      "id": 3511,
+      "cat": "inversion",
+      "domain": "music",
+      "q": "Rarely ___ such a quiet audience here."
+    },
+    {
+      "level": 35,
+      "id": 3512,
+      "cat": "modal_perfect",
+      "domain": "travel",
+      "q": "Breakfast was included, so we ___ food."
+    },
+    {
+      "level": 35,
+      "id": 3513,
+      "cat": "third_conditional",
+      "domain": "gaming",
+      "q": "If Mia ___ the update, the game wouldn't have crashed."
+    },
+    {
+      "level": 35,
+      "id": 3514,
+      "cat": "causative",
+      "domain": "electronics",
+      "q": "They had the battery ___ at lunchtime."
+    },
+    {
+      "level": 35,
+      "id": 3515,
+      "cat": "reporting_verbs",
+      "domain": "security",
+      "q": "He denied ___ the password with anyone."
     }
   ]
 }
