@@ -841,6 +841,111 @@
       "cat": "reporting_verbs",
       "domain": "security",
       "q": "He denied ___ the password with anyone."
+    },
+    {
+      "level": 36,
+      "id": 3601,
+      "cat": "inversion",
+      "domain": "law",
+      "q": "Only afterwards ___ why the witness hesitated."
+    },
+    {
+      "level": 36,
+      "id": 3602,
+      "cat": "allow_to",
+      "domain": "zoo",
+      "q": "The zoo allows visitors ___ photos from this platform."
+    },
+    {
+      "level": 36,
+      "id": 3603,
+      "cat": "unless",
+      "domain": "elevator",
+      "q": "The lift won’t move ___ both doors are closed."
+    },
+    {
+      "level": 36,
+      "id": 3604,
+      "cat": "modal_perfect",
+      "domain": "parking",
+      "q": "Parking was free, so I ___ a permit."
+    },
+    {
+      "level": 36,
+      "id": 3605,
+      "cat": "inversion",
+      "domain": "social media",
+      "q": "Seldom ___ comments this thoughtful online."
+    },
+    {
+      "level": 36,
+      "id": 3606,
+      "cat": "third_conditional",
+      "domain": "photography",
+      "q": "If Zara ___ the battery, the camera would have worked."
+    },
+    {
+      "level": 36,
+      "id": 3607,
+      "cat": "allow_to",
+      "domain": "banking",
+      "q": "This card allows customers ___ cash abroad."
+    },
+    {
+      "level": 36,
+      "id": 3608,
+      "cat": "unless",
+      "domain": "aquarium",
+      "q": "The fish won’t survive ___ the water stays clean."
+    },
+    {
+      "level": 36,
+      "id": 3609,
+      "cat": "would_rather",
+      "domain": "home",
+      "q": "I'd rather you ___ the door before midnight."
+    },
+    {
+      "level": 36,
+      "id": 3610,
+      "cat": "causative",
+      "domain": "cycling",
+      "q": "She had her brakes ___ before the race."
+    },
+    {
+      "level": 36,
+      "id": 3611,
+      "cat": "modal_perfect",
+      "domain": "paperwork",
+      "q": "The form was optional, so we ___ it."
+    },
+    {
+      "level": 36,
+      "id": 3612,
+      "cat": "inversion",
+      "domain": "camping",
+      "q": "Not until sunset ___ how cold it was."
+    },
+    {
+      "level": 36,
+      "id": 3613,
+      "cat": "allow_to",
+      "domain": "software",
+      "q": "The update allows editors ___ changes offline."
+    },
+    {
+      "level": 36,
+      "id": 3614,
+      "cat": "unless",
+      "domain": "baking",
+      "q": "The bread won’t rise ___ the yeast is active."
+    },
+    {
+      "level": 36,
+      "id": 3615,
+      "cat": "reporting_verbs",
+      "domain": "delivery",
+      "q": "She admitted ___ the wrong address."
     }
   ]
 }
