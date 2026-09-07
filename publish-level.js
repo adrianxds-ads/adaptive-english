@@ -34,7 +34,12 @@ async function sleep(ms){return new Promise(r=>setTimeout(r,ms));}async function
     const nq=norm(q.q); if(!nq) fail(`empty question ${q.id}`);
     if(texts.has(nq)) fail(`duplicate question text ${q.id}`); texts.add(nq);
     if(!q.cat||!q.domain||!q.rule||!q.trigger) fail(`metadata missing on ${q.id}`);
+    if(!q.q.includes('___')) fail(`${q.id} must use a short cloze blank for the 10-second mobile format`);
+    const qWords=q.q.trim().split(/\s+/).length;
+    if(qWords>14) fail(`${q.id} question too long for 10 seconds: ${qWords} words (max 14)`);
     if(!Array.isArray(q.a)||q.a.length!==4) fail(`${q.id} must have four options`);
+    const maxAnswerWords=Math.max(...q.a.map(x=>String(x).trim().split(/\s+/).length));
+    if(maxAnswerWords>4) fail(`${q.id} answer option too long for mobile scanning: ${maxAnswerWords} words (max 4)`);
     if(new Set(q.a.map(norm)).size!==4) fail(`${q.id} has duplicate answer options`);
     if(!Number.isInteger(q.c)||q.c<0||q.c>3) fail(`${q.id} has invalid correct answer index`);
   }
