@@ -631,6 +631,111 @@
       "cat": "causative",
       "domain": "electronics",
       "q": "We had the cracked screen ___ yesterday."
+    },
+    {
+      "level": 34,
+      "id": 3401,
+      "cat": "inversion",
+      "domain": "alarms",
+      "q": "Only then ___ why the alarm kept ringing."
+    },
+    {
+      "level": 34,
+      "id": 3402,
+      "cat": "unless",
+      "domain": "accounts",
+      "q": "Your account stays frozen ___ you confirm your identity."
+    },
+    {
+      "level": 34,
+      "id": 3403,
+      "cat": "causative",
+      "domain": "renovation",
+      "q": "We had the kitchen tiles ___ last week."
+    },
+    {
+      "level": 34,
+      "id": 3404,
+      "cat": "allow_to",
+      "domain": "museum",
+      "q": "The museum allows members ___ sketches inside."
+    },
+    {
+      "level": 34,
+      "id": 3405,
+      "cat": "third_conditional",
+      "domain": "ferries",
+      "q": "If Nina ___ earlier, she would have caught the ferry."
+    },
+    {
+      "level": 34,
+      "id": 3406,
+      "cat": "inversion",
+      "domain": "wildlife",
+      "q": "Rarely ___ this species near the coast."
+    },
+    {
+      "level": 34,
+      "id": 3407,
+      "cat": "unless",
+      "domain": "electronics",
+      "q": "The battery won't charge ___ the cable is connected properly."
+    },
+    {
+      "level": 34,
+      "id": 3408,
+      "cat": "causative",
+      "domain": "clothing",
+      "q": "He had his suit ___ before the ceremony."
+    },
+    {
+      "level": 34,
+      "id": 3409,
+      "cat": "would_rather",
+      "domain": "social",
+      "q": "I'd rather Leo ___ me before inviting anyone."
+    },
+    {
+      "level": 34,
+      "id": 3410,
+      "cat": "allow_to",
+      "domain": "visas",
+      "q": "This visa allows visitors ___ for six months."
+    },
+    {
+      "level": 34,
+      "id": 3411,
+      "cat": "third_conditional",
+      "domain": "files",
+      "q": "If Omar ___ the warning, he wouldn't have deleted the file."
+    },
+    {
+      "level": 34,
+      "id": 3412,
+      "cat": "inversion",
+      "domain": "power",
+      "q": "Not until midnight ___ the power return."
+    },
+    {
+      "level": 34,
+      "id": 3413,
+      "cat": "unless",
+      "domain": "painting",
+      "q": "The paint won't dry ___ the room gets warmer."
+    },
+    {
+      "level": 34,
+      "id": 3414,
+      "cat": "causative",
+      "domain": "documents",
+      "q": "She had her passport photo ___ at the station."
+    },
+    {
+      "level": 34,
+      "id": 3415,
+      "cat": "modal_perfect",
+      "domain": "camping",
+      "q": "They supplied blankets, so we ___ ours."
     }
   ]
 }
