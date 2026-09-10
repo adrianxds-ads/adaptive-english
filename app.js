@@ -415,8 +415,19 @@ function resetProgress(){
   if(confirm("Reset all Campaign 1 progress? Export a backup first if you want to keep it.")){localStorage.removeItem(STORAGE_KEY);state=newState();save();renderStart();}
 }
 
+function validQuestion(q){
+  const opts=q?.a;
+  if(!Array.isArray(opts)||opts.length!==4||!Number.isInteger(q.c)||q.c<0||q.c>=opts.length)return false;
+  const norm=opts.map(x=>String(x).trim().toLocaleLowerCase("en"));
+  return new Set(norm).size===norm.length;
+}
+
 async function boot(){
-  CAMPAIGN=await loadCampaign();BANK=CAMPAIGN.questions;state=loadState();save();
+  CAMPAIGN=await loadCampaign();
+  const before=CAMPAIGN.questions.length;
+  CAMPAIGN.questions=CAMPAIGN.questions.filter(validQuestion);
+  if(CAMPAIGN.questions.length!==before)console.warn(`Adaptive English skipped ${before-CAMPAIGN.questions.length} invalid question(s) with duplicate/broken options.`);
+  BANK=CAMPAIGN.questions;state=loadState();save();
   const seg=$("segments");for(let i=0;i<10;i++){const d=document.createElement("div");d.className="seg";seg.appendChild(d);}
   $("startBtn").onclick=async()=>{await ensureAudio();startSession(false);};
   $("continueBtn").onclick=async()=>{await ensureAudio();if(state.completed){renderStart();showScreen("startScreen");}else startSession(false);};
