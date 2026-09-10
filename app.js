@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.0";
+const APP_VERSION = "1.1";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -378,7 +378,7 @@ function finishSession(){
   state.sessions++;if(session.mode==="training")state.level++;
   let st=overallStats();
   const snap={level:completedLevel,ts:Date.now(),mode:session.mode,correct:session.correct,total:n,accuracy,avgMs,automatic:auto,mastery:st.mastery,coverage:st.coverage,fluency:st.fluency,rating:st.rating};
-  state.sessionHistory.push(snap);state.sessionHistory=state.sessionHistory.slice(-500);
+  state.sessionHistory.push(snap);
   state.personalBestFluency=Math.max(state.personalBestFluency||0,st.rating);
   if(session.mode==="final"){
     state.finalAttempts=(state.finalAttempts||0)+1;
@@ -397,11 +397,14 @@ function renderEnd(s,before){
   $("dAcc").innerHTML=before?deltaText((s.accuracy-before.accuracy)*100,true," pts"):'<span class="delta neutral">First level</span>';
   $("dTime").innerHTML=before?deltaText((s.avgMs-before.avgMs)/1000,false,"s"):'<span class="delta neutral">First level</span>';
   $("dFlu").innerHTML=before?deltaText((st.rating-(before.rating??before.fluency))*100,true," pts"):'<span class="delta neutral">First level</span>';
-  const trend=state.sessionHistory.filter(x=>x.mode==="training").slice(-20);
-  $("ratingChart").innerHTML=sparkline(trend.map(x=>(x.rating??x.fluency)*100),v=>`${Math.round(v)}`);
+  const trend=state.sessionHistory.filter(x=>x.mode==="training");
   $("accuracyChart").innerHTML=sparkline(trend.map(x=>x.accuracy*100),v=>`${Math.round(v)}%`);
   $("timeChart").innerHTML=sparkline(trend.map(x=>x.avgMs/1000),v=>`${v.toFixed(1)}s`,true);
-  $("autoChart").innerHTML=sparkline(trend.map(x=>x.automatic*100),v=>`${Math.round(v)}%`);
+  const uniqueDone=Object.keys(state.seen).length;
+  const repeated=Object.values(state.seen).reduce((n,x)=>n+Math.max(0,(x.count||1)-1),0);
+  $("ePhrasesDone").textContent=uniqueDone.toLocaleString();
+  $("eRepeats").textContent=repeated.toLocaleString();
+  $("eBankTotal").textContent=BANK.length.toLocaleString();
   $("weakSkills").innerHTML=topWeak().map(x=>`<div class="skillrow"><div class="name">${x.name}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%"></div></div><div class="pct">${pct(x.mastery)}%</div></div>`).join("");
   const wrong=session.records.filter(r=>!r.correct);
   $("errorsBtn").textContent=`REVIEW ERRORS - ${wrong.length}`;

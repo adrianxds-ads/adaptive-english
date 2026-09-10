@@ -22,3 +22,10 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Four longitudinal charts: AE Rating, accuracy, response time, and automaticity.
 - Errors moved to a dedicated full-screen review opened on demand.
 - Existing Campaign 1 local progress remains compatible.
+
+
+## Version 1.1
+- Two full-history charts: accuracy and average response time.
+- Added unique phrases, repeated presentations, and bank-total counters.
+- Question and answers moved slightly upward for mobile comfort.
+- Existing progress remains compatible.

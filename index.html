@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="1.0">
-<title>Adaptive English - Campaign 1 - v1.0</title>
+<meta name="ae-version" content="1.1">
+<title>Adaptive English - Campaign 1 - v1.1</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <style>
 :root{--bg:#10271d;--bg-top:#163427;--bg-mid:#102d21;--bg-bottom:#10271d;--glow1:rgba(47,94,67,.55);--glow2:rgba(39,78,57,.45);--panel:#172f24;--text:#f4f7f5;--muted:#b7c9bf;--line:rgba(255,255,255,.12);--ok:#27925c;--bad:#c74253;--red:#c93545;--blue:#1767b7;--yellow:#9b7208;--green:#2b7d3b}
@@ -24,24 +24,24 @@ button{font:inherit}.app{width:min(760px,100%);margin:0 auto;min-height:100dvh}.
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:14px 0}.card{background:rgba(255,255,255,.065);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px 10px;text-align:center}.card b{display:block;font-size:26px;line-height:1;margin-bottom:5px}.card span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:900}
 .statusbox{margin-top:12px;padding:13px 14px;border-radius:12px;background:rgba(0,0,0,.16);font-size:13px;line-height:1.45;color:#dce9e1}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.primary,.secondary,.ghost{border:0;border-radius:11px;padding:13px 16px;font-weight:900;cursor:pointer}.primary{background:#f4f7f5;color:#13251c;flex:1;min-width:190px}.secondary{background:rgba(255,255,255,.12);color:#fff}.ghost{background:transparent;border:1px solid var(--line);color:#dbe9e0}.small{font-size:12px;padding:10px 12px}
 .top{min-height:100px;position:relative}.toprow{display:grid;grid-template-columns:88px 1fr 88px;align-items:center;gap:8px}.timer{width:74px;height:74px;border-radius:50%;border:5px solid rgba(255,255,255,.18);display:grid;place-items:center;position:relative}.timer::after{content:"";position:absolute;inset:-5px;border:5px solid #fff;border-radius:50%;clip-path:inset(var(--timer-cut,0%) 0 0 0);transition:clip-path .05s linear}.timer strong{font-size:24px;z-index:1;font-variant-numeric:tabular-nums}.qnum{text-align:center}.qnum b{display:block;font-size:48px;line-height:.9}.qnum span{font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.08em}.hudright{display:flex;align-items:center;justify-content:flex-end;gap:7px}.leveltag{text-align:right;font-size:12px;font-weight:900;color:#d3e5da}.soundbtn{width:38px;height:38px;border:1px solid rgba(255,255,255,.14);border-radius:50%;background:rgba(0,0,0,.14);color:#fff;font-size:18px;display:grid;place-items:center;padding:0;cursor:pointer}
-.segments{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-top:12px}.seg{height:4px;border-radius:999px;background:rgba(255,255,255,.2)}.seg.on{background:#fff}.game{justify-content:flex-start}.playfield{flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:28px}
+.segments{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-top:12px}.seg{height:4px;border-radius:999px;background:rgba(255,255,255,.2)}.seg.on{background:#fff}.game{justify-content:flex-start}.playfield{flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:28px;transform:translateY(-2vh)}
 .question{background:rgba(14,31,23,.88);border:1px solid rgba(255,255,255,.18);border-radius:10px;min-height:108px;padding:18px 16px;display:flex;align-items:center;justify-content:center;text-align:center;margin-bottom:9px}.question h2{margin:0;font-size:clamp(25px,6vw,39px);line-height:1.11;font-weight:560;letter-spacing:-.015em}.answers{display:grid;grid-template-columns:1fr 1fr;gap:8px}.answer{border:0;border-radius:8px;color:#fff;min-height:118px;padding:16px 12px;font-size:clamp(21px,5vw,31px);font-weight:800;line-height:1.05;cursor:pointer;box-shadow:inset 0 -4px 0 rgba(0,0,0,.14)}.answer:nth-child(1){background:var(--red)}.answer:nth-child(2){background:var(--blue)}.answer:nth-child(3){background:var(--yellow)}.answer:nth-child(4){background:var(--green)}.answer:disabled{cursor:default}.answer.dim{opacity:.35}.answer.good{outline:4px solid #fff}.answer.bad{outline:4px solid #fff;filter:saturate(.7)}
 .feedback{position:fixed;z-index:10;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-4deg) scale(.9);width:min(110vw,820px);padding:20px;text-align:center;font-size:clamp(42px,12vw,76px);font-weight:950;text-transform:uppercase;opacity:0;pointer-events:none;transition:.12s;border-radius:4px}.feedback.show{opacity:1;transform:translate(-50%,-50%) rotate(-4deg) scale(1)}.feedback.ok{background:var(--ok)}.feedback.no{background:var(--bad)}.feedback small{display:block;font-size:14px;letter-spacing:.04em;margin-top:8px}
 .end{justify-content:center}.resulttitle{text-align:center;margin-bottom:12px}.resulttitle h1{font-size:52px;margin:5px 0}.resulttitle p{margin:0;color:var(--muted);font-weight:800}.delta.good{color:#9ee3bb}.delta.bad{color:#ff9baa}.delta.neutral{color:var(--muted)}
 .section{margin-top:14px;padding:14px;border-radius:12px;background:rgba(0,0,0,.13);border:1px solid rgba(255,255,255,.06)}.section h3{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.07em;color:#d9e8df}.chart{width:100%;height:92px;display:block;background:rgba(255,255,255,.03);border-radius:8px}
 .skillrow{display:grid;grid-template-columns:minmax(120px,1fr) 1fr 40px;gap:9px;align-items:center;margin:8px 0;font-size:12px}.skillrow .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e7f0ea;font-weight:800}.skillrow .track{height:7px}.skillrow .pct{text-align:right;font-weight:900}.errors details{margin:6px 0;border-top:1px solid rgba(255,255,255,.06);padding-top:7px}.errors summary{cursor:pointer;font-size:13px;font-weight:800}.errors p{font-size:12px;line-height:1.45;color:#d7e5dc;margin:6px 0 0}.footerline{font-size:11px;color:#9fb5a8;text-align:center;margin-top:12px}input[type=file]{display:none}
-@media(max-width:520px){.screen{padding:12px 10px 20px}.panel{padding:18px 14px;border-radius:14px}.grid{grid-template-columns:repeat(2,1fr)}.top{min-height:92px}.toprow{grid-template-columns:74px 1fr 74px}.timer{width:64px;height:64px}.timer strong{font-size:20px}.qnum b{font-size:42px}.playfield{justify-content:flex-end;padding-bottom:14px}.question{min-height:88px;padding:13px 12px}.answer{min-height:96px;padding:12px 9px}}
-.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.charts .section{margin-top:0}.chart{height:108px}.chartmeta{display:flex;justify-content:space-between;gap:8px;margin-top:7px;font-size:11px;color:var(--muted);font-weight:800}.review{justify-content:flex-start}.review .panel{min-height:calc(100dvh - 36px)}.review .resulttitle{text-align:left}.review .resulttitle h1{font-size:clamp(38px,9vw,58px)}.errors details{margin:8px 0;border-top:1px solid rgba(255,255,255,.08);padding-top:10px}.errors summary{font-size:14px;line-height:1.35}.errors p{font-size:13px;line-height:1.55}@media(max-width:520px){.charts{grid-template-columns:1fr}}
+@media(max-width:520px){.screen{padding:12px 10px 20px}.panel{padding:18px 14px;border-radius:14px}.grid{grid-template-columns:repeat(2,1fr)}.top{min-height:92px}.toprow{grid-template-columns:74px 1fr 74px}.timer{width:64px;height:64px}.timer strong{font-size:20px}.qnum b{font-size:42px}.playfield{justify-content:center;padding-bottom:14px;transform:translateY(-3vh)}.question{min-height:88px;padding:13px 12px}.answer{min-height:96px;padding:12px 9px}}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.phrasegrid{grid-template-columns:repeat(3,1fr);margin-top:10px}.charts .section{margin-top:0}.chart{height:108px}.chartmeta{display:flex;justify-content:space-between;gap:8px;margin-top:7px;font-size:11px;color:var(--muted);font-weight:800}.review{justify-content:flex-start}.review .panel{min-height:calc(100dvh - 36px)}.review .resulttitle{text-align:left}.review .resulttitle h1{font-size:clamp(38px,9vw,58px)}.errors details{margin:8px 0;border-top:1px solid rgba(255,255,255,.08);padding-top:10px}.errors summary{font-size:14px;line-height:1.35}.errors p{font-size:13px;line-height:1.55}@media(max-width:520px){.charts{grid-template-columns:1fr}.phrasegrid{grid-template-columns:repeat(3,1fr);gap:6px}.phrasegrid .card{padding:10px 5px}.phrasegrid .card b{font-size:22px}.phrasegrid .card span{font-size:8px}}
 </style>
 </head>
 <body>
 <div class="app">
 <section id="startScreen" class="screen start">
   <div class="panel">
-    <div id="startKicker" class="kicker">CAMPAIGN 1 - VERSION 1.0</div>
+    <div id="startKicker" class="kicker">CAMPAIGN 1 - VERSION 1.1</div>
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
-    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock - v1.0</div>
+    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock - v1.1</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -100,10 +100,13 @@ button{font:inherit}.app{width:min(760px,100%);margin:0 auto;min-height:100dvh}.
       <div class="card"><b id="eMastered">0/25</b><span>Skills mastered</span><div id="dAcc"></div></div>
     </div>
     <div class="charts">
-      <div class="section"><h3>AE Rating - last 20</h3><div id="ratingChart"></div></div>
-      <div class="section"><h3>Accuracy - last 20</h3><div id="accuracyChart"></div></div>
-      <div class="section"><h3>Avg response time - last 20</h3><div id="timeChart"></div></div>
-      <div class="section"><h3>Automaticity - last 20</h3><div id="autoChart"></div></div>
+      <div class="section"><h3>Accuracy - all levels</h3><div id="accuracyChart"></div></div>
+      <div class="section"><h3>Avg response time - all levels</h3><div id="timeChart"></div></div>
+    </div>
+    <div class="grid phrasegrid">
+      <div class="card"><b id="ePhrasesDone">0</b><span>Unique phrases done</span></div>
+      <div class="card"><b id="eRepeats">0</b><span>Repeated</span></div>
+      <div class="card"><b id="eBankTotal">3000</b><span>Bank total</span></div>
     </div>
     <div class="section"><h3>Priority skills</h3><div id="weakSkills"></div></div>
     <div class="actions">
@@ -112,12 +115,12 @@ button{font:inherit}.app{width:min(760px,100%);margin:0 auto;min-height:100dvh}.
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
       <button id="homeBtn" class="secondary">Dashboard</button>
     </div>
-    <div class="footerline">Adaptive English v1.0 - Campaign ends when all 3,000 exercises have been explored.</div>
+    <div class="footerline">Adaptive English v1.1 - Campaign ends when all 3,000 exercises have been explored.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">LEVEL REVIEW - v1.0</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div class="resulttitle"><div class="kicker">LEVEL REVIEW - v1.1</div><h1>Errors</h1><p id="errorsCount"></p></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>
