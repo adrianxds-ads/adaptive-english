@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.1";
+const APP_VERSION = "1.2";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -49,7 +49,7 @@ function tone(freq,dur=.035,gain=.018,type='sine',delay=0){
   g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,gain),t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+dur+.01);
 }
-function playTick(strong=false){tone(strong?1500:1200,strong?.026:.018,strong?.020:.010,'square');}
+function playTick(strong=false,step=0){const f=strong?(step%2?1540:1260):(step%2?1280:980);tone(f,strong?.034:.026,strong?.026:.016,'square');}
 function playCorrect(){tone(523.25,.065,.030,'sine');tone(659.25,.075,.026,'triangle',.042);tone(783.99,.105,.024,'sine',.095);}
 function playWrong(){tone(330,.065,.020,'triangle');tone(247,.090,.018,'sine',.055);}
 function playComplete(){tone(392,.075,.022,'sine');tone(523.25,.085,.024,'triangle',.070);tone(659.25,.100,.026,'sine',.145);tone(783.99,.155,.028,'sine',.230);}
@@ -191,6 +191,7 @@ function chooseOne(pool,chosen,sessionCats,sessionTemplates,mode,allowedCats=nul
   const chosenFp=new Set(chosen.map(q=>q.fingerprint));
   let cand=pool.filter(q=>!chosenFp.has(q.fingerprint));
   if(allowedCats) cand=cand.filter(q=>allowedCats.has(q.cat));
+  if(state.sessions<40){const short=cand.filter(q=>q.q.trim().split(/\s+/).length<=12);if(short.length)cand=short;}
   cand=cand.filter(q=>(sessionCats[q.cat]||0)<2 && (sessionTemplates[q.templateId]||0)<1);
   if(!cand.length)return null;
   cand.sort((a,b)=>qScore(b,sessionCats,sessionTemplates,mode)-qScore(a,sessionCats,sessionTemplates,mode));
@@ -332,7 +333,7 @@ function startTimer(){
     $("timerText").textContent=left.toFixed(1);
     $("timer").style.setProperty("--timer-cut",`${100-left/TIME_LIMIT*100}%`);
     renderSegments(left);
-    if(shown<lastTickShown&&shown>0&&shown<TIME_LIMIT){playTick(shown<=3);lastTickShown=shown;}
+    if(shown<lastTickShown&&shown>0&&shown<TIME_LIMIT){playTick(shown<=3,shown);lastTickShown=shown;}
     if(left<=0){clearInterval(timerHandle);answer(-1,true);}
   },50);
 }
@@ -340,6 +341,7 @@ function nextQuestion(){
   locked=false;
   if(session.index>=session.plan.length){finishSession();return;}
   current=session.plan[session.index];
+  if(!current||!Array.isArray(current.display)||current.display.length!==4||!Number.isInteger(current.correctPos)||current.correctPos<0||current.correctPos>3){console.error("Skipping invalid question",current);session.index++;setTimeout(nextQuestion,0);return;}
   $("qIndex").textContent=session.index+1;$("qTotal").textContent="/ "+session.plan.length;
   $("questionText").textContent=current.q;
   const wrap=$("answers");wrap.innerHTML="";
@@ -358,18 +360,14 @@ function answer(pos,timeout=false){
   const sec=timeout?TIME_LIMIT:Math.max(.05,(TIME_LIMIT*1000-(deadline-performance.now()))/1000);
   const ok=pos===current.correctPos&&!timeout,type=outcomeType(ok,sec,current.targetTime||3.6,timeout);
   const buttons=[...$("answers").children];
-  buttons.forEach((b,i)=>{b.disabled=true;if(i===current.correctPos)b.classList.add("good");else b.classList.add("dim");});
+  buttons.forEach((b,i)=>{b.disabled=true;b.classList.remove("good","bad","dim");if(i===current.correctPos)b.classList.add("good");else b.classList.add("dim");});
   if(!ok&&pos>=0){buttons[pos].classList.remove("dim");buttons[pos].classList.add("bad");}
-  const previousSeen=state.seen[current.fingerprint]||null;
-  const speedScore=updateMetric(current,ok,sec,type);
-  const info=previousSeen||{count:0,lastLevel:-99};
-  state.seen[current.fingerprint]={count:info.count+1,lastLevel:state.level,lastTs:Date.now()};
-  state.templateLast[current.templateId]=state.level;
+  const previousSeen=state.seen[current.fingerprint]||null,speedScore=updateMetric(current,ok,sec,type),info=previousSeen||{count:0,lastLevel:-99};
+  state.seen[current.fingerprint]={count:info.count+1,lastLevel:state.level,lastTs:Date.now()};state.templateLast[current.templateId]=state.level;
   const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,review:!!previousSeen,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:current.q,userAnswer:pos>=0?current.display[pos]:"No answer",correctAnswer:current.display[current.correctPos],rule:current.rule};
-  state.history.push(rec);state.history=state.history.slice(-12000);state.totalAttempts++;
-  session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
-  save();if(ok)playCorrect();else playWrong();feedback(ok,type,sec,rec.correctAnswer);
-  setTimeout(()=>{session.index++;nextQuestion();},ok?610:1020);
+  state.history.push(rec);state.history=state.history.slice(-12000);state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
+  const answeredIndex=session.index,delay=ok?650:1050;setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
+  try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{feedback(ok,type,sec,rec.correctAnswer);}catch(e){console.error("Feedback failed",e);}
 }
 function finishSession(){
   clearInterval(timerHandle);

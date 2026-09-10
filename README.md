@@ -29,3 +29,12 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Added unique phrases, repeated presentations, and bank-total counters.
 - Question and answers moved slightly upward for mobile comfort.
 - Existing progress remains compatible.
+
+
+## Version 1.2
+- Hardened question advance so audio, feedback, or storage errors cannot freeze a session.
+- Invalid questions are skipped automatically instead of blocking the quiz.
+- Correct choice turns green; a selected wrong choice turns red while the correct answer turns green.
+- Feedback banner moved higher and question/answers made more legible.
+- First 40 sessions prefer prompts of 12 words or fewer.
+- Stronger alternating tick-tock and live rating-band colour updates.
