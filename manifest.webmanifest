@@ -1,24 +1,15 @@
 {
-  "name": "Adaptive English · Personal Trainer",
+  "name": "Adaptive English · Campaign 1",
   "short_name": "Adaptive English",
-  "description": "Adaptive B2→C1 English training app",
   "start_url": "./",
-  "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#17251F",
-  "theme_color": "#17251F",
+  "background_color": "#10271d",
+  "theme_color": "#10271d",
   "icons": [
     {
-      "src": "./icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "./icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ]

@@ -1,915 +1,431 @@
-async function loadLevelData(){
-  const r=await fetch('./level.json?t='+Date.now(),{cache:'no-store'});
-  if(!r.ok) throw new Error('Could not load level.json ('+r.status+')');
-  const d=await r.json();
-  if(!d||!Number.isInteger(d.level)||!Array.isArray(d.questions)) throw new Error('Invalid level.json');
-  return d;
-}
-async function bootAdaptive(){
-  const LEVEL_DATA=await loadLevelData();
 
-const MAX_Q=15, LIMIT=10;
-const CURRENT_LEVEL=Number(LEVEL_DATA.level);
-const NEXT_LEVEL=Number(LEVEL_DATA.nextLevel ?? CURRENT_LEVEL+1);
-const KEY=`adaptive_english_level${CURRENT_LEVEL}_v1`;
-const NEW_CATS=new Set(["inversion","mixed_conditional","causative","reporting_verbs"]);
-const SPACED_CATS=new Set(["wish_past","mustnt_have_to","third_conditional","whose","used_to","make_bare","look_forward"]);
+const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
+const STORAGE_KEY = "adaptive_english_campaign1_v1";
+const SESSION_SIZE = 15;
+const TIME_LIMIT = 10;
+let CAMPAIGN=null, BANK=[], state=null, session=null, timerHandle=null, deadline=0, current=null, locked=false;
+let audioCtx=null, soundOn=true, lastTickShown=TIME_LIMIT+1;
 
-const TEST_LEVEL=Number(LEVEL_DATA.testLevel);
-const LEVEL_BG_SCALE=[
-  [0,"#241317"],[10,"#2C1818"],[20,"#322018"],[30,"#17251F"],[40,"#163027"],
-  [50,"#123337"],[60,"#142F43"],[70,"#182A50"],[80,"#24264F"],[90,"#332449"],[100,"#3B3218"]
+const $=id=>document.getElementById(id);
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+const pct=x=>Math.round(x*100);
+const fmtSec=ms=>(ms/1000).toFixed(1)+"s";
+const stageNames=["Foundations","Control","Complex Grammar","Fluency","Automaticity","Mastery"];
+const RATING_BANDS=[
+  {min:0,key:"forest",name:"FOUNDATION"},
+  {min:.35,key:"teal",name:"BUILDING"},
+  {min:.50,key:"blue",name:"SOLID"},
+  {min:.65,key:"indigo",name:"STRONG"},
+  {min:.78,key:"amber",name:"ADVANCED"},
+  {min:.88,key:"gold",name:"GOLD MASTERY"}
 ];
+function ratingBand(r){
+  let b=RATING_BANDS[0];
+  for(const x of RATING_BANDS) if(r>=x.min)b=x;
+  return b;
+}
+function applyRatingTheme(r){
+  const b=ratingBand(r);
+  document.body.dataset.ratingBand=b.key;
+  const meta=document.querySelector('meta[name="theme-color"]');
+  const colors={forest:'#10271d',teal:'#0f3030',blue:'#122b46',indigo:'#242849',amber:'#3a2b13',gold:'#49390d'};
+  if(meta)meta.setAttribute('content',colors[b.key]||colors.forest);
+}
+async function ensureAudio(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return false;
+    if(!audioCtx)audioCtx=new AC();
+    if(audioCtx.state==='suspended')await audioCtx.resume();
+    return audioCtx.state==='running';
+  }catch(e){return false;}
+}
+function tone(freq,dur=.035,gain=.018,type='sine',delay=0){
+  if(!soundOn||!audioCtx||audioCtx.state!=='running')return;
+  const t=audioCtx.currentTime+delay,o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type=type;o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,gain),t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+dur+.01);
+}
+function playTick(strong=false){tone(strong?1450:1180,strong?.026:.018,strong?.020:.010,'square');}
+function playCorrect(){tone(520,.055,.028,'sine');tone(780,.07,.026,'sine',.055);}
+function playWrong(){tone(300,.07,.025,'sawtooth');tone(190,.10,.021,'square',.065);}
+function refreshSoundButton(){const b=$("soundBtn");if(b){b.textContent=soundOn?'🔊':'🔇';b.setAttribute('aria-label',soundOn?'Sound on':'Sound off');}}
 
-function getLevelBackground(level){
-  if(level>=100) return LEVEL_BG_SCALE[10][1];
-  const band=Math.max(0,Math.min(9,Math.floor(level/10)));
-  return LEVEL_BG_SCALE[band][1];
+async function loadCampaign(){
+  if(window.__AE_CAMPAIGN__) return window.__AE_CAMPAIGN__;
+  const r=await fetch("./campaign-01.json");
+  if(!r.ok) throw new Error("Cannot load campaign");
+  return r.json();
 }
 
-function applyLevelBackground(){
-  const bg=getLevelBackground(TEST_LEVEL);
-  document.documentElement.style.setProperty("--bg",bg);
-  document.documentElement.style.setProperty("--bg-deep",bg);
-  document.body.style.background=bg;
+function seedMetric(cat){
+  const p=INITIAL_PRIORS[cat]||[.42,.28,.34];
+  return {k:p[0],a:p[1],t:p[2],attempts:0,correct:0,automatic:0,lapses:0,streak:0,interval:1,lastLevel:-99,domains:{},lastMs:0};
 }
-
-
-function renderLevelShell(){
-  const tip=LEVEL_DATA.tip||{};
-  const setText=(sel,text)=>{const n=document.querySelector(sel);if(n)n.textContent=text;};
-  const setHtml=(sel,value)=>{const n=document.querySelector(sel);if(n)n.innerHTML=value||'';};
-  setText('#startScreen .kicker',`LEVEL ${CURRENT_LEVEL} · B2 → C1`);
-  setText('#startScreen h1',`LEVEL ${CURRENT_LEVEL} · Adaptive English`);
-  setText('#tipsScreen .tip-kicker',`LEVEL ${CURRENT_LEVEL} · INITIAL TIP`);
-  setHtml('#tipsScreen .test-level-value',`${TEST_LEVEL}<span>%</span>`);
-  setText('.single-tip-title',tip.title||'INITIAL TIP');
-  setHtml('.single-tip-rule',tip.ruleHtml);
-  setHtml('.single-tip-formula',tip.formulaHtml);
-  setHtml('.single-tip-example',tip.exampleHtml);
-  setHtml('.single-tip-contrast',tip.contrastHtml);
-  setText('#tipStartBtn',`START LEVEL ${CURRENT_LEVEL}`);
-  setText('#endScreen .kicker',`LEVEL ${CURRENT_LEVEL} COMPLETE`);
-  document.title=`Adaptive English · LEVEL ${CURRENT_LEVEL}`;
+function newState(){
+  const metrics={}; CAMPAIGN.skills.forEach(s=>metrics[s.id]=seedMetric(s.id));
+  return {
+    schemaVersion:1,campaignId:CAMPAIGN.campaignId,level:CAMPAIGN.startingLevel||1,sessions:0,totalAttempts:0,
+    metrics,seen:{},templateLast:{},history:[],sessionHistory:[],finalAttempts:0,completed:false,
+    personalBestFluency:0,createdAt:Date.now(),updatedAt:Date.now()
+  };
 }
-renderLevelShell();
-applyLevelBackground();
-
-const priors=LEVEL_DATA.priors;
-
-const bank=LEVEL_DATA.questions;
-
-const SHAPES_SVG = [
- '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,8 95,88 5,88" fill="white" stroke="rgba(0,0,0,.35)" stroke-width="4"/></svg>',
- '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,5 95,50 50,95 5,50" fill="white" stroke="rgba(0,0,0,.35)" stroke-width="4"/></svg>',
- '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40" fill="white" stroke="rgba(0,0,0,.35)" stroke-width="4"/></svg>',
- '<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="10" y="10" width="80" height="80" fill="white" stroke="rgba(0,0,0,.35)" stroke-width="4"/></svg>'
-];
-
-const CAT_NAMES = {
-  would_rather:"would rather + subject + past",
-  allow_to:"allow + object + to-infinitive",
-  so_such:"so / such / too / enough",
-  modal_perfect:"modal perfects",
-  backshift:"reported speech / backshift",
-  past_perfect:"past perfect",
-  despite:"despite / although",
-  unless:"unless",
-  look_forward:"look forward to + -ing",
-  third_conditional:"third conditional",
-  wish_past:"wish + past perfect",
-  mustnt_have_to:"mustn't / don't have to",
-  whose:"whose",
-  used_to:"get used to + -ing",
-  make_bare:"make + bare infinitive",
-  inversion:"inversion",
-  mixed_conditional:"mixed conditional",
-  causative:"causative",
-  reporting_verbs:"reporting verbs",
-  collocation:"collocation",
-  phrasal:"phrasal verbs",
-  functional:"functional English"
-};
-
-let state = loadState();
-let session = null;
-let current = null;
-let startStamp = 0;
-let timeoutId = null;
-let rafId = null;
-let countdownIntervalId = null;
-let soundOn = true;
-let audioCtx = null;
-let playMode = "focus";
-let toastTimer = null;
-
 function loadState(){
   try{
-    const s = JSON.parse(localStorage.getItem(KEY) || "{}");
-    const metrics = {};
-    for(const [cat,p] of Object.entries(priors)){
-      const old = s.metrics?.[cat] || {};
-      metrics[cat] = {
-        k: old.k ?? p.k,
-        a: old.a ?? p.a,
-        t: old.t ?? p.t,
-        lastSession: old.lastSession ?? -99,
-        interval: old.interval ?? 1,
-        domains: old.domains || {}
-      };
-    }
-    return { metrics, sessions:s.sessions || 0, seen:s.seen || {}, history:s.history || [] };
-  }catch(e){
-    const metrics={};
-    for(const [cat,p] of Object.entries(priors)){
-      metrics[cat]={...p,lastSession:-99,interval:1,domains:{}};
-    }
-    return { metrics, sessions:0, seen:{}, history:[] };
-  }
+    const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+    if(!s||s.campaignId!==CAMPAIGN.campaignId) return newState();
+    for(const skill of CAMPAIGN.skills) if(!s.metrics[skill.id]) s.metrics[skill.id]=seedMetric(skill.id);
+    s.history=Array.isArray(s.history)?s.history:[];
+    s.sessionHistory=Array.isArray(s.sessionHistory)?s.sessionHistory:[];
+    s.seen=s.seen||{}; s.templateLast=s.templateLast||{};
+    return s;
+  }catch(e){return newState();}
 }
-function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+function save(){state.updatedAt=Date.now();localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
 
-const el = id => document.getElementById(id);
-
-async function unlockAudio(){
-  try{
-    const AC=window.AudioContext||window.webkitAudioContext;
-    if(!AC) return false;
-
-    if(!audioCtx){
-      audioCtx=new AC();
-    }
-
-    if(audioCtx.state==="suspended"){
-      await audioCtx.resume();
-    }
-
-    const buffer=audioCtx.createBuffer(1,1,22050);
-    const source=audioCtx.createBufferSource();
-    source.buffer=buffer;
-    source.connect(audioCtx.destination);
-    source.start(0);
-
-    return audioCtx.state==="running";
-  }catch(e){
-    return false;
-  }
+function metricMastery(m){return .45*m.k+.35*m.a+.20*m.t;}
+function recentRows(n=75){return state.history.slice(-n);}
+function recentWrong(cat,n=20){
+  const r=state.history.filter(x=>x.cat===cat).slice(-n);
+  return r.length?r.filter(x=>!x.correct).length/r.length:0;
 }
-
-function initAudio(){
-  if(!audioCtx){
-    const AC=window.AudioContext||window.webkitAudioContext;
-    if(AC) audioCtx=new AC();
-  }
-  if(audioCtx?.state==="suspended"){
-    audioCtx.resume().catch(()=>{});
-  }
+function recentFastWrong(cat,n=50){return state.history.slice(-n).filter(x=>x.cat===cat&&x.type==="fast-wrong").length;}
+function catPriority(cat){
+  const m=state.metrics[cat],weak=(1-m.k)*.42+(1-m.a)*.33+(1-m.t)*.25;
+  const isDue=(state.level-m.lastLevel)>=m.interval;
+  const due=isDue?.09:0;
+  const overdue=Math.min(.10,Math.max(0,(state.level-m.lastLevel)-m.interval)*.015);
+  const errors=recentWrong(cat)*.13,misconception=Math.min(.10,recentFastWrong(cat)*.025);
+  // Weak skills matter, but no single skill is allowed to dominate a whole session.
+  return weak+due+overdue+errors+misconception;
+}
+function overallStats(){
+  const metrics=Object.values(state.metrics),history=recentRows(75);
+  const coverage=Object.keys(state.seen).length/CAMPAIGN.questions.length;
+  const mastery=mean(metrics.map(metricMastery));
+  const minSkill=Math.min(...metrics.map(metricMastery));
+  const accuracy=history.length?history.filter(r=>r.correct).length/history.length:0;
+  const auto=history.length?history.filter(r=>r.type==="automatic").length/history.length:0;
+  const avgMs=history.length?Math.round(mean(history.map(r=>r.ms))):0;
+  const speed=history.length?mean(history.map(r=>r.correct?r.speedScore:0)):0;
+  const transfer=mean(metrics.map(m=>m.t));
+  const fluency=history.length?clamp(.50*accuracy+.30*speed+.20*transfer):0;
+  // AE Rating is the competence indicator. LEVEL remains the session number.
+  const rating=history.length?clamp(.35*accuracy+.25*speed+.20*transfer+.20*mastery):0;
+  const mastered=metrics.filter(m=>metricMastery(m)>=.80&&m.a>=.65&&m.attempts>=8).length;
+  const eligible=coverage>=.999&&mastery>=.85&&minSkill>=.70;
+  return {coverage,mastery,minSkill,accuracy,auto,avgMs,speed,transfer,fluency,rating,mastered,eligible};
+}
+function stageInfo(coverage){
+  const seen=Object.keys(state.seen).length;
+  const index=Math.min(5,Math.floor(Math.min(2999,seen)/500));
+  return {index,name:stageNames[index],from:index*500,to:(index+1)*500,seen};
 }
 
-function tone(freq,dur=.07,type="sine",gain=.07,delay=0,slideTo=null){
-  if(!soundOn) return;
-  initAudio();
-  if(!audioCtx || audioCtx.state!=="running") return;
-
-  const o=audioCtx.createOscillator();
-  const g=audioCtx.createGain();
-
-  o.type=type;
-  o.frequency.setValueAtTime(freq,audioCtx.currentTime+delay);
-
-  if(slideTo){
-    o.frequency.exponentialRampToValueAtTime(
-      Math.max(1,slideTo),
-      audioCtx.currentTime+delay+dur
-    );
-  }
-
-  g.gain.setValueAtTime(.0001,audioCtx.currentTime+delay);
-  g.gain.exponentialRampToValueAtTime(
-    Math.max(.0002,gain),
-    audioCtx.currentTime+delay+.005
-  );
-  g.gain.exponentialRampToValueAtTime(
-    .0001,
-    audioCtx.currentTime+delay+dur
-  );
-
-  o.connect(g);
-  g.connect(audioCtx.destination);
-
-  o.start(audioCtx.currentTime+delay);
-  o.stop(audioCtx.currentTime+delay+dur+.02);
-}
-
-function noiseClick(delay=0,gain=.018){
-  if(!soundOn) return;
-  initAudio();
-  if(!audioCtx || audioCtx.state!=="running") return;
-
-  const duration=.018;
-  const length=Math.max(1,Math.floor(audioCtx.sampleRate*duration));
-  const buffer=audioCtx.createBuffer(1,length,audioCtx.sampleRate);
-  const data=buffer.getChannelData(0);
-
-  for(let i=0;i<length;i++){
-    // short mechanical click: fast decay, no hiss tail
-    const env=Math.pow(1-i/length,5);
-    data[i]=(Math.random()*2-1)*env;
-  }
-
-  const source=audioCtx.createBufferSource();
-  const filter=audioCtx.createBiquadFilter();
-  const g=audioCtx.createGain();
-
-  filter.type="bandpass";
-  filter.frequency.value=2300;
-  filter.Q.value=1.2;
-  g.gain.value=gain;
-
-  source.buffer=buffer;
-  source.connect(filter);
-  filter.connect(g);
-  g.connect(audioCtx.destination);
-  source.start(audioCtx.currentTime+delay);
-}
-
-
-function arcadeTone(freq,dur,type="square",gain=.045,delay=0){
-  if(!soundOn || !audioCtx) return;
-  const t=audioCtx.currentTime+delay;
-  const o=audioCtx.createOscillator();
-  const g=audioCtx.createGain();
-  o.type=type;
-  o.frequency.setValueAtTime(freq,t);
-  g.gain.setValueAtTime(gain,t);
-  g.gain.exponentialRampToValueAtTime(.001,t+dur);
-  o.connect(g); g.connect(audioCtx.destination);
-  o.start(t); o.stop(t+dur);
-}
-function sCorrect(){
-  if(!soundOn || !audioCtx) return;
-  arcadeTone(520,.07,"square",.05,0);
-  arcadeTone(780,.07,"square",.05,.07);
-  arcadeTone(1040,.11,"square",.045,.14);
-}
-function sWrong(){
-  if(!soundOn || !audioCtx) return;
-  arcadeTone(300,.08,"sawtooth",.05,0);
-  arcadeTone(220,.09,"square",.045,.08);
-  arcadeTone(150,.13,"square",.04,.17);
-}
-
-function sStart(){
-  tone(480,.045,"sine",.045,0,620);
-  tone(680,.060,"sine",.055,.045,820);
-}
-
-/* Cartoon-like positive pop: rising two-note "boing/ding" */
-
-
-/* Cartoon-like negative wobble: descending "wah-wah" */
-
-
-/* Quiet, dry mechanical tick. Last 3 seconds only slightly stronger. */
-function sTick(strong=false){
-  noiseClick(0,strong ? .026 : .014);
-  tone(
-    strong ? 1450 : 1250,
-    .014,
-    "square",
-    strong ? .014 : .007
-  );
-}
-function vibrate(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
-
-
-function setMode(mode){
-  playMode=mode;
-  document.body.classList.toggle("focus-mode", mode==="focus");
-  document.body.classList.toggle("game-mode", mode==="game");
-  el("focusModeBtn")?.classList.toggle("active", mode==="focus");
-  el("gameModeBtn")?.classList.toggle("active", mode==="game");
-  if(el("modeHint")){
-    el("modeHint").textContent = mode==="focus"
-      ? "Focus: quieter, flatter feedback and fewer visual effects."
-      : "Game: slightly stronger sound and visual reinforcement.";
-  }
-}
-setMode("focus");
-
-function showToast(type){
-  clearTimeout(toastTimer);
-  const t=el("resultToast");
-  t.className="result-toast";
-  const label = type==="correct" ? "CORRECT!" : type==="incorrect" ? "INCORRECT!" : "TIME!";
-  t.textContent=label;
-  t.classList.add(type,"show");
-  toastTimer=setTimeout(()=>t.classList.remove("show"), 960);
-}
-
-function buildTimeline(){
-  const wrap = el("timeline");
-  wrap.innerHTML = "";
-  for(let i=0;i<MAX_Q;i++){
-    const d = document.createElement("div");
-    d.className = "seg";
-    wrap.appendChild(d);
-  }
-}
-buildTimeline();
-
-function paintTimeline(){
-  const segs=[...document.querySelectorAll(".seg")];
-  segs.forEach((s,i)=>{
-    s.className="seg";
-    if(i<session.index) s.classList.add("done");
-    if(i===session.index) s.classList.add("current");
-  });
-}
-
-function clamp(x){ return Math.max(.03, Math.min(.99, x)); }
-function updateMetrics(q, ok, t){
-  const m = state.metrics[q.cat];
-  const speed = Math.max(0, 1-(t/LIMIT));
-
-  m.k = clamp(m.k*.78 + (ok?1:0)*.22);
-  m.a = clamp(m.a*.82 + (ok?Math.pow(speed,.75):0)*.18);
-
-  const seenDomains = m.domains || {};
-  const isNewDomain = !seenDomains[q.domain];
-  const transferSignal = ok ? (isNewDomain ? 1 : 0.82) : 0;
-  m.t = clamp(m.t*.86 + transferSignal*.14);
-  seenDomains[q.domain] = (seenDomains[q.domain] || 0) + 1;
-  m.domains = seenDomains;
-
-  if(ok && t<=6) m.interval = Math.min(20, Math.max(1, Math.round(m.interval*1.8)));
-  else m.interval = 1;
-
-  m.lastSession = state.sessions;
-}
-function errType(ok,t,timeout=false){
-  if(ok && t<=3) return "automatic";
-  if(ok && t<=6) return "secure";
-  if(ok) return "slow-correct";
-  if(timeout) return "timeout";
-  if(t<=3.2) return "fast-wrong";
+function outcomeType(ok,sec,target,timeout){
+  if(timeout)return "timeout";
+  const auto=Math.min(3.0,target*.85);
+  const secure=Math.min(6.0,target*1.35);
+  const fastWrong=Math.min(3.2,target*.9);
+  if(ok&&sec<=auto)return "automatic";
+  if(ok&&sec<=secure)return "secure";
+  if(ok)return "slow-correct";
+  if(sec<=fastWrong)return "fast-wrong";
   return "slow-wrong";
 }
-function categoryScore(cat){
-  const m=state.metrics[cat];
-  return (1-m.k)*.48 + (1-m.a)*.34 + (1-m.t)*.18;
+function updateMetric(q,ok,sec,type){
+  const m=state.metrics[q.cat],target=q.targetTime||3.6;
+  const speed=ok?clamp(target/Math.max(.8,sec),0,1):0;
+  const newDomain=!m.domains[q.domain];
+  const oldTemplate=state.templateLast[q.templateId]!=null;
+  m.k=clamp(m.k*.86+(ok?1:0)*.14,.03,.99);
+  m.a=clamp(m.a*.89+speed*.11,.03,.99);
+  m.t=clamp(m.t*.90+(ok?(newDomain?1:(oldTemplate?.78:.9)):0)*.10,.03,.99);
+  if(type==="fast-wrong"){m.k=clamp(m.k-.035,.03,.99);m.a=clamp(m.a-.05,.03,.99);}
+  m.attempts++;if(ok)m.correct++;if(type==="automatic")m.automatic++;if(!ok)m.lapses++;
+  m.streak=ok?m.streak+1:0;m.lastMs=Math.round(sec*1000);m.lastLevel=state.level;
+  m.domains[q.domain]=(m.domains[q.domain]||0)+1;
+  if(type==="automatic")m.interval=Math.min(40,Math.max(2,Math.round(m.interval*2.2+1)));
+  else if(type==="secure")m.interval=Math.min(28,Math.max(2,Math.round(m.interval*1.7+1)));
+  else if(type==="slow-correct")m.interval=Math.min(12,Math.max(1,Math.round(m.interval*1.25)));
+  else m.interval=1;
+  return speed;
 }
-function due(cat){
-  const m=state.metrics[cat];
-  return (state.sessions - m.lastSession) >= m.interval;
-}
-function unusedQuestion(cat, usedIds, preferNewDomain=false){
-  const m=state.metrics[cat];
-  let cand=bank.filter(q=>q.cat===cat && !usedIds.has(q.id));
-  if(preferNewDomain){
-    const nd=cand.filter(q=>!m.domains?.[q.domain]);
-    if(nd.length) cand=nd;
+function seenInfo(q){return state.seen[q.fingerprint]||null;}
+function qScore(q,sessionCats,sessionTemplates,mode){
+  const info=seenInfo(q),isNew=!info,m=state.metrics[q.cat];
+  let s=Math.random()*.10;
+  if(mode==="focus")s+=catPriority(q.cat)*1.65;
+  if(mode==="explore"){
+    // Prefer skills with little evidence and those not sampled recently.
+    s+=Math.max(0,.85-Math.min(.85,m.attempts/18));
+    s+=Math.min(.55,Math.max(0,state.level-m.lastLevel)*.035);
   }
-  cand.sort((a,b)=>(state.seen[a.id]||0)-(state.seen[b.id]||0));
-  return cand.length ? cand[Math.floor(Math.random()*Math.min(2,cand.length))] : null;
-}
-function buildPlan(){
-  // LEVEL 33: mixed task types for weak structures; preserve 10s while building accuracy before speed.
-  return bank.slice(0,15);
-}
-function buildBalancedPositions(){
-  const p=[]; while(p.length<MAX_Q) p.push(0,1,2,3);
-  p.length=MAX_Q;
-  for(let i=p.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [p[i],p[j]]=[p[j],p[i]];
+  if(mode==="review"){
+    const overdue=Math.max(0,(state.level-m.lastLevel)-m.interval);
+    s+=.45+Math.min(.75,overdue*.08)+catPriority(q.cat)*.55;
   }
-  return p;
-}
-function shuffleOptions(q,targetPos){
-  const correctText=q.a[q.c];
-  const others=q.a.filter((_,i)=>i!==q.c);
-  for(let i=others.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [others[i],others[j]]=[others[j],others[i]];
+  if(mode==="wild")s+=.28+Math.max(0,.45-m.attempts/40);
+  if(isNew)s+=mode==="review"?.06:.62; else if(mode==="review")s+=.32;
+  if(info){
+    const ago=state.level-info.lastLevel;
+    if(ago<4)s-=3.0;else if(ago<9)s-=1.15;else if(ago<16)s-=.35;
+    s-=Math.min(.65,Math.log1p(info.count)*.18);
   }
-  const arr=[...others];
-  arr.splice(targetPos,0,correctText);
-  return {...q, display:arr, correctPos:targetPos};
+  const ta=state.templateLast[q.templateId];
+  if(ta!=null){
+    const ago=state.level-ta;
+    if(ago<4)s-=2.0;else if(ago<10)s-=.65;
+  }
+  const cc=sessionCats[q.cat]||0,tc=sessionTemplates[q.templateId]||0;
+  if(cc>=2)s-=20; else if(cc===1)s-=.20;
+  if(tc>=1)s-=12;
+  if(!m.domains[q.domain])s+=.20;
+  return s;
 }
+function chooseOne(pool,chosen,sessionCats,sessionTemplates,mode,allowedCats=null){
+  const chosenFp=new Set(chosen.map(q=>q.fingerprint));
+  let cand=pool.filter(q=>!chosenFp.has(q.fingerprint));
+  if(allowedCats) cand=cand.filter(q=>allowedCats.has(q.cat));
+  cand=cand.filter(q=>(sessionCats[q.cat]||0)<2 && (sessionTemplates[q.templateId]||0)<1);
+  if(!cand.length)return null;
+  cand.sort((a,b)=>qScore(b,sessionCats,sessionTemplates,mode)-qScore(a,sessionCats,sessionTemplates,mode));
+  return cand[Math.floor(Math.random()*Math.min(5,cand.length))];
+}
+function buildTrainingPlan(){
+  const chosen=[],cats={},temps={};
+  const addQ=q=>{if(!q)return false;chosen.push(q);cats[q.cat]=(cats[q.cat]||0)+1;temps[q.templateId]=(temps[q.templateId]||0)+1;return true;};
+  const newPool=BANK.filter(q=>!seenInfo(q)),reviewPool=BANK.filter(q=>!!seenInfo(q));
+  const skills=CAMPAIGN.skills.map(s=>({id:s.id,m:state.metrics[s.id],priority:catPriority(s.id)}));
 
-function cancelTimers(){
-  clearTimeout(timeoutId);
-  cancelAnimationFrame(rafId);
-  clearInterval(countdownIntervalId);
-  countdownIntervalId=null;
-}
-function setMiniStatus(text="", show=false){
-  const ms=el("miniStatus");
-  ms.textContent=text || " ";
-  ms.classList.toggle("empty", !show);
-}
+  // Deliberate interleaving: a weak pattern can never swallow the session.
+  // Early sessions are deliberately broad diagnostics; later sessions consolidate more deeply.
+  const surveyMode=state.sessions<8;
+  const focusGoal=surveyMode?4:6, exploreGoal=surveyMode?7:4, reviewGoal=surveyMode?3:4;
+  const focusCats=skills.slice().sort((a,b)=>b.priority-a.priority).slice(0,surveyMode?4:3).map(x=>x.id);
+  let focusSlots=focusGoal;
+  for(let round=0;round<2&&focusSlots>0;round++){
+    for(const cat of focusCats){
+      if(focusSlots<=0)break;
+      const q=chooseOne(newPool.length?newPool:BANK,chosen,cats,temps,"focus",new Set([cat])) || chooseOne(BANK,chosen,cats,temps,"focus",new Set([cat]));
+      if(addQ(q))focusSlots--;
+    }
+  }
 
-function startSession(){
-  initAudio();
-  const rawPlan=buildPlan();
-  const positions=buildBalancedPositions();
-  session={
-    index:0,
-    correct:0,
-    answered:0,
-    times:[],
-    automatic:0,
-    records:[],
-    plan:rawPlan.map((q,i)=>shuffleOptions(q,positions[i]))
-  };
-  el("startScreen").classList.add("hidden");
-  el("tipsScreen")?.classList.add("hidden");
-  el("endScreen").classList.add("hidden");
-  el("gameScreen").classList.remove("hidden");
-  nextQuestion();
+  const exploreCats=skills.slice().sort((a,b)=>{
+    const evidence=(a.m.attempts-b.m.attempts);
+    if(evidence)return evidence;
+    return a.m.lastLevel-b.m.lastLevel;
+  }).map(x=>x.id);
+  let exploreSlots=exploreGoal;
+  for(const cat of exploreCats){
+    if(exploreSlots<=0)break;
+    if((cats[cat]||0)>0)continue;
+    const q=chooseOne(newPool,chosen,cats,temps,"explore",new Set([cat]));
+    if(addQ(q))exploreSlots--;
+  }
+
+  const dueCats=skills.filter(x=>x.m.attempts>0&&(state.level-x.m.lastLevel)>=x.m.interval)
+    .sort((a,b)=>((state.level-b.m.lastLevel)-b.m.interval)-((state.level-a.m.lastLevel)-a.m.interval))
+    .map(x=>x.id);
+  let reviewSlots=reviewGoal;
+  for(const cat of dueCats){
+    if(reviewSlots<=0)break;
+    const q=chooseOne(reviewPool,chosen,cats,temps,"review",new Set([cat]));
+    if(addQ(q))reviewSlots--;
+  }
+  while(reviewSlots>0){
+    const q=chooseOne(reviewPool,chosen,cats,temps,"review");
+    if(!q)break;addQ(q);reviewSlots--;
+  }
+
+  const wild=chooseOne(newPool.length?newPool:BANK,chosen,cats,temps,"wild");
+  addQ(wild);
+
+  while(chosen.length<SESSION_SIZE){
+    const q=chooseOne(BANK,chosen,cats,temps,"explore");
+    if(!q)break;addQ(q);
+  }
+
+  // Shuffle, then repair adjacent same-skill pairs when possible.
+  for(let i=chosen.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[chosen[i],chosen[j]]=[chosen[j],chosen[i]];}
+  for(let k=0;k<80;k++){
+    let bad=-1;
+    for(let i=1;i<chosen.length;i++)if(chosen[i].cat===chosen[i-1].cat){bad=i;break;}
+    if(bad<0)break;
+    const j=[...Array(chosen.length).keys()].find(x=>Math.abs(x-bad)>1&&chosen[x].cat!==chosen[bad].cat&&(x===0||chosen[x-1].cat!==chosen[bad].cat));
+    if(j!=null)[chosen[bad],chosen[j]]=[chosen[j],chosen[bad]];else break;
+  }
+  return chosen.slice(0,SESSION_SIZE);
+}
+function buildFinalPlan(){
+  const ranked=[...CAMPAIGN.skills].sort((a,b)=>catPriority(b.id)-catPriority(a.id)),result=[];
+  for(const s of ranked){
+    const pool=BANK.filter(q=>q.cat===s.id).sort((a,b)=>(seenInfo(a)?.lastLevel||-999)-(seenInfo(b)?.lastLevel||-999));
+    if(pool[0])result.push(pool[0]);
+  }
+  while(result.length<30){const q=chooseOne(BANK,result,{},{},"review");if(!q)break;result.push(q);}
+  return result.slice(0,30);
+}
+function shuffleOptions(q){
+  const arr=q.a.map((x,i)=>({x,ok:i===q.c}));
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+  return {...q,display:arr.map(x=>x.x),correctPos:arr.findIndex(x=>x.ok)};
+}
+function currentStageText(){const s=stageInfo(overallStats().coverage);return `Stage ${s.index+1}/6 · ${s.name}`;}
+function deltaText(value,goodUp=true,suffix=""){
+  if(value==null||Number.isNaN(value))return '<span class="delta neutral">—</span>';
+  const good=goodUp?value>0:value<0,bad=goodUp?value<0:value>0,arrow=value>0?"↑":value<0?"↓":"→";
+  return `<span class="delta ${good?"good":bad?"bad":"neutral"}">${arrow} ${Math.abs(value).toFixed(1)}${suffix}</span>`;
+}
+function sparkline(values){
+  if(values.length<2)return '<div class="footerline">Complete a few levels to build the progress graph.</div>';
+  const w=600,h=90,p=8,min=Math.min(...values),max=Math.max(...values),span=Math.max(.01,max-min);
+  const pts=values.map((v,i)=>`${p+i*(w-2*p)/(values.length-1)},${h-p-(v-min)/span*(h-2*p)}`).join(" ");
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="white" stroke-width="3" vector-effect="non-scaling-stroke"/><line x1="0" y1="${h-p}" x2="${w}" y2="${h-p}" stroke="rgba(255,255,255,.12)"/></svg>`;
+}
+function topWeak(n=5){
+  return CAMPAIGN.skills.map(s=>({...s,m:state.metrics[s.id],mastery:metricMastery(state.metrics[s.id]),p:catPriority(s.id)})).sort((a,b)=>b.p-a.p).slice(0,n);
+}
+function renderStart(){
+  const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating);
+  applyRatingTheme(st.rating);
+  $("startKicker").textContent=`CAMPAIGN 1 · ${currentStageText()}`;
+  $("startLevel").textContent=`LEVEL ${state.level}`;
+  $("startBtn").textContent=state.sessions?`CONTINUE · LEVEL ${state.level}`:`START · LEVEL ${state.level}`;
+  $("coverageText").textContent=`${Object.keys(state.seen).length.toLocaleString()} / ${BANK.length.toLocaleString()}`;
+  $("coverageFill").style.width=pct(st.coverage)+"%";
+  $("masteryText").textContent=pct(st.mastery)+"%";$("masteryFill").style.width=pct(st.mastery)+"%";
+  $("startFluency").textContent=st.rating?pct(st.rating):"—";
+  $("startAccuracy").textContent=st.accuracy?pct(st.accuracy)+"%":"—";
+  $("startAvg").textContent=st.avgMs?fmtSec(st.avgMs):"—";
+  $("startAuto").textContent=st.auto?pct(st.auto)+"%":"—";
+  $("startMastered").textContent=`${st.mastered}/${CAMPAIGN.skills.length}`;
+  $("startTotal").textContent=(state.totalAttempts||0).toLocaleString();
+  let status=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Math.max(0,sg.to-sg.seen)} new exercises until the next stage.`;
+  if(st.coverage>=.999&&!st.eligible)status="All 3,000 exercises explored. Consolidation continues until mastery ≥85% and every skill ≥70%.";
+  if(st.eligible&&!state.completed)status="FINAL CHALLENGE READY · Campaign requirements achieved.";
+  if(state.completed)status="CAMPAIGN 1 COMPLETE · Free practice remains available, or load the next campaign later.";
+  $("campaignStatus").textContent=status;
+}
+function showScreen(id){["startScreen","gameScreen","endScreen"].forEach(x=>$(x).classList.add("hidden"));$(id).classList.remove("hidden");}
+function startSession(finalMode=false){
+  applyRatingTheme(overallStats().rating);
+  const raw=finalMode?buildFinalPlan():buildTrainingPlan();
+  session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],plan:raw.map(shuffleOptions)};
+  $("sessionLevel").textContent=finalMode?"FINAL":`L${state.level}`;
+  showScreen("gameScreen");nextQuestion();
+}
+function renderSegments(left){
+  const n=Math.ceil(left);
+  [...$("segments").children].forEach((e,i)=>e.classList.toggle("on",i<n));
+}
+function startTimer(){
+  clearInterval(timerHandle);deadline=performance.now()+TIME_LIMIT*1000;lastTickShown=TIME_LIMIT+1;
+  timerHandle=setInterval(()=>{
+    const left=Math.max(0,(deadline-performance.now())/1000),shown=Math.ceil(left);
+    $("timerText").textContent=left.toFixed(1);
+    $("timer").style.setProperty("--timer-cut",`${100-left/TIME_LIMIT*100}%`);
+    renderSegments(left);
+    if(shown<lastTickShown&&shown>0&&shown<TIME_LIMIT){playTick(shown<=3);lastTickShown=shown;}
+    if(left<=0){clearInterval(timerHandle);answer(-1,true);}
+  },50);
 }
 function nextQuestion(){
-  if(session.index>=MAX_Q){ finish(); return; }
+  locked=false;
+  if(session.index>=session.plan.length){finishSession();return;}
   current=session.plan[session.index];
-  renderQuestion();
+  $("qIndex").textContent=session.index+1;$("qTotal").textContent="/ "+session.plan.length;
+  $("questionText").textContent=current.q;
+  const wrap=$("answers");wrap.innerHTML="";
+  current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=txt;b.onclick=()=>answer(i,false);wrap.appendChild(b);});
+  $("timerText").textContent="10.0";renderSegments(10);startTimer();
 }
-
-function setDynamicType(){
-  const qLen=current.q.replace(/\s+/g," ").trim().length;
-
-  let qSize;
-  if(qLen<=40) qSize=23;
-  else if(qLen<=58) qSize=22;
-  else if(qLen<=76) qSize=21;
-  else if(qLen<=96) qSize=20;
-  else if(qLen<=118) qSize=19;
-  else qSize=18;
-
-  const longest=Math.max(
-    ...current.display.map(x=>x.replace(/\s+/g," ").trim().length)
-  );
-
-  let aSize;
-  if(longest<=10) aSize=19;
-  else if(longest<=16) aSize=18;
-  else if(longest<=24) aSize=17;
-  else if(longest<=34) aSize=16;
-  else if(longest<=48) aSize=15;
-  else aSize=14;
-
-  if(document.body.classList.contains("large")){
-    qSize=Math.min(qSize+3,26);
-    aSize=Math.min(aSize+3,22);
+function feedback(ok,type,sec,correct){
+  const f=$("feedback");f.className="feedback "+(ok?"ok":"no");
+  const label=ok?(type==="automatic"?"AUTOMATIC":type==="secure"?"CORRECT":"CORRECT · SLOW"):(type==="timeout"?"TIME":"INCORRECT");
+  f.innerHTML=`${label}<small>${sec.toFixed(2)}s${ok?"":` · Correct: ${correct}`}</small>`;
+  requestAnimationFrame(()=>f.classList.add("show"));
+  setTimeout(()=>f.classList.remove("show"),ok?520:900);
+}
+function answer(pos,timeout=false){
+  if(locked)return;locked=true;clearInterval(timerHandle);
+  const sec=timeout?TIME_LIMIT:Math.max(.05,(TIME_LIMIT*1000-(deadline-performance.now()))/1000);
+  const ok=pos===current.correctPos&&!timeout,type=outcomeType(ok,sec,current.targetTime||3.6,timeout);
+  const buttons=[...$("answers").children];
+  buttons.forEach((b,i)=>{b.disabled=true;if(i===current.correctPos)b.classList.add("good");else b.classList.add("dim");});
+  if(!ok&&pos>=0){buttons[pos].classList.remove("dim");buttons[pos].classList.add("bad");}
+  const previousSeen=state.seen[current.fingerprint]||null;
+  const speedScore=updateMetric(current,ok,sec,type);
+  const info=previousSeen||{count:0,lastLevel:-99};
+  state.seen[current.fingerprint]={count:info.count+1,lastLevel:state.level,lastTs:Date.now()};
+  state.templateLast[current.templateId]=state.level;
+  const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,review:!!previousSeen,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:current.q,userAnswer:pos>=0?current.display[pos]:"No answer",correctAnswer:current.display[current.correctPos],rule:current.rule};
+  state.history.push(rec);state.history=state.history.slice(-12000);state.totalAttempts++;
+  session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
+  save();if(ok)playCorrect();else playWrong();feedback(ok,type,sec,rec.correctAnswer);
+  setTimeout(()=>{session.index++;nextQuestion();},ok?610:1020);
+}
+function finishSession(){
+  clearInterval(timerHandle);
+  const completedLevel=state.level,n=session.records.length,accuracy=session.correct/n,avgMs=Math.round(mean(session.records.map(r=>r.ms))),auto=session.automatic/n;
+  const before=state.sessionHistory.length?state.sessionHistory[state.sessionHistory.length-1]:null;
+  state.sessions++;if(session.mode==="training")state.level++;
+  let st=overallStats();
+  const snap={level:completedLevel,ts:Date.now(),mode:session.mode,correct:session.correct,total:n,accuracy,avgMs,automatic:auto,mastery:st.mastery,coverage:st.coverage,fluency:st.fluency,rating:st.rating};
+  state.sessionHistory.push(snap);state.sessionHistory=state.sessionHistory.slice(-500);
+  state.personalBestFluency=Math.max(state.personalBestFluency||0,st.rating);
+  if(session.mode==="final"){
+    state.finalAttempts=(state.finalAttempts||0)+1;
+    if(accuracy>=.85&&avgMs<=6000)state.completed=true;
   }
-
-  document.documentElement.style.setProperty("--question-size",qSize+"px");
-  document.documentElement.style.setProperty("--answer-size",aSize+"px");
+  save();renderEnd(snap,before);showScreen("endScreen");
 }
-
-function renderLevel25Countdown(){
-  const box=el("level25Countdown");
-  if(!box) return;
-  box.innerHTML="";
-  for(let i=0;i<10;i++){
-    const s=document.createElement("div");
-    s.className="level25-countdown-seg on";
-    if(i===0) s.classList.add("current");
-    box.appendChild(s);
-  }
-}
-
-function updateLevel25Countdown(elapsedSec){
-  const box=el("level25Countdown");
-  if(!box) return;
-  const segs=[...box.children];
-  const step=Math.min(9, Math.max(0, Math.floor(elapsedSec)));
-  const remaining=10-step;
-
-  segs.forEach((s,i)=>{
-    s.className="level25-countdown-seg";
-    if(i<step) s.classList.add("past");
-    else s.classList.add("on");
-
-    if(i===step){
-      s.classList.add("current");
-      if(remaining<=3) s.classList.add("danger");
-      else if(remaining<=6) s.classList.add("warn");
-    }
-  });
-}
-
-function renderQuestion(){
-  renderLevel25Countdown();
-  cancelTimers();
-  paintTimeline();
-
-  el("questionNumber").textContent=String(session.index+1);
-  el("question").textContent=current.q;
-  setMiniStatus("", false);
-  setDynamicType();
-
-  const wrap=el("answers");
-  wrap.innerHTML="";
-  current.display.forEach((txt,i)=>{
-    const b=document.createElement("button");
-    b.className="answer";
-    b.innerHTML=`
-      <span class="answer-shape">${SHAPES_SVG[i]}</span>
-      <span class="answer-label">${txt}</span>
-      <span class="answer-mark left"></span>
-      <span class="answer-mark right"></span>
-    `;
-    b.onclick=()=>answer(i,false);
-    wrap.appendChild(b);
-  });
-
-  const dial=el("timerDial");
-  const ring=el("timerProgress");
-  const timerNumber=el("timerNumber");
-
-  dial.classList.remove("urgent","danger");
-  timerNumber.textContent=String(LIMIT);
-
-  ring.style.animationPlayState="running";
-  ring.style.animation="none";
-  ring.style.strokeDashoffset="0";
-  void ring.getBoundingClientRect();
-  ring.style.animation="";
-  ring.classList.remove("running");
-  void ring.getBoundingClientRect();
-  ring.classList.add("running");
-
-  startStamp=performance.now();
-  timeoutId=setTimeout(()=>answer(-1,true),LIMIT*1000);
-
-  let lastShown=LIMIT+1;
-
-  const updateCountdown=()=>{
-    const elapsed=(performance.now()-startStamp)/1000;
-  updateLevel25Countdown(elapsed);
-    const left=Math.max(0,LIMIT-elapsed);
-    const shown=Math.ceil(left);
-
-    timerNumber.textContent=String(shown);
-
-    dial.classList.toggle("urgent",left<=3 && left>1.2);
-    dial.classList.toggle("danger",left<=1.2);
-
-    const segs=[...document.querySelectorAll(".progress-timeline .seg")].slice(0,10);
-    const remaining=Math.max(0,Math.min(10,shown));
-    segs.forEach((seg,idx)=>{
-      seg.style.opacity="";
-      seg.className="seg";
-      if(idx<remaining){
-        seg.style.background=idx===remaining-1
-          ? "#fff"
-          : "rgba(218,235,223,.32)";
-      }else{
-        seg.style.background="rgba(218,235,223,.13)";
-      }
-    });
-
-    if(shown!==lastShown){
-      if(shown>0 && shown<LIMIT){
-        sTick(shown<=3);
-      }
-      lastShown=shown;
-    }
-  };
-
-  updateCountdown();
-  countdownIntervalId=setInterval(updateCountdown,160);
-}
-function flashFor(type, elapsed){
-  const f=el("flash");
-  const ok=["automatic","secure","slow-correct"].includes(type);
-  el("flashIcon").textContent=ok ? "✓" : type==="timeout" ? "⏱" : "×";
-
-  let title="", kind="", delay=800, showRule=false;
-  if(type==="automatic"){ title=`Automatic · ${elapsed.toFixed(1)}s`; kind="FAST CORRECT"; delay=330; }
-  if(type==="secure"){ title=`Secure · ${elapsed.toFixed(1)}s`; kind="CORRECT"; delay=520; }
-  if(type==="slow-correct"){ title=`Correct · ${elapsed.toFixed(1)}s`; kind="NOT YET AUTOMATIC"; delay=1050; showRule=true; }
-  if(type==="fast-wrong"){ title=`Fast error · ${elapsed.toFixed(1)}s`; kind="LIKELY MISCONCEPTION"; delay=1800; showRule=true; }
-  if(type==="slow-wrong"){ title=`Not yet · ${elapsed.toFixed(1)}s`; kind="UNCERTAINTY"; delay=1550; showRule=true; }
-  if(type==="timeout"){ title="Time"; kind="UNDER PRESSURE"; delay=1650; showRule=true; }
-
-  el("flashTitle").textContent=title;
-  el("flashAnswer").textContent=ok ? "" : `Correct: ${current.display[current.correctPos]}`;
-  el("flashRule").textContent=showRule ? current.rule : "";
-  el("flashTrigger").textContent=showRule ? current.trigger : "";
-  el("flashType").textContent=kind;
-  f.classList.add("show");
-  setTimeout(()=>{
-    f.classList.remove("show");
-    session.index++;
-    nextQuestion();
-  }, delay);
-}
-
-function answer(pos, timeout=false){
-  const elapsed=Math.min(LIMIT,(performance.now()-startStamp)/1000);
-  cancelTimers();
-  const remaining=Math.max(0,LIMIT-elapsed);
-  if(el("timerNumber")) el("timerNumber").textContent=String(Math.ceil(remaining));
-  if(el("timerProgress")) el("timerProgress").style.animationPlayState="paused";
-  const ok = pos===current.correctPos;
-  const type=errType(ok, elapsed, timeout);
-
-  const buttons=[...document.querySelectorAll(".answer")];
-  buttons.forEach((b,i)=>{
-    b.disabled=true;
-
-    if(i===current.correctPos){
-      b.classList.add("result-correct");
-    }else{
-      b.classList.add("result-dim");
-    }
-
-    if(i===pos && !ok && pos!==-1){
-      b.classList.remove("result-dim");
-      b.classList.add("result-wrong");
-    }
-  });
-
-  if(ok && pos!==-1 && buttons[pos]){
-    buttons[pos].classList.add("result-correct");
-  }
-  if(timeout && buttons[current.correctPos]){
-    buttons[current.correctPos].classList.remove("result-dim");
-  }
-
-  session.answered++;
-  if(ok) session.correct++;
-  session.times.push(elapsed);
-  if(type==="automatic") session.automatic++;
-
-  updateMetrics(current, ok, elapsed);
-  state.seen[current.id]=(state.seen[current.id]||0)+1;
-  const rec={session:state.sessions,qid:current.id,cat:current.cat,domain:current.domain,correct:ok,ms:Math.round(elapsed*1000),type,ts:Date.now(),question:current.q,userAnswer:pos===-1?"No answer":current.display[pos],correctAnswer:current.display[current.correctPos],rule:current.rule,trigger:current.trigger};
-  session.records.push(rec);
-  state.history.push(rec);
-  if(state.history.length>1200) state.history=state.history.slice(-1200);
-  save();
-
-  if(ok){
-    sCorrect();
-    if(playMode==="game") vibrate(18);
-    showToast("correct");
-  }else if(timeout){
-    if(playMode==="game") sWrong();
-    if(playMode==="game") vibrate([28,22,28]);
-    showToast("timeout");
-  }else{
-    sWrong();
-    if(playMode==="game") vibrate(type==="fast-wrong" ? [44,24,44] : [32,24,32]);
-    showToast("incorrect");
-  }
-
-  const delay = 1040;
-
-  const zone=document.querySelector(".question-zone");
-  setTimeout(()=>zone?.classList.add("fade-out"), Math.max(0,delay-85));
-  setTimeout(()=>{
-    zone?.classList.remove("fade-out");
-    session.index++;
-    nextQuestion();
-  }, delay);
-}
-
-function averageMetric(key){
-  const cats=[...new Set(session.records.map(r=>r.cat))];
-  if(!cats.length) return 0;
-  return cats.reduce((s,c)=>s+state.metrics[c][key],0)/cats.length;
-}
-function setBar(id,val){ el(id).style.width=`${Math.round(val*100)}%`; }
-
-function escapeHTML(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-function finish(){
-  cancelTimers();
-  state.sessions++;
-  save();
-
-  el("gameScreen").classList.add("hidden");
-  el("endScreen").classList.remove("hidden");
-
-  const pct=Math.round(session.correct/MAX_Q*100);
-  const avg=session.times.reduce((a,b)=>a+b,0)/Math.max(1,session.times.length);
-
-  el("endTitle").textContent=`${session.correct}/15 · ${pct}%`;
-  el("finalScore").textContent=`${session.correct}/15`;
-  el("avgTime").textContent=`${avg.toFixed(1)}s`;
-  el("autoCount").textContent=session.automatic;
-
-  const cats=[...new Set(session.records.map(r=>r.cat))];
-  const weak=cats
-    .map(c=>({c,m:state.metrics[c],score:categoryScore(c)}))
-    .sort((x,y)=>y.score-x.score)
-    .slice(0,3);
-
+function renderEnd(s,before){
+  const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating);
+  applyRatingTheme(st.rating);
+  $("endKicker").textContent=s.mode==="final"?"FINAL CHALLENGE":`LEVEL ${s.level} COMPLETE`;
+  $("endScore").textContent=`${s.correct}/${s.total} · ${pct(s.accuracy)}%`;
+  $("endSub").textContent=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Object.keys(state.seen).length.toLocaleString()}/${BANK.length.toLocaleString()} explored`;
+  $("eAvg").textContent=fmtSec(s.avgMs);$("eAuto").textContent=pct(s.automatic)+"%";$("eFluency").textContent=pct(st.rating);
+  $("eCoverage").textContent=pct(st.coverage)+"%";$("eMastery").textContent=pct(st.mastery)+"%";$("eMastered").textContent=`${st.mastered}/${CAMPAIGN.skills.length}`;
+  $("dAcc").innerHTML=before?deltaText((s.accuracy-before.accuracy)*100,true," pts"):'<span class="delta neutral">First level</span>';
+  $("dTime").innerHTML=before?deltaText((s.avgMs-before.avgMs)/1000,false,"s"):'<span class="delta neutral">First level</span>';
+  $("dFlu").innerHTML=before?deltaText((st.rating-(before.rating??before.fluency))*100,true," pts"):'<span class="delta neutral">First level</span>';
+  $("chartWrap").innerHTML=sparkline(state.sessionHistory.filter(x=>x.mode==="training").slice(-20).map(x=>(x.rating??x.fluency)*100));
+  $("weakSkills").innerHTML=topWeak().map(x=>`<div class="skillrow"><div class="name">${x.name}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%"></div></div><div class="pct">${pct(x.mastery)}%</div></div>`).join("");
   const wrong=session.records.filter(r=>!r.correct);
-  const slowCorrect=session.records.filter(r=>r.correct && r.ms>3000);
-  const fastWrong=session.records.filter(r=>r.type==="fast-wrong");
-
-  const primary=weak[0];
-  const primaryName=primary ? (CAT_NAMES[primary.c]||primary.c) : "maintenance";
-  const secondaryName=weak[1] ? (CAT_NAMES[weak[1].c]||weak[1].c) : null;
-
-  let focusText=`Prioritise <b>${escapeHTML(primaryName)}</b>`;
-  if(secondaryName) focusText+=` and <b>${escapeHTML(secondaryName)}</b>`;
-  if(fastWrong.length) focusText+=`. ${fastWrong.length} fast error${fastWrong.length===1?"":"s"} may indicate a wrongly automated pattern`;
-  if(slowCorrect.length) focusText+=`. ${slowCorrect.length} correct answer${slowCorrect.length===1?" was":"s were"} still slower than automatic`;
-  focusText+=".";
-  el("nextFocusCompact").innerHTML=focusText;
-
-  if(wrong.length){
-    el("compactErrors").innerHTML=wrong.map((r,i)=>`
-      <div class="error-row">
-        <span class="error-q">${i+1}. ${escapeHTML(r.question)}</span>
-        <div class="error-line"><b>You:</b> ${escapeHTML(r.userAnswer)} · <b>Correct:</b> ${escapeHTML(r.correctAnswer)} · ${(r.ms/1000).toFixed(1)}s</div>
-        <div class="error-why">${escapeHTML(r.rule || "")}</div>
-      </div>
-    `).join("");
-  }else{
-    el("compactErrors").innerHTML=`<div class="error-why">No errors in this round.</div>`;
-  }
-
-  const focusLines=weak.length
-    ? weak.map(x=>`- ${CAT_NAMES[x.c]||x.c}: knowledge ${Math.round(x.m.k*100)}%, automaticity ${Math.round(x.m.a*100)}%, transfer ${Math.round(x.m.t*100)}%`).join("\n")
-    : "- General maintenance";
-
-  const errorLines=wrong.length
-    ? wrong.map((r,i)=>`${i+1}. ${r.question}
-   My answer: ${r.userAnswer}
-   Correct: ${r.correctAnswer}
-   Time: ${(r.ms/1000).toFixed(1)}s
-   Pattern: ${CAT_NAMES[r.cat]||r.cat}
-   Rule: ${r.rule}`).join("\n")
-    : "No incorrect answers.";
-
-  const slowLines=slowCorrect.length
-    ? slowCorrect.slice(0,6).map(r=>`- ${CAT_NAMES[r.cat]||r.cat}: correct in ${(r.ms/1000).toFixed(1)}s`).join("\n")
-    : "None.";
-
-  const prompt=`AE RESULT · L${CURRENT_LEVEL}
-SCORE ${session.correct}/15 (${pct}%)
-AVG ${avg.toFixed(1)}s
-AUTO ${session.automatic}/15
-TEST_LEVEL ${TEST_LEVEL}%
-
-PRIORITY
-${focusLines}
-
-ERRORS
-${errorLines}
-
-SLOW
-${slowLines}
-
-CREATE + PUBLISH LEVEL ${NEXT_LEVEL}`;
-
-  el("handoffPrompt").value=prompt;
+  $("errors").innerHTML=wrong.length?wrong.map((r,i)=>`<details><summary>${i+1}. ${escapeHtml(r.question)} · ${(r.ms/1000).toFixed(1)}s</summary><p><b>You:</b> ${escapeHtml(r.userAnswer)}<br><b>Correct:</b> ${escapeHtml(r.correctAnswer)}<br>${escapeHtml(r.rule)}</p></details>`).join(""):'<p class="meta">No errors in this level.</p>';
+  $("continueBtn").textContent=state.completed?"KEEP TRAINING":`CONTINUE · LEVEL ${state.level}`;
+  $("finalBtn").classList.toggle("hidden",!(st.eligible&&!state.completed));
+  if(s.mode==="final"&&!state.completed)$("endSub").textContent=`Final challenge not passed yet · ${pct(s.accuracy)}% · ${fmtSec(s.avgMs)}`;
+  if(state.completed)$("endSub").textContent="CAMPAIGN 1 COMPLETE";
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+function exportProgress(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`adaptive-english-progress-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href);
+}
+function importProgress(file){
+  const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);if(s.campaignId!==CAMPAIGN.campaignId)throw Error();localStorage.setItem(STORAGE_KEY,JSON.stringify(s));state=loadState();renderStart();alert("Progress imported.");}catch(e){alert("This progress file is not valid for Campaign 1.");}};r.readAsText(file);
+}
+function resetProgress(){
+  if(confirm("Reset all Campaign 1 progress? Export a backup first if you want to keep it.")){localStorage.removeItem(STORAGE_KEY);state=newState();save();renderStart();}
 }
 
-async function copyHandoffPrompt(){
-  const box=el("handoffPrompt");
-  const status=el("copyStatus");
-  const text=box.value;
-
-  let copied=false;
-
-  // 1) Modern Clipboard API when the origin/browser permits it.
-  try{
-    if(navigator.clipboard && typeof navigator.clipboard.writeText==="function"){
-      await navigator.clipboard.writeText(text);
-      copied=true;
-    }
-  }catch(e){}
-
-  // 2) Android/local-file fallback: copy from a temporary editable textarea.
-  if(!copied){
-    try{
-      const temp=document.createElement("textarea");
-      temp.value=text;
-      temp.setAttribute("aria-hidden","true");
-      temp.style.position="fixed";
-      temp.style.left="-9999px";
-      temp.style.top="0";
-      temp.style.width="1px";
-      temp.style.height="1px";
-      temp.style.opacity="0";
-      temp.style.fontSize="16px";
-      document.body.appendChild(temp);
-
-      temp.focus({preventScroll:true});
-      temp.select();
-      temp.setSelectionRange(0,temp.value.length);
-
-      copied=document.execCommand("copy")===true;
-      temp.remove();
-    }catch(e){}
-  }
-
-  if(copied){
-    status.textContent="Copied ✓";
-    setTimeout(()=>status.textContent="",1600);
-    return;
-  }
-
-  // 3) Last-resort local-file behaviour:
-  // select the visible text so Android's native Copy action can be used.
-  try{
-    box.removeAttribute("readonly");
-    box.focus({preventScroll:false});
-    box.select();
-    box.setSelectionRange(0,box.value.length);
-    box.setAttribute("readonly","");
-    status.textContent="Selected — tap Copy";
-  }catch(e){
-    status.textContent="Long-press the result and choose Copy";
-  }
+async function boot(){
+  CAMPAIGN=await loadCampaign();BANK=CAMPAIGN.questions;state=loadState();save();
+  const seg=$("segments");for(let i=0;i<10;i++){const d=document.createElement("div");d.className="seg";seg.appendChild(d);}
+  $("startBtn").onclick=async()=>{await ensureAudio();startSession(false);};
+  $("continueBtn").onclick=async()=>{await ensureAudio();if(state.completed){renderStart();showScreen("startScreen");}else startSession(false);};
+  $("finalBtn").onclick=async()=>{await ensureAudio();startSession(true);};
+  $("soundBtn").onclick=async()=>{soundOn=!soundOn;if(soundOn){await ensureAudio();tone(760,.06,.025,'sine');}refreshSoundButton();};
+  refreshSoundButton();
+  $("exportBtn").onclick=exportProgress;$("importBtn").onclick=()=>$("importFile").click();
+  $("importFile").onchange=e=>e.target.files[0]&&importProgress(e.target.files[0]);
+  $("resetBtn").onclick=resetProgress;$("homeBtn").onclick=()=>{renderStart();showScreen("startScreen");};
+  renderStart();showScreen("startScreen");
 }
-
-async function shareHandoffPrompt(){
-  const text=el("handoffPrompt").value;
-  const status=el("copyStatus");
-
-  if(navigator.share){
-    try{
-      await navigator.share({
-        title:`Adaptive English · Level ${CURRENT_LEVEL} Result`,
-        text
-      });
-      status.textContent="Shared ✓";
-      setTimeout(()=>status.textContent="",1600);
-      return;
-    }catch(e){}
-  }
-
-  // If Share is unavailable, fall back to the copy routine.
-  copyHandoffPrompt();
-}
-
-el("focusModeBtn").onclick=()=>setMode("focus");
-el("gameModeBtn").onclick=()=>setMode("game");
-function showTips(){
-  el("startScreen").classList.add("hidden");
-  el("endScreen").classList.add("hidden");
-  el("gameScreen").classList.add("hidden");
-  el("tipsScreen").classList.remove("hidden");
-}
-
-el("startBtn").onclick=async()=>{
-  await unlockAudio();
-  sStart();
-  showTips();
-};
-
-el("tipStartBtn").onclick=async()=>{
-  await unlockAudio();
-  sStart();
-  el("tipsScreen").classList.add("hidden");
-  startSession();
-};
-
-el("againBtn").onclick=async()=>{
-  await unlockAudio();
-  sStart();
-  el("endScreen").classList.add("hidden");
-  showTips();
-};
-el("copyPromptBtn").onclick=copyHandoffPrompt;
-el("sharePromptBtn").onclick=shareHandoffPrompt;
-el("copyPromptBtn").textContent=`Copy Level ${CURRENT_LEVEL} result`;
-el("againBtn").textContent=`Repeat Level ${CURRENT_LEVEL}`;
-el("resetBtn").onclick=()=>{
-  localStorage.removeItem(KEY);
-  state=loadState();
-  alert("Progress reset.");
-};
-el("soundBtn").onclick=async()=>{
-  soundOn=!soundOn;
-  el("soundBtn").classList.toggle("off",!soundOn);
-  if(soundOn){
-    await unlockAudio();
-    tone(720,.08,"sine",.07);
-  }
-};
-
-}
-bootAdaptive().catch(err=>{
-  console.error(err);
-  document.body.innerHTML='<main style="padding:24px;color:white;font-family:system-ui"><h1>Adaptive English</h1><p>Could not load the current level. Reopen the app or check your connection.</p></main>';
-});
-
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').then(r=>r.update()).catch(()=>{}));
-}
+boot().catch(err=>{console.error(err);document.body.innerHTML='<div style="padding:30px;color:white;font-family:system-ui"><h1>Adaptive English</h1><p>Could not load Campaign 1.</p></div>';});
