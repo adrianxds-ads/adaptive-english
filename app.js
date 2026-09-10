@@ -1,5 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
+const APP_VERSION = "1.0";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -48,9 +49,10 @@ function tone(freq,dur=.035,gain=.018,type='sine',delay=0){
   g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,gain),t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+dur+.01);
 }
-function playTick(strong=false){tone(strong?1450:1180,strong?.026:.018,strong?.020:.010,'square');}
-function playCorrect(){tone(520,.055,.028,'sine');tone(780,.07,.026,'sine',.055);}
-function playWrong(){tone(300,.07,.025,'sawtooth');tone(190,.10,.021,'square',.065);}
+function playTick(strong=false){tone(strong?1500:1200,strong?.026:.018,strong?.020:.010,'square');}
+function playCorrect(){tone(523.25,.065,.030,'sine');tone(659.25,.075,.026,'triangle',.042);tone(783.99,.105,.024,'sine',.095);}
+function playWrong(){tone(330,.065,.020,'triangle');tone(247,.090,.018,'sine',.055);}
+function playComplete(){tone(392,.075,.022,'sine');tone(523.25,.085,.024,'triangle',.070);tone(659.25,.100,.026,'sine',.145);tone(783.99,.155,.028,'sine',.230);}
 function refreshSoundButton(){const b=$("soundBtn");if(b){b.textContent=soundOn?'🔊':'🔇';b.setAttribute('aria-label',soundOn?'Sound on':'Sound off');}}
 
 async function loadCampaign(){
@@ -280,11 +282,12 @@ function deltaText(value,goodUp=true,suffix=""){
   const good=goodUp?value>0:value<0,bad=goodUp?value<0:value>0,arrow=value>0?"↑":value<0?"↓":"→";
   return `<span class="delta ${good?"good":bad?"bad":"neutral"}">${arrow} ${Math.abs(value).toFixed(1)}${suffix}</span>`;
 }
-function sparkline(values){
-  if(values.length<2)return '<div class="footerline">Complete a few levels to build the progress graph.</div>';
-  const w=600,h=90,p=8,min=Math.min(...values),max=Math.max(...values),span=Math.max(.01,max-min);
+function sparkline(values,format=v=>String(Math.round(v)),lowerBetter=false){
+  if(values.length<2)return '<div class="footerline">Complete a few levels to build this graph.</div>';
+  const w=600,h=108,p=10,min=Math.min(...values),max=Math.max(...values),span=Math.max(.01,max-min);
   const pts=values.map((v,i)=>`${p+i*(w-2*p)/(values.length-1)},${h-p-(v-min)/span*(h-2*p)}`).join(" ");
-  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="white" stroke-width="3" vector-effect="non-scaling-stroke"/><line x1="0" y1="${h-p}" x2="${w}" y2="${h-p}" stroke="rgba(255,255,255,.12)"/></svg>`;
+  const current=values[values.length-1],best=lowerBetter?min:max;
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line x1="0" y1="${h-p}" x2="${w}" y2="${h-p}" stroke="rgba(255,255,255,.12)"/><line x1="0" y1="${p}" x2="${w}" y2="${p}" stroke="rgba(255,255,255,.07)"/><polyline points="${pts}" fill="none" stroke="white" stroke-width="3" vector-effect="non-scaling-stroke"/></svg><div class="chartmeta"><span>Now ${format(current)}</span><span>Best ${format(best)}</span><span>${values.length} levels</span></div>`;
 }
 function topWeak(n=5){
   return CAMPAIGN.skills.map(s=>({...s,m:state.metrics[s.id],mastery:metricMastery(state.metrics[s.id]),p:catPriority(s.id)})).sort((a,b)=>b.p-a.p).slice(0,n);
@@ -381,7 +384,7 @@ function finishSession(){
     state.finalAttempts=(state.finalAttempts||0)+1;
     if(accuracy>=.85&&avgMs<=6000)state.completed=true;
   }
-  save();renderEnd(snap,before);showScreen("endScreen");
+  save();playComplete();renderEnd(snap,before);showScreen("endScreen");
 }
 function renderEnd(s,before){
   const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating);
@@ -394,11 +397,18 @@ function renderEnd(s,before){
   $("dAcc").innerHTML=before?deltaText((s.accuracy-before.accuracy)*100,true," pts"):'<span class="delta neutral">First level</span>';
   $("dTime").innerHTML=before?deltaText((s.avgMs-before.avgMs)/1000,false,"s"):'<span class="delta neutral">First level</span>';
   $("dFlu").innerHTML=before?deltaText((st.rating-(before.rating??before.fluency))*100,true," pts"):'<span class="delta neutral">First level</span>';
-  $("chartWrap").innerHTML=sparkline(state.sessionHistory.filter(x=>x.mode==="training").slice(-20).map(x=>(x.rating??x.fluency)*100));
+  const trend=state.sessionHistory.filter(x=>x.mode==="training").slice(-20);
+  $("ratingChart").innerHTML=sparkline(trend.map(x=>(x.rating??x.fluency)*100),v=>`${Math.round(v)}`);
+  $("accuracyChart").innerHTML=sparkline(trend.map(x=>x.accuracy*100),v=>`${Math.round(v)}%`);
+  $("timeChart").innerHTML=sparkline(trend.map(x=>x.avgMs/1000),v=>`${v.toFixed(1)}s`,true);
+  $("autoChart").innerHTML=sparkline(trend.map(x=>x.automatic*100),v=>`${Math.round(v)}%`);
   $("weakSkills").innerHTML=topWeak().map(x=>`<div class="skillrow"><div class="name">${x.name}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%"></div></div><div class="pct">${pct(x.mastery)}%</div></div>`).join("");
   const wrong=session.records.filter(r=>!r.correct);
-  $("errors").innerHTML=wrong.length?wrong.map((r,i)=>`<details><summary>${i+1}. ${escapeHtml(r.question)} · ${(r.ms/1000).toFixed(1)}s</summary><p><b>You:</b> ${escapeHtml(r.userAnswer)}<br><b>Correct:</b> ${escapeHtml(r.correctAnswer)}<br>${escapeHtml(r.rule)}</p></details>`).join(""):'<p class="meta">No errors in this level.</p>';
-  $("continueBtn").textContent=state.completed?"KEEP TRAINING":`CONTINUE · LEVEL ${state.level}`;
+  $("errorsBtn").textContent=`REVIEW ERRORS - ${wrong.length}`;
+  $("errorsBtn").classList.toggle("hidden",wrong.length===0);
+  $("errorsCount").textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} in Level ${s.level}`:`No errors in Level ${s.level}`;
+  $("errorsFull").innerHTML=wrong.length?wrong.map((r,i)=>`<details open><summary>${i+1}. ${escapeHtml(r.question)} - ${(r.ms/1000).toFixed(1)}s</summary><p><b>You:</b> ${escapeHtml(r.userAnswer)}<br><b>Correct:</b> ${escapeHtml(r.correctAnswer)}<br>${escapeHtml(r.rule)}</p></details>`).join(""):'<p class="meta">No errors in this level.</p>';
+  $("continueBtn").textContent=state.completed?"KEEP TRAINING":`CONTINUE - LEVEL ${state.level}`;
   $("finalBtn").classList.toggle("hidden",!(st.eligible&&!state.completed));
   if(s.mode==="final"&&!state.completed)$("endSub").textContent=`Final challenge not passed yet · ${pct(s.accuracy)}% · ${fmtSec(s.avgMs)}`;
   if(state.completed)$("endSub").textContent="CAMPAIGN 1 COMPLETE";
@@ -437,6 +447,8 @@ async function boot(){
   $("exportBtn").onclick=exportProgress;$("importBtn").onclick=()=>$("importFile").click();
   $("importFile").onchange=e=>e.target.files[0]&&importProgress(e.target.files[0]);
   $("resetBtn").onclick=resetProgress;$("homeBtn").onclick=()=>{renderStart();showScreen("startScreen");};
+  $("errorsBtn").onclick=()=>showScreen("errorsScreen");
+  $("errorsBackBtn").onclick=()=>showScreen("endScreen");
   renderStart();showScreen("startScreen");
 }
 boot().catch(err=>{console.error(err);document.body.innerHTML='<div style="padding:30px;color:white;font-family:system-ui"><h1>Adaptive English</h1><p>Could not load Campaign 1.</p></div>';});

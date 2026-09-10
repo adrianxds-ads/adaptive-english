@@ -14,3 +14,11 @@ Local adaptive grammar trainer.
 - Existing Campaign 1 progress remains compatible.
 
 The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webmanifest`, `service-worker.js`, and `icon.svg`.
+
+
+## Version 1.0
+- First numbered stable release.
+- More rewarding answer and level-complete sound cues.
+- Four longitudinal charts: AE Rating, accuracy, response time, and automaticity.
+- Errors moved to a dedicated full-screen review opened on demand.
+- Existing Campaign 1 local progress remains compatible.

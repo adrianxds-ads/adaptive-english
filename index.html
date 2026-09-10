@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<title>Adaptive English · Campaign 1</title>
+<meta name="ae-version" content="1.0">
+<title>Adaptive English - Campaign 1 - v1.0</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <style>
 :root{--bg:#10271d;--bg-top:#163427;--bg-mid:#102d21;--bg-bottom:#10271d;--glow1:rgba(47,94,67,.55);--glow2:rgba(39,78,57,.45);--panel:#172f24;--text:#f4f7f5;--muted:#b7c9bf;--line:rgba(255,255,255,.12);--ok:#27925c;--bad:#c74253;--red:#c93545;--blue:#1767b7;--yellow:#9b7208;--green:#2b7d3b}
@@ -30,16 +31,17 @@ button{font:inherit}.app{width:min(760px,100%);margin:0 auto;min-height:100dvh}.
 .section{margin-top:14px;padding:14px;border-radius:12px;background:rgba(0,0,0,.13);border:1px solid rgba(255,255,255,.06)}.section h3{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.07em;color:#d9e8df}.chart{width:100%;height:92px;display:block;background:rgba(255,255,255,.03);border-radius:8px}
 .skillrow{display:grid;grid-template-columns:minmax(120px,1fr) 1fr 40px;gap:9px;align-items:center;margin:8px 0;font-size:12px}.skillrow .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e7f0ea;font-weight:800}.skillrow .track{height:7px}.skillrow .pct{text-align:right;font-weight:900}.errors details{margin:6px 0;border-top:1px solid rgba(255,255,255,.06);padding-top:7px}.errors summary{cursor:pointer;font-size:13px;font-weight:800}.errors p{font-size:12px;line-height:1.45;color:#d7e5dc;margin:6px 0 0}.footerline{font-size:11px;color:#9fb5a8;text-align:center;margin-top:12px}input[type=file]{display:none}
 @media(max-width:520px){.screen{padding:12px 10px 20px}.panel{padding:18px 14px;border-radius:14px}.grid{grid-template-columns:repeat(2,1fr)}.top{min-height:92px}.toprow{grid-template-columns:74px 1fr 74px}.timer{width:64px;height:64px}.timer strong{font-size:20px}.qnum b{font-size:42px}.playfield{justify-content:flex-end;padding-bottom:14px}.question{min-height:88px;padding:13px 12px}.answer{min-height:96px;padding:12px 9px}}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.charts .section{margin-top:0}.chart{height:108px}.chartmeta{display:flex;justify-content:space-between;gap:8px;margin-top:7px;font-size:11px;color:var(--muted);font-weight:800}.review{justify-content:flex-start}.review .panel{min-height:calc(100dvh - 36px)}.review .resulttitle{text-align:left}.review .resulttitle h1{font-size:clamp(38px,9vw,58px)}.errors details{margin:8px 0;border-top:1px solid rgba(255,255,255,.08);padding-top:10px}.errors summary{font-size:14px;line-height:1.35}.errors p{font-size:13px;line-height:1.55}@media(max-width:520px){.charts{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="app">
 <section id="startScreen" class="screen start">
   <div class="panel">
-    <div id="startKicker" class="kicker">CAMPAIGN 1</div>
+    <div id="startKicker" class="kicker">CAMPAIGN 1 - VERSION 1.0</div>
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
-    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock</div>
+    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock - v1.0</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -97,15 +99,27 @@ button{font:inherit}.app{width:min(760px,100%);margin:0 auto;min-height:100dvh}.
       <div class="card"><b id="eMastery">0%</b><span>Mastery</span></div>
       <div class="card"><b id="eMastered">0/25</b><span>Skills mastered</span><div id="dAcc"></div></div>
     </div>
-    <div class="section"><h3>AE Rating · last 20 levels</h3><div id="chartWrap"></div></div>
+    <div class="charts">
+      <div class="section"><h3>AE Rating - last 20</h3><div id="ratingChart"></div></div>
+      <div class="section"><h3>Accuracy - last 20</h3><div id="accuracyChart"></div></div>
+      <div class="section"><h3>Avg response time - last 20</h3><div id="timeChart"></div></div>
+      <div class="section"><h3>Automaticity - last 20</h3><div id="autoChart"></div></div>
+    </div>
     <div class="section"><h3>Priority skills</h3><div id="weakSkills"></div></div>
-    <div class="section errors"><h3>Errors</h3><div id="errors"></div></div>
     <div class="actions">
       <button id="continueBtn" class="primary">CONTINUE</button>
+      <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
       <button id="homeBtn" class="secondary">Dashboard</button>
     </div>
-    <div class="footerline">Campaign ends when all 3,000 exercises have been explored, mastery ≥85%, and every skill ≥70%.</div>
+    <div class="footerline">Adaptive English v1.0 - Campaign ends when all 3,000 exercises have been explored.</div>
+  </div>
+</section>
+<section id="errorsScreen" class="screen review hidden">
+  <div class="panel">
+    <div class="resulttitle"><div class="kicker">LEVEL REVIEW - v1.0</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div id="errorsFull" class="errors"></div>
+    <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>
 </section>
 </div>
