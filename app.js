@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.16";
+const APP_VERSION = "1.17";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -53,8 +53,8 @@ function tone(freq,dur=.035,gain=.018,type='sine',delay=0){
   o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+dur+.01);
 }
 function playTick(strong=false,step=0){const f=strong?(step%2?1540:1260):(step%2?1280:980);tone(f,strong?.034:.026,strong?.026:.016,'square');}
-function playCorrect(){tone(523.25,.065,.030,'sine');tone(659.25,.075,.026,'triangle',.042);tone(783.99,.105,.024,'sine',.095);}
-function playWrong(){tone(330,.065,.020,'triangle');tone(247,.090,.018,'sine',.055);}
+function playCorrect(){tone(587.33,.050,.030,'triangle');tone(739.99,.060,.027,'sine',.034);tone(880,.082,.025,'triangle',.074);}
+function playWrong(){tone(311.13,.050,.020,'triangle');tone(220,.070,.017,'sine',.042);}
 function playComplete(){tone(392,.075,.022,'sine');tone(523.25,.085,.024,'triangle',.070);tone(659.25,.100,.026,'sine',.145);tone(783.99,.155,.028,'sine',.230);}
 function haptic(ok){
   try{if(navigator.vibrate)navigator.vibrate(ok?18:[24,16,42]);}catch(e){}

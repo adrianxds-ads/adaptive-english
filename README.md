@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.16
+# Adaptive English · Campaign 1 v1.17
 
 Local adaptive grammar trainer.
 
@@ -147,3 +147,11 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Gives the start cover a distinct burgundy visual identity.
 - Clarifies end-of-level navigation with NEXT LEVEL and DASHBOARD · PORTADA as the two main actions.
 - Enlarges non-quiz typography across dashboards, My Coach, statistics and results while preserving the tuned question/answer sizes.
+
+
+## Version 1.17
+
+- Slightly reduces answer-card typography and vertical padding so all four choices can be scanned faster in one glance, especially on Pixel-sized mobile screens.
+- Keeps the established question typography unchanged.
+- Tightens correct/wrong audio cues into shorter, clearer arcade-style signals without delaying question advance.
+- Preserves Campaign 1 data, scheduling, storage key, 15-question sessions and 10-second timer.
