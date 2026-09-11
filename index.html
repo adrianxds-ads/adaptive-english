@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="1.15">
-<title>Adaptive English - Campaign 1 - v1.15</title>
+<meta name="ae-version" content="1.16">
+<title>Adaptive English - Campaign 1 - v1.16</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -107,6 +107,25 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 
 .coach-prompt-section .secondary{width:100%;margin-top:10px}.coach-prompt-box{margin-top:10px}.coach-prompt-box textarea{width:100%;min-height:190px;resize:vertical;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(0,0,0,.22);color:#dce9e1;padding:11px;font:11px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace}.coach-prompt-box .primary{width:100%;margin-top:8px}
 </style>
+
+<style id="v116-style">
+/* v1.16: distinct cover, clearer navigation, larger non-quiz typography */
+#startScreen{background:radial-gradient(90% 62% at 92% 4%,rgba(128,42,55,.48),transparent 56%),radial-gradient(72% 48% at 5% 96%,rgba(86,28,38,.34),transparent 58%),linear-gradient(180deg,#4c1f28 0%,#351a20 56%,#241519 100%)!important}
+#startScreen .panel{box-shadow:0 22px 60px rgba(96,30,42,.30),0 20px 50px rgba(0,0,0,.22)!important}
+#startScreen .kicker,#statsScreen .kicker,#coachScreen .kicker,#endScreen .kicker,#errorsScreen .kicker{font-size:14px}
+#startScreen .meta,#statsScreen .meta,#coachScreen .meta,#endScreen .meta,#errorsScreen .meta{font-size:15px;line-height:1.45}
+#startScreen .statusbox,#statsScreen .statusbox,#coachScreen .statusbox,#endScreen .statusbox{font-size:15px;line-height:1.5}
+#startScreen button,#statsScreen button,#coachScreen button,#endScreen button,#errorsScreen button{font-size:15px;min-height:48px}
+#startScreen .card b,#statsScreen .card b,#endScreen .card b{font-size:34px}
+#startScreen .card span,#statsScreen .card span,#endScreen .card span{font-size:11px}
+#coachScreen .coach-card h3{font-size:18px}#coachScreen .coach-card p{font-size:15px;line-height:1.55}#coachScreen .coach-card .formula{font-size:15px;padding:11px 12px}
+#coachScreen .mistake-card b{font-size:15px}#coachScreen .mistake-card p{font-size:14px;line-height:1.55}#coachScreen .mistake-choice div{font-size:14px}
+#coachScreen .skillrow,#statsScreen .skillrow,#endScreen .skillrow{font-size:14px;grid-template-columns:minmax(145px,1fr) 1fr 48px}
+#coachScreen .section h3,#statsScreen .section h3,#endScreen .section h3{font-size:16px}
+#coachScreen .coach-prompt-box textarea{font-size:13px;line-height:1.5;min-height:230px}
+#endScreen .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}#endScreen .actions .primary,#endScreen .actions .secondary{min-width:0}
+@media(max-width:520px){#startScreen .card b,#statsScreen .card b,#endScreen .card b{font-size:31px}#coachScreen .skillrow,#statsScreen .skillrow,#endScreen .skillrow{grid-template-columns:minmax(130px,1fr) 1fr 44px}#endScreen .actions{grid-template-columns:1fr 1fr}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -116,7 +135,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 10</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock · v1.15</div>
+    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock · v1.16</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -153,7 +172,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 
 <section id="statsScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">DASHBOARD · v1.15</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
+    <div class="resulttitle"><div class="kicker">DASHBOARD · v1.16</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 10</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
@@ -166,7 +185,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">MY COACH · v1.15</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div class="resulttitle"><div class="kicker">MY COACH · v1.16</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
     <div id="coachIntro" class="statusbox"></div>
     <div class="section"><h3>Focus now</h3><div id="coachFocus" class="coach-grid"></div></div>
     <div class="section"><h3>Common mistakes</h3><div id="coachMistakes"></div></div>
@@ -222,17 +241,17 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
     <div class="section"><h3>Skills · highest → lowest</h3><div id="weakSkills"></div></div>
     <div class="ai-legend-wrap"><span>CÓDIGO DE COLOR · 1 BAJO → 10 MÁXIMO</span><div id="aiLegend" class="ai-legend"></div></div>
     <div class="actions">
-      <button id="continueBtn" class="primary">CONTINUE</button>
+      <button id="continueBtn" class="primary">NEXT LEVEL</button>
+      <button id="homeBtn" class="secondary">DASHBOARD · PORTADA</button>
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
-      <button id="homeBtn" class="secondary">Dashboard</button>
     </div>
-    <div class="footerline">Adaptive English v1.15 - Campaign ends when all 3,000 exercises have been explored.</div>
+    <div class="footerline">Adaptive English v1.16 - Campaign ends when all 3,000 exercises have been explored.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v1.15</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v1.16</div><h1>Errors</h1><p id="errorsCount"></p></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>

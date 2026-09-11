@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.15";
+const APP_VERSION = "1.16";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -91,7 +91,7 @@ async function loadCampaign(){
 
 function seedMetric(cat){
   const p=INITIAL_PRIORS[cat]||[.42,.28,.34];
-  return {k:p[0],a:p[1],t:p[2],attempts:0,correct:0,automatic:0,lapses:0,streak:0,interval:1,lastLevel:-99,domains:{},lastMs:0};
+  return {k:p[0],a:p[1],t:p[2],attempts:0,correct:0,automatic:0,lapses:0,streak:0,interval:1,lastLevel:-99,lastTs:0,intervalDays:1,domains:{},lastMs:0};
 }
 function newState(){
   const metrics={}; CAMPAIGN.skills.forEach(s=>metrics[s.id]=seedMetric(s.id));
@@ -112,6 +112,8 @@ function normaliseProgressState(s){
   s.history=Array.isArray(s.history)?s.history.slice(-HISTORY_LIMIT):[];
   s.sessionHistory=Array.isArray(s.sessionHistory)?s.sessionHistory.slice(-SESSION_HISTORY_LIMIT):[];
   s.seen=s.seen&&typeof s.seen==="object"?s.seen:{};s.templateLast=s.templateLast&&typeof s.templateLast==="object"?s.templateLast:{};
+  for(const skill of CAMPAIGN.skills){const m=s.metrics[skill.id];if(!Number.isFinite(m.intervalDays))m.intervalDays=1;if(!Number.isFinite(m.lastTs))m.lastTs=0;}
+  for(const r of s.history){const m=s.metrics[r.cat];if(m&&Number.isFinite(r.ts)&&r.ts>(m.lastTs||0))m.lastTs=r.ts;}
   return s;
 }
 function loadState(){
@@ -131,13 +133,19 @@ function recentWrong(cat,n=20){
   return r.length?r.filter(x=>!x.correct).length/r.length:0;
 }
 function recentFastWrong(cat,n=50){return state.history.slice(-n).filter(x=>x.cat===cat&&x.type==="fast-wrong").length;}
+function elapsedDays(ts){return Number.isFinite(ts)&&ts>0?Math.max(0,(Date.now()-ts)/86400000):0;}
+function skillTimeDue(m){
+  if(!m||!m.attempts||!m.lastTs)return {due:false,overdue:0,elapsed:0};
+  const elapsed=elapsedDays(m.lastTs),target=Math.max(.5,m.intervalDays||1);
+  return {due:elapsed>=target,overdue:Math.max(0,elapsed-target),elapsed};
+}
 function catPriority(cat){
   const m=state.metrics[cat],weak=(1-m.k)*.42+(1-m.a)*.33+(1-m.t)*.25;
-  const isDue=(state.level-m.lastLevel)>=m.interval;
-  const due=isDue?.09:0;
-  const overdue=Math.min(.10,Math.max(0,(state.level-m.lastLevel)-m.interval)*.015);
+  const sessionDue=(state.level-m.lastLevel)>=m.interval,timeDue=skillTimeDue(m);
+  const due=(sessionDue||timeDue.due)?.09:0;
+  const sessionOver=Math.max(0,(state.level-m.lastLevel)-m.interval),timeOver=timeDue.overdue;
+  const overdue=Math.min(.14,sessionOver*.012+timeOver*.035);
   const errors=recentWrong(cat)*.13,misconception=Math.min(.10,recentFastWrong(cat)*.025);
-  // Weak skills matter, but no single skill is allowed to dominate a whole session.
   return weak+due+overdue+errors+misconception;
 }
 function overallStats(){
@@ -208,11 +216,21 @@ function updateMetric(q,ok,sec,type){
   m.attempts++;if(ok)m.correct++;if(type==="automatic")m.automatic++;if(!ok)m.lapses++;
   m.streak=ok?m.streak+1:0;m.lastMs=Math.round(sec*1000);m.lastLevel=state.level;
   m.domains[q.domain]=(m.domains[q.domain]||0)+1;
-  if(type==="automatic")m.interval=Math.min(40,Math.max(2,Math.round(m.interval*2.2+1)));
-  else if(type==="secure")m.interval=Math.min(28,Math.max(2,Math.round(m.interval*1.7+1)));
-  else if(type==="slow-correct")m.interval=Math.min(12,Math.max(1,Math.round(m.interval*1.25)));
-  else m.interval=1;
+  const sameDay=m.lastTs&&elapsedDays(m.lastTs)<.5,dayFactor=sameDay?1:1.0;
+  if(type==="automatic"){m.interval=Math.min(40,Math.max(2,Math.round(m.interval*2.2+1)));m.intervalDays=sameDay?Math.max(1,m.intervalDays||1):Math.min(30,Math.max(2,Math.round((m.intervalDays||1)*2.2)));}
+  else if(type==="secure"){m.interval=Math.min(28,Math.max(2,Math.round(m.interval*1.7+1)));m.intervalDays=sameDay?Math.max(1,m.intervalDays||1):Math.min(21,Math.max(1,Math.round((m.intervalDays||1)*1.7)));}
+  else if(type==="slow-correct"){m.interval=Math.min(12,Math.max(1,Math.round(m.interval*1.25)));m.intervalDays=sameDay?Math.max(1,m.intervalDays||1):Math.min(10,Math.max(1,Math.round((m.intervalDays||1)*1.25)));}
+  else {m.interval=1;m.intervalDays=1;}
+  m.lastTs=Date.now();
   return speed;
+}
+function reviewIntervalDays(info,type){
+  const prev=Math.max(1,info?.intervalDays||1),sameDay=info?.lastTs&&elapsedDays(info.lastTs)<.5;
+  if(type==="timeout"||type==="fast-wrong"||type==="slow-wrong")return 1;
+  if(sameDay)return prev;
+  if(type==="automatic")return Math.min(30,Math.max(3,Math.round(prev*2.2)));
+  if(type==="secure")return Math.min(21,Math.max(2,Math.round(prev*1.7)));
+  return Math.min(10,Math.max(1,Math.round(prev*1.25)));
 }
 function seenInfo(q){return state.seen[q.fingerprint]||null;}
 const DISPLAY_NAMES={
@@ -251,11 +269,11 @@ function qScore(q,sessionCats,sessionTemplates,mode){
   if(mode==="wild")s+=.28+Math.max(0,.45-m.attempts/40);
   if(isNew)s+=mode==="review"?.06:.62; else if(mode==="review")s+=.32;
   if(info){
-    const ago=state.level-info.lastLevel;
-    if(ago<4)s-=3.0;else if(ago<9)s-=1.15;else if(ago<16)s-=.35;
+    const ago=state.level-info.lastLevel,days=elapsedDays(info.lastTs),dueTs=info.nextDueTs||((info.lastTs||0)+(info.intervalDays||1)*86400000),timeDue=info.lastTs&&Date.now()>=dueTs;
+    if(!timeDue){if(ago<4)s-=3.0;else if(ago<9)s-=1.15;else if(ago<16)s-=.35;if(days<.5)s-=1.35;else if(days<1)s-=.55;}
+    else{s+=.55+Math.min(.85,Math.max(0,(Date.now()-dueTs)/86400000)*.12);}
     s-=Math.min(.65,Math.log1p(info.count)*.18);
-    // A concrete lapse gets a modest boost only after the normal cooldown.
-    if(info.lastCorrect===false&&ago>=4)s+=Math.min(.85,.38+(info.lapses||1)*.12);
+    if(info.lastCorrect===false&&(ago>=4||timeDue))s+=Math.min(.85,.38+(info.lapses||1)*.12);
   }
   const ta=state.templateLast[q.templateId];
   if(ta!=null){
@@ -311,8 +329,8 @@ function buildTrainingPlan(){
     if(addQ(q))exploreSlots--;
   }
 
-  const dueCats=skills.filter(x=>x.m.attempts>0&&(state.level-x.m.lastLevel)>=x.m.interval)
-    .sort((a,b)=>((state.level-b.m.lastLevel)-b.m.interval)-((state.level-a.m.lastLevel)-a.m.interval))
+  const dueCats=skills.filter(x=>x.m.attempts>0&&((state.level-x.m.lastLevel)>=x.m.interval||skillTimeDue(x.m).due))
+    .sort((a,b)=>{const bt=skillTimeDue(b.m),at=skillTimeDue(a.m);return (bt.overdue-at.overdue)||(((state.level-b.m.lastLevel)-b.m.interval)-((state.level-a.m.lastLevel)-a.m.interval));})
     .map(x=>x.id);
   let reviewSlots=reviewGoal;
   for(const cat of dueCats){
@@ -450,8 +468,9 @@ function coachSkillMovement(limit=5){
 }
 function coachPromptText(){
   const st=overallStats(),ai=aiValorationStats(),learning=learningScoreStats(),peer=typicalLearnerStats(),c2=campaign2Readiness(),focus=coachSkillStats().slice(0,5),mistakes=commonMistakeGroups(8),trend=coachTrendSummary(),moves=coachSkillMovement();
-  const snapshot={appVersion:APP_VERSION,campaign:CAMPAIGN.id,level:state.level,sessions:state.sessions,totalAnswers:state.totalAttempts,uniqueSeen:Object.keys(state.seen).length,bankSize:BANK.length,coveragePct:+(st.coverage*100).toFixed(1),masteryPct:+(st.mastery*100).toFixed(1),recentAccuracyPct:+(st.accuracy*100).toFixed(1),recentAutomaticPct:+(st.auto*100).toFixed(1),avgResponseSec:+(st.avgMs/1000).toFixed(2),aeRating:+(st.rating*100).toFixed(1),learningScore:learning.current==null?null:+learning.current.toFixed(1),learningTrendDelta:learning.delta==null?null:+learning.delta.toFixed(1),aiLevel:ai.level,aiConfidencePct:+(ai.confidence*100).toFixed(1),typicalLearner:{you:peer.actual==null?null:+peer.actual.toFixed(1),healthyMin:+peer.healthyMin.toFixed(1),typical:+peer.typical.toFixed(1),strongPace:+peer.strongPace.toFixed(1),paceDelta:peer.delta==null?null:+peer.delta.toFixed(1),label:peer.label},campaign2ReadinessPct:+(c2.score*100).toFixed(1),recentTrend:trend,focus:focus.map(x=>({skill:x.name,masteryPct:+(x.mastery*100).toFixed(1),recentErrorPct:+(x.wrongRate*100).toFixed(1),attempts:x.m.attempts||0})),skillMovement:moves.map(x=>({skill:x.skill,deltaAccuracyPts:+x.delta.toFixed(1),recentAccuracyPct:+x.recent.toFixed(1),recentN:x.n})),commonMistakes:mistakes.map(g=>({skill:skillLabel(g.cat),recentMisses:g.count,question:g.record.question||g.record.originalQuestion||"",yourAnswer:g.record.userAnswer||"",correct:g.record.correctAnswer||"",rule:g.record.rule||""})),allSkills:[...rankedSkills()].reverse().map(x=>({skill:x.name,masteryPct:+(x.mastery*100).toFixed(1),attempts:x.m.attempts||0}))};
-  return `Analyze my Adaptive English Campaign 1 progress as my English coach. Tell me: (1) how I am progressing overall, (2) whether I am accelerating, plateauing or regressing, (3) my 3-5 highest-priority grammar targets and why, (4) which errors are conceptual versus automaticity/speed problems, (5) whether my pace is healthy relative to the app's model-based Typical Learner reference, and (6) what I should focus on for my next 5-10 levels. Be specific and compare trends, not just current scores. The Typical Learner figures are a synthetic model, not real population averages.
+  const firstTs=state.history.find(r=>Number.isFinite(r.ts))?.ts||state.createdAt||Date.now(),studySpanDays=Math.max(0,(Date.now()-firstTs)/86400000),dueQuestionCount=Object.values(state.seen).filter(x=>x?.lastTs&&Date.now()>=(x.nextDueTs||x.lastTs+(x.intervalDays||1)*86400000)).length;
+  const snapshot={appVersion:APP_VERSION,campaign:CAMPAIGN.id,level:state.level,sessions:state.sessions,totalAnswers:state.totalAttempts,uniqueSeen:Object.keys(state.seen).length,bankSize:BANK.length,studySpanDays:+studySpanDays.toFixed(1),dueQuestionCount,coveragePct:+(st.coverage*100).toFixed(1),masteryPct:+(st.mastery*100).toFixed(1),recentAccuracyPct:+(st.accuracy*100).toFixed(1),recentAutomaticPct:+(st.auto*100).toFixed(1),avgResponseSec:+(st.avgMs/1000).toFixed(2),aeRating:+(st.rating*100).toFixed(1),learningScore:learning.current==null?null:+learning.current.toFixed(1),learningTrendDelta:learning.delta==null?null:+learning.delta.toFixed(1),aiLevel:ai.level,aiConfidencePct:+(ai.confidence*100).toFixed(1),typicalLearner:{you:peer.actual==null?null:+peer.actual.toFixed(1),healthyMin:+peer.healthyMin.toFixed(1),typical:+peer.typical.toFixed(1),strongPace:+peer.strongPace.toFixed(1),paceDelta:peer.delta==null?null:+peer.delta.toFixed(1),label:peer.label},campaign2ReadinessPct:+(c2.score*100).toFixed(1),recentTrend:trend,focus:focus.map(x=>({skill:x.name,masteryPct:+(x.mastery*100).toFixed(1),recentErrorPct:+(x.wrongRate*100).toFixed(1),attempts:x.m.attempts||0})),skillMovement:moves.map(x=>({skill:x.skill,deltaAccuracyPts:+x.delta.toFixed(1),recentAccuracyPct:+x.recent.toFixed(1),recentN:x.n})),commonMistakes:mistakes.map(g=>({skill:skillLabel(g.cat),recentMisses:g.count,question:g.record.question||g.record.originalQuestion||"",yourAnswer:g.record.userAnswer||"",correct:g.record.correctAnswer||"",rule:g.record.rule||""})),allSkills:[...rankedSkills()].reverse().map(x=>({skill:x.name,masteryPct:+(x.mastery*100).toFixed(1),attempts:x.m.attempts||0}))};
+  return `Analyze my Adaptive English Campaign 1 progress as my English coach. Tell me: (1) how I am progressing overall, (2) whether I am accelerating, plateauing or regressing, (3) my 3-5 highest-priority grammar targets and why, (4) which errors are conceptual versus automaticity/speed problems, (5) whether my pace is healthy relative to the app's model-based Typical Learner reference, and (6) what I should focus on for my next 5-10 levels. Also consider the real calendar study span and due-review count when judging retention. Be specific and compare trends, not just current scores. The Typical Learner figures are a synthetic model, not real population averages.
 
 ADAPTIVE_ENGLISH_COACH_SNAPSHOT
 ${JSON.stringify(snapshot)}`;
@@ -589,7 +608,8 @@ function answer(pos,timeout=false){
   if(!ok&&pos>=0){buttons[pos].classList.remove("dim");buttons[pos].classList.add("bad");}
   const previousSeen=state.seen[current.fingerprint]||null,speedScore=updateMetric(current,ok,sec,type),info=previousSeen||{count:0,lastLevel:-99,lapses:0};
   const appearance=info.count+1,lapses=(info.lapses||0)+(ok?0:1);
-  state.seen[current.fingerprint]={count:appearance,lastLevel:state.level,lastTs:Date.now(),lastCorrect:ok,lapses};state.templateLast[current.templateId]=state.level;
+  const now=Date.now(),intervalDays=reviewIntervalDays(previousSeen,type);
+  state.seen[current.fingerprint]={count:appearance,lastLevel:state.level,lastTs:now,lastCorrect:ok,lapses,intervalDays,nextDueTs:now+intervalDays*86400000};state.templateLast[current.templateId]=state.level;
   const shownQuestion=current.visibleQuestion||current.q,shownOptions=current.visibleOptions||current.display;
   const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,occurrence:appearance,review:!!previousSeen,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:shownQuestion,originalQuestion:current.q,userAnswer:pos>=0?shownOptions[pos]:"No answer",correctAnswer:shownOptions[current.correctPos],rule:current.rule};
   state.history.push(rec);state.history=state.history.slice(-12000);state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
@@ -648,7 +668,7 @@ function renderEnd(s,before){
   $("errorsBtn").classList.toggle("hidden",wrong.length===0);
   $("errorsCount").textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} in Level ${s.level}`:`No errors in Level ${s.level}`;
   $("errorsFull").innerHTML=wrong.length?wrong.map((r,i)=>`<details open><summary>${i+1}. ${escapeHtml(r.question)} - ${(r.ms/1000).toFixed(1)}s</summary><p><b>You:</b> ${escapeHtml(r.userAnswer)}<br><b>Correct:</b> ${escapeHtml(r.correctAnswer)}<br>${escapeHtml(r.rule)}</p></details>`).join(""):'<p class="meta">No errors in this level.</p>';
-  $("continueBtn").textContent=state.completed?"KEEP TRAINING":`CONTINUE - LEVEL ${state.level}`;
+  $("continueBtn").textContent=state.completed?"KEEP TRAINING":`NEXT LEVEL · ${state.level}`;
   $("finalBtn").classList.toggle("hidden",!(st.eligible&&!state.completed));
   if(s.mode==="final"&&!state.completed)$("endSub").textContent=`Final challenge not passed yet · ${pct(s.accuracy)}% · ${fmtSec(s.avgMs)}`;
   if(state.completed)$("endSub").textContent="CAMPAIGN 1 COMPLETE";

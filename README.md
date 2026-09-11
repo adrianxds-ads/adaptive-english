@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.15
+# Adaptive English · Campaign 1 v1.16
 
 Local adaptive grammar trainer.
 
@@ -138,3 +138,12 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 
 - Adds a My Coach ChatGPT handoff generator with a compact structured snapshot of current performance, recent trends, skill priorities, skill movement, recurring mistakes, Typical Learner pace and Campaign 2 readiness.
 - The generated prompt is designed for direct copy/paste into ChatGPT; full JSON export remains available for deep audits.
+
+
+## Version 1.16
+
+- Adds hybrid spacing based on both completed levels and real elapsed calendar time, with per-question review intervals and due timestamps.
+- Gives overdue memories extra review priority while suppressing excessive same-day repetition.
+- Gives the start cover a distinct burgundy visual identity.
+- Clarifies end-of-level navigation with NEXT LEVEL and DASHBOARD · PORTADA as the two main actions.
+- Enlarges non-quiz typography across dashboards, My Coach, statistics and results while preserving the tuned question/answer sizes.
