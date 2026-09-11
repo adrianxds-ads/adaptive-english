@@ -192,3 +192,12 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Adds a per-level adaptive stretch TARGET based on recent performance and selected-question difficulty.
 - Uses 0.5-point increments; saves target, delta and hit/miss in session history.
 - Shows TARGET in the HUD and colors the final result green when met/beaten, red when missed.
+
+
+## Version 1.24
+- Cognitive UI pass focused on actually reading correction cues instead of merely perceiving a flash.
+- Extends post-answer dwell to 1.10 s for correct answers, 1.45 s for ordinary errors, 1.65 s for fast-wrong responses, and 1.50 s for timeouts.
+- Extends grammar-focus cue to 0.90 s and changes it from semantic green to amber/gold, reserving green/red for correct/error feedback.
+- Replaces the four pre-answer red/blue/yellow/green tiles with a more balanced amber/teal/indigo/raspberry palette so no option carries a built-in success/failure cue.
+- Removes the full-screen correctness flash, reduces success particles from 28 to 6, and adds prefers-reduced-motion handling.
+- Keeps question/answer typography, target algorithm, 15-question levels, 10-second timer, bank, mastery model and progress storage unchanged.
