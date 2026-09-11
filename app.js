@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.6";
+const APP_VERSION = "1.7";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -330,6 +330,25 @@ function learningScoreStats(values=learningTrendSeries(),windowSize=8){
   const previous=mean(values.slice(-(n+1),-1));
   return {current,previous,delta:current-previous,windowSize:n};
 }
+const AI_LEVELS=[
+  {level:1,color:"#8f2f3a",rgb:"143,47,58"},{level:2,color:"#b44a2d",rgb:"180,74,45"},{level:3,color:"#c87818",rgb:"200,120,24"},{level:4,color:"#b49a1f",rgb:"180,154,31"},{level:5,color:"#728f2f",rgb:"114,143,47"},
+  {level:6,color:"#2f8f5b",rgb:"47,143,91"},{level:7,color:"#1c8b7b",rgb:"28,139,123"},{level:8,color:"#247c9c",rgb:"36,124,156"},{level:9,color:"#405fa8",rgb:"64,95,168"},{level:10,color:"#7048a8",rgb:"112,72,168"}
+];
+function aiValorationStats(){
+  const st=overallStats(),learning=learningScoreStats();
+  const learningBase=(learning.current??(st.rating*100))/100;
+  const performance=clamp(.40*learningBase+.25*st.mastery+.15*st.accuracy+.10*st.auto+.10*st.coverage);
+  const attemptEvidence=Math.sqrt(Math.min(1,(state.totalAttempts||0)/1500)),coverageEvidence=Math.sqrt(Math.min(1,st.coverage));
+  const confidence=clamp(.35+.65*(.55*attemptEvidence+.45*coverageEvidence));
+  const adjusted=clamp(.5+(performance-.5)*confidence),score=adjusted*100;
+  return {level:Math.max(1,Math.min(10,Math.round(score/10))),score,confidence,performance:performance*100};
+}
+function applyAiTheme(ai=aiValorationStats()){
+  const def=AI_LEVELS[ai.level-1]||AI_LEVELS[0];document.body.dataset.aiLevel=String(ai.level);
+  document.documentElement.style.setProperty("--ai-color",def.color);document.documentElement.style.setProperty("--ai-rgb",def.rgb);return ai;
+}
+function aiLegendHtml(current){return AI_LEVELS.map(x=>`<div class="ai-legend-item ${x.level===current?"current":""}"><i style="--swatch:${x.color}"></i><b>${x.level}</b></div>`).join("");}
+
 function rankedSkills(){
   return CAMPAIGN.skills.map(s=>({...s,m:state.metrics[s.id],mastery:metricMastery(state.metrics[s.id])})).sort((a,b)=>b.mastery-a.mastery||b.m.attempts-a.m.attempts||a.name.localeCompare(b.name));
 }
@@ -356,8 +375,10 @@ function renderLevelLesson(records){
 }
 
 function renderStart(){
-  const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating);
-  applyRatingTheme(st.rating);
+  const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating),ai=aiValorationStats();
+  applyRatingTheme(st.rating);applyAiTheme(ai);
+  $("startAiLevel").textContent=`${ai.level} / 10`;
+  $("startAiConfidence").textContent=`AI Valoration · evidencia ${Math.round(ai.confidence*100)}%`;
   $("startKicker").textContent=`CAMPAIGN 1 · ${currentStageText()}`;
   $("startLevel").textContent=`LEVEL ${state.level}`;
   $("startBtn").textContent=state.sessions?`CONTINUE · LEVEL ${state.level}`:`START · LEVEL ${state.level}`;
@@ -441,6 +462,7 @@ function finishSession(){
   let st=overallStats();
   const snap={level:completedLevel,ts:Date.now(),mode:session.mode,correct:session.correct,total:n,accuracy,avgMs,automatic:auto,mastery:st.mastery,coverage:st.coverage,fluency:st.fluency,rating:st.rating};
   state.sessionHistory.push(snap);
+  const aiNow=aiValorationStats();snap.aiScore=aiNow.score;snap.aiLevel=aiNow.level;snap.aiConfidence=aiNow.confidence;
   state.personalBestFluency=Math.max(state.personalBestFluency||0,st.rating);
   if(session.mode==="final"){
     state.finalAttempts=(state.finalAttempts||0)+1;
@@ -449,8 +471,11 @@ function finishSession(){
   save();playComplete();renderEnd(snap,before);showScreen("endScreen");
 }
 function renderEnd(s,before){
-  const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating);
-  applyRatingTheme(st.rating);
+  const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating),ai=aiValorationStats();
+  applyRatingTheme(st.rating);applyAiTheme(ai);
+  $("endAiLevel").textContent=`${ai.level} / 10`;
+  $("endAiConfidence").textContent=`AI Valoration · evidencia ${Math.round(ai.confidence*100)}%`;
+  $("aiLegend").innerHTML=aiLegendHtml(ai.level);
   $("endKicker").textContent=s.mode==="final"?"FINAL CHALLENGE":`LEVEL ${s.level} COMPLETE`;
   $("endScore").textContent=`${s.correct}/${s.total} · ${pct(s.accuracy)}%`;
   $("endSub").textContent=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Object.keys(state.seen).length.toLocaleString()}/${BANK.length.toLocaleString()} explored`;

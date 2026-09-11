@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.6
+# Adaptive English · Campaign 1 v1.7
 
 Local adaptive grammar trainer.
 
@@ -74,3 +74,11 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Learning Score shows a green up arrow, red down arrow, or neutral arrow versus the previous rolling window.
 - The Learning Trend chart now includes the current moving-average reference line.
 - STORAGE_KEY, 10-second clock, 3,000-question bank, sounds and adaptive engine remain unchanged.
+
+## Version 1.7
+- Adds a persistent AI Valoration level from 1 to 10, distinct from the short-term Learning Score.
+- AI Valoration combines rolling learning performance, mastery, recent accuracy, automaticity and coverage, tempered by an evidence factor from accumulated attempts and bank coverage.
+- New session snapshots preserve AI score, level and confidence for longitudinal use.
+- Dashboard and level-complete screen inherit the current AI-level colour; the quiz screen remains unchanged.
+- Adds a compact 1–10 colour legend at the bottom of the results screen.
+- Existing STORAGE_KEY, progress, 3,000-question bank, 10-second clock, sounds and adaptive engine remain compatible.
