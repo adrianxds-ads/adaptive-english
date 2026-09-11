@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.12
+# Adaptive English · Campaign 1 v1.13
 
 Local adaptive grammar trainer.
 
@@ -119,3 +119,9 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Statistics mirrors the longitudinal learning dashboard before a session: AI Valoration, Learning Score, accuracy and learning-curve charts, Campaign 2 readiness, and all 25 skills.
 - My Coach turns stored performance data into a study file with five adaptive priorities, recurring mistake patterns from recent history, rules, examples, coach cues, and all skills ordered weakest to strongest.
 - Both screens are read-only study views and do not change the adaptive engine, campaign bank, progress identity, 15-question sessions, or 10-second timing.
+
+## Version 1.13
+
+- Separates `MY COACH` ranking from quiz scheduling: 55% mastery gap, 35% recent error rate, 10% lack of automaticity.
+- Adds a `VIRTUAL PEER` synthetic pace benchmark based on a saturating practice curve calibrated to Campaign 1; it is explicitly not presented as a population average.
+- Shows YOU / VIRTUAL PEER / PACE in Statistics and a compact pace indicator on the start dashboard.

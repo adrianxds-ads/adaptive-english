@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.12";
+const APP_VERSION = "1.13";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -419,8 +419,19 @@ function rankedSkills(){
   return CAMPAIGN.skills.map(s=>({...s,m:state.metrics[s.id],mastery:metricMastery(state.metrics[s.id])})).sort((a,b)=>b.mastery-a.mastery||b.m.attempts-a.m.attempts||a.name.localeCompare(b.name));
 }
 function skillLabel(cat){const s=CAMPAIGN.skills.find(x=>x.id===cat);return s?.name||cat;}
+function coachPriority(cat){
+  const m=state.metrics[cat],mastery=metricMastery(m),rows=state.history.filter(r=>r.cat===cat).slice(-30);
+  const wrongRate=rows.length?rows.filter(r=>!r.correct).length/rows.length:1,autoRate=rows.length?rows.filter(r=>r.type==="automatic").length/rows.length:0;
+  return .55*(1-mastery)+.35*wrongRate+.10*(1-autoRate);
+}
 function coachSkillStats(){
-  return CAMPAIGN.skills.map(s=>{const m=state.metrics[s.id],mastery=metricMastery(m),rows=state.history.filter(r=>r.cat===s.id).slice(-30),wrong=rows.filter(r=>!r.correct).length,wrongRate=rows.length?wrong/rows.length:1;return {...s,m,mastery,rows,wrong,wrongRate,priority:catPriority(s.id)};}).sort((a,b)=>b.priority-a.priority||a.mastery-b.mastery);
+  return CAMPAIGN.skills.map(s=>{const m=state.metrics[s.id],mastery=metricMastery(m),rows=state.history.filter(r=>r.cat===s.id).slice(-30),wrong=rows.filter(r=>!r.correct).length,wrongRate=rows.length?wrong/rows.length:1;return {...s,m,mastery,rows,wrong,wrongRate,priority:coachPriority(s.id)};}).sort((a,b)=>b.priority-a.priority||a.mastery-b.mastery);
+}
+function virtualPeerStats(){
+  const actual=learningScoreStats().current,attempts=Math.max(0,state.totalAttempts||0);
+  const expected=70-42*Math.exp(-attempts/4458),delta=actual==null?null:actual-expected;
+  let label="Building evidence";if(delta!=null){if(delta>=5)label="Ahead of reference";else if(delta>=2)label="Slightly ahead";else if(delta>-2)label="On pace";else if(delta>-5)label="Slightly behind";else label="Below reference pace";}
+  return {actual,expected,delta,label,attempts};
 }
 function commonMistakeGroups(limit=8){
   const groups={};for(const r of state.history.filter(x=>!x.correct).slice(-500)){const key=`${r.cat}|${r.templateId||r.qid||r.originalQuestion}`;const g=groups[key]||(groups[key]={cat:r.cat,templateId:r.templateId,count:0,record:r,lastTs:0});g.count++;if((r.ts||0)>=g.lastTs){g.record=r;g.lastTs=r.ts||0;}}
@@ -428,11 +439,12 @@ function commonMistakeGroups(limit=8){
 }
 function skillRowsHtml(rows,ascending=false){const list=ascending?[...rows].reverse():rows;return list.map(x=>`<div class="skillrow"><div class="name">${escapeHtml(x.name)}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%;background:${valueColor(x.mastery)}"></div></div><div class="pct" style="color:${valueTextColor(x.mastery)}">${pct(x.mastery)}%</div></div>`).join("");}
 function renderStatsScreen(){
-  const st=overallStats(),ai=aiValorationStats(),learning=learningScoreStats(),c2=campaign2Readiness(),trend=state.sessionHistory.filter(x=>x.mode==="training");applyRatingTheme(st.rating);applyAiTheme(ai);
+  const st=overallStats(),ai=aiValorationStats(),learning=learningScoreStats(),c2=campaign2Readiness(),peer=virtualPeerStats(),trend=state.sessionHistory.filter(x=>x.mode==="training");applyRatingTheme(st.rating);applyAiTheme(ai);
   $("statsAiLevel").textContent=`${ai.level} / 10`;paintText("statsAiLevel",ai.score/100);$("statsAiConfidence").textContent=`Evidence ${Math.round(ai.confidence*100)}%`;paintText("statsAiConfidence",ai.confidence);
   $("statsLearningScore").textContent=learning.current==null?"—":learning.current.toFixed(1);if(learning.current!=null)paintText("statsLearningScore",learning.current/100);const ld=$("statsLearningDelta");if(learning.delta==null){ld.className="learning-direction neutral";ld.textContent="→";}else{const up=learning.delta>.05,down=learning.delta<-.05;ld.className=`learning-direction ${up?"good":down?"bad":"neutral"}`;ld.textContent=`${up?"↑":down?"↓":"→"} ${learning.delta>=0?"+":""}${learning.delta.toFixed(1)}`;}$("statsLearningWindow").textContent=`Last ${learning.windowSize} vs previous ${learning.windowSize} levels`;
   [["statsCoverage",st.coverage,true],["statsMastery",st.mastery,true],["statsAccuracy",st.accuracy,true],["statsAutomatic",st.auto,true]].forEach(([id,v,pc])=>{$(id).textContent=pc?`${pct(v)}%`:String(v);paintText(id,v);});$("statsAvg").textContent=st.avgMs?fmtSec(st.avgMs):"—";$("statsTotal").textContent=(state.totalAttempts||0).toLocaleString();
   $("statsAccuracyChart").innerHTML=sparkline(trend.map(x=>x.accuracy*100),v=>`${Math.round(v)}%`);$("statsLearningChart").innerHTML=sparkline(learningCurveSeries(),v=>`${v.toFixed(1)}`,false,learning.start,"Start");$("statsSkills").innerHTML=skillRowsHtml(rankedSkills());
+  $("statsPeerYou").textContent=peer.actual==null?"—":peer.actual.toFixed(1);$("statsPeerExpected").textContent=peer.expected.toFixed(1);const peerText=peer.delta==null?"—":`${peer.delta>=0?"+":""}${peer.delta.toFixed(1)}`;$("statsPeerDelta").textContent=peerText;$("statsPeerDeltaMini").textContent=peerText;const pd=$("statsPeerDelta");pd.className=`peer-delta ${peer.delta==null||Math.abs(peer.delta)<2?"neutral":peer.delta>0?"good":"bad"}`;$("statsPeerLabel").textContent=`${peer.label} · Synthetic reference at ${peer.attempts.toLocaleString()} answers, not a population average.`;
   $("statsCampaign2").textContent=`Campaign 2 readiness ${pct(c2.score)}% · ${c2.stage}${c2.ready?" · Recommended now":" · "+(c2.blockers[0]||"Keep consolidating")}`;
 }
 function renderCoachScreen(){
@@ -491,6 +503,7 @@ function renderStart(){
   $("startAuto").textContent=st.auto?pct(st.auto)+"%":"—";paintText("startAuto",st.auto);
   $("startMastered").textContent=`${st.mastered}/${CAMPAIGN.skills.length}`;paintText("startMastered",st.mastered/CAMPAIGN.skills.length);
   $("startTotal").textContent=(state.totalAttempts||0).toLocaleString();
+  const peer=virtualPeerStats(),spd=$("startPeerDelta");spd.textContent=peer.delta==null?"—":`${peer.delta>=0?"+":""}${peer.delta.toFixed(1)}`;spd.className=`peer-delta ${peer.delta==null||Math.abs(peer.delta)<2?"neutral":peer.delta>0?"good":"bad"}`;$("startPeerStatus").textContent=`${peer.label} · virtual peer ${peer.expected.toFixed(1)} at ${peer.attempts.toLocaleString()} answers`;
   let status=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Math.max(0,sg.to-sg.seen)} new exercises until the next stage.`;
   if(st.coverage>=.999&&!st.eligible)status="All 3,000 exercises explored. Consolidation continues until mastery ≥85% and every skill ≥70%.";
   if(st.eligible&&!state.completed)status="FINAL CHALLENGE READY · Campaign requirements achieved.";
