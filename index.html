@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="1.14">
-<title>Adaptive English - Campaign 1 - v1.14</title>
+<meta name="ae-version" content="1.15">
+<title>Adaptive English - Campaign 1 - v1.15</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -104,6 +104,8 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 .dashboard-menu{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.menu-btn{padding:13px 12px;text-align:left;display:block}.menu-btn b{display:block;font-size:13px;letter-spacing:.06em}.menu-btn span{display:block;margin-top:3px;font-size:10px;color:var(--muted);font-weight:750}.dashboard-screen{justify-content:flex-start}.dashboard-screen .panel{min-height:calc(100dvh - 36px)}.coach-grid{display:grid;gap:9px}.coach-card{padding:13px;border-radius:11px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.075)}.coach-card .coach-head{display:flex;justify-content:space-between;gap:12px;align-items:start}.coach-card h3{margin:0;font-size:15px}.coach-card .coach-score{font-size:13px;font-weight:950;white-space:nowrap}.coach-card p{margin:8px 0 0;font-size:13px;line-height:1.45;color:#d7e5dc}.coach-card .formula{margin-top:9px;padding:9px 10px;border-radius:8px;background:rgba(0,0,0,.18);font-weight:900;color:#eef6f1}.mistake-card{padding:12px 0;border-top:1px solid rgba(255,255,255,.08)}.mistake-card:first-child{border-top:0}.mistake-card b{font-size:13px}.mistake-card p{margin:5px 0;font-size:12px;line-height:1.5;color:#d4e3da}.mistake-choice{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}.mistake-choice div{padding:8px;border-radius:8px;background:rgba(255,255,255,.05);font-size:12px}.mistake-choice .correct{background:rgba(39,146,92,.18)}.screen-nav{display:flex;gap:9px;margin-top:18px}.screen-nav button{flex:1}@media(max-width:520px){.dashboard-menu{grid-template-columns:1fr}.mistake-choice{grid-template-columns:1fr}.dashboard-screen .panel{min-height:calc(100dvh - 24px)}}
 
 .peer-box{margin:12px 0;padding:13px 14px;border-radius:12px;background:rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.08)}.peer-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.peer-head span{font-size:11px;font-weight:950;letter-spacing:.11em;color:#dce9e1}.peer-delta{font-size:28px;font-weight:950}.peer-delta.good{color:#82e6a9}.peer-delta.bad{color:#ff7d8e}.peer-delta.neutral{color:#d8e5dd}.peer-box small{display:block;margin-top:4px;color:var(--muted);font-weight:750}.peer-values{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}.peer-values div{padding:9px;border-radius:9px;background:rgba(255,255,255,.05);text-align:center}.peer-values b{display:block;font-size:24px}.peer-values span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900}@media(max-width:520px){.peer-values{grid-template-columns:repeat(5,1fr);gap:4px}.peer-values div{padding:7px 3px}.peer-values b{font-size:17px}.peer-values span{font-size:7px}}
+
+.coach-prompt-section .secondary{width:100%;margin-top:10px}.coach-prompt-box{margin-top:10px}.coach-prompt-box textarea{width:100%;min-height:190px;resize:vertical;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(0,0,0,.22);color:#dce9e1;padding:11px;font:11px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace}.coach-prompt-box .primary{width:100%;margin-top:8px}
 </style>
 </head>
 <body>
@@ -114,7 +116,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 10</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock · v1.14</div>
+    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock · v1.15</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -151,7 +153,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 
 <section id="statsScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">DASHBOARD · v1.14</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
+    <div class="resulttitle"><div class="kicker">DASHBOARD · v1.15</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 10</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
@@ -164,11 +166,12 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">MY COACH · v1.14</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div class="resulttitle"><div class="kicker">MY COACH · v1.15</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
     <div id="coachIntro" class="statusbox"></div>
     <div class="section"><h3>Focus now</h3><div id="coachFocus" class="coach-grid"></div></div>
     <div class="section"><h3>Common mistakes</h3><div id="coachMistakes"></div></div>
     <div class="section"><h3>All skills · weakest → strongest</h3><div id="coachSkills"></div></div>
+    <div class="section coach-prompt-section"><h3>ChatGPT handoff</h3><p class="meta">Generate a compact diagnostic snapshot to paste directly into ChatGPT. JSON export is only needed for a deep audit.</p><button id="coachGenerateBtn" class="secondary">GENERATE CHATGPT PROMPT</button><div id="coachPromptBox" class="hidden coach-prompt-box"><textarea id="coachPromptText" readonly spellcheck="false"></textarea><button id="coachPromptCopy" class="primary">COPY PROMPT</button></div></div>
     <div class="screen-nav"><button id="coachBackBtn" class="primary">BACK TO DASHBOARD</button></div>
   </div>
 </section>
@@ -224,12 +227,12 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
       <button id="homeBtn" class="secondary">Dashboard</button>
     </div>
-    <div class="footerline">Adaptive English v1.14 - Campaign ends when all 3,000 exercises have been explored.</div>
+    <div class="footerline">Adaptive English v1.15 - Campaign ends when all 3,000 exercises have been explored.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v1.14</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v1.15</div><h1>Errors</h1><p id="errorsCount"></p></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>

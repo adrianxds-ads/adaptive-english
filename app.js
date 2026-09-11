@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.14";
+const APP_VERSION = "1.15";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -437,6 +437,28 @@ function typicalLearnerStats(){
   if(delta!=null){if(actual>strongPace){band="Above strong pace";label="Clearly ahead";}else if(actual>=typical+2){band="Typical-high";label="Slightly ahead";}else if(actual>=typical-2){band="Typical range";label="On typical pace";}else if(actual>=healthyMin){band="Typical-low";label="Slightly behind typical pace";}else{band="Below healthy reference";label="Review strategy / consolidation";}}
   return {actual,typical,healthyMin,strongPace,delta,band,label,attempts};
 }
+
+function coachTrendSummary(){
+  const rows=state.sessionHistory.filter(x=>x.mode==="training"),n=Math.min(8,Math.floor(rows.length/2));
+  if(!n)return {window:0};
+  const recent=rows.slice(-n),prior=rows.slice(-2*n,-n),avg=(a,k)=>mean(a.map(x=>Number(x[k])||0));
+  return {window:n,accuracyDelta:(avg(recent,"accuracy")-avg(prior,"accuracy"))*100,timeDeltaMs:avg(recent,"avgMs")-avg(prior,"avgMs"),masteryDelta:(avg(recent,"mastery")-avg(prior,"mastery"))*100,autoDelta:(avg(recent,"automatic")-avg(prior,"automatic"))*100,ratingDelta:(avg(recent,"rating")-avg(prior,"rating"))*100};
+}
+function coachSkillMovement(limit=5){
+  const out=[];for(const s of CAMPAIGN.skills){const rows=state.history.filter(r=>r.cat===s.id).slice(-40);if(rows.length<12)continue;const cut=Math.floor(rows.length/2),a=rows.slice(0,cut),b=rows.slice(cut);const acc=x=>x.length?x.filter(r=>r.correct).length/x.length:0;out.push({skill:s.name,delta:(acc(b)-acc(a))*100,recent:acc(b)*100,n:b.length});}
+  return out.sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta)).slice(0,limit);
+}
+function coachPromptText(){
+  const st=overallStats(),ai=aiValorationStats(),learning=learningScoreStats(),peer=typicalLearnerStats(),c2=campaign2Readiness(),focus=coachSkillStats().slice(0,5),mistakes=commonMistakeGroups(8),trend=coachTrendSummary(),moves=coachSkillMovement();
+  const snapshot={appVersion:APP_VERSION,campaign:CAMPAIGN.id,level:state.level,sessions:state.sessions,totalAnswers:state.totalAttempts,uniqueSeen:Object.keys(state.seen).length,bankSize:BANK.length,coveragePct:+(st.coverage*100).toFixed(1),masteryPct:+(st.mastery*100).toFixed(1),recentAccuracyPct:+(st.accuracy*100).toFixed(1),recentAutomaticPct:+(st.auto*100).toFixed(1),avgResponseSec:+(st.avgMs/1000).toFixed(2),aeRating:+(st.rating*100).toFixed(1),learningScore:learning.current==null?null:+learning.current.toFixed(1),learningTrendDelta:learning.delta==null?null:+learning.delta.toFixed(1),aiLevel:ai.level,aiConfidencePct:+(ai.confidence*100).toFixed(1),typicalLearner:{you:peer.actual==null?null:+peer.actual.toFixed(1),healthyMin:+peer.healthyMin.toFixed(1),typical:+peer.typical.toFixed(1),strongPace:+peer.strongPace.toFixed(1),paceDelta:peer.delta==null?null:+peer.delta.toFixed(1),label:peer.label},campaign2ReadinessPct:+(c2.score*100).toFixed(1),recentTrend:trend,focus:focus.map(x=>({skill:x.name,masteryPct:+(x.mastery*100).toFixed(1),recentErrorPct:+(x.wrongRate*100).toFixed(1),attempts:x.m.attempts||0})),skillMovement:moves.map(x=>({skill:x.skill,deltaAccuracyPts:+x.delta.toFixed(1),recentAccuracyPct:+x.recent.toFixed(1),recentN:x.n})),commonMistakes:mistakes.map(g=>({skill:skillLabel(g.cat),recentMisses:g.count,question:g.record.question||g.record.originalQuestion||"",yourAnswer:g.record.userAnswer||"",correct:g.record.correctAnswer||"",rule:g.record.rule||""})),allSkills:[...rankedSkills()].reverse().map(x=>({skill:x.name,masteryPct:+(x.mastery*100).toFixed(1),attempts:x.m.attempts||0}))};
+  return `Analyze my Adaptive English Campaign 1 progress as my English coach. Tell me: (1) how I am progressing overall, (2) whether I am accelerating, plateauing or regressing, (3) my 3-5 highest-priority grammar targets and why, (4) which errors are conceptual versus automaticity/speed problems, (5) whether my pace is healthy relative to the app's model-based Typical Learner reference, and (6) what I should focus on for my next 5-10 levels. Be specific and compare trends, not just current scores. The Typical Learner figures are a synthetic model, not real population averages.
+
+ADAPTIVE_ENGLISH_COACH_SNAPSHOT
+${JSON.stringify(snapshot)}`;
+}
+function generateCoachPrompt(){const text=coachPromptText(),box=$("coachPromptBox"),area=$("coachPromptText");area.value=text;box.classList.remove("hidden");area.focus();area.select();}
+async function copyCoachPrompt(){const text=$("coachPromptText").value||coachPromptText();try{await navigator.clipboard.writeText(text);$("coachPromptCopy").textContent="COPIED ✓";setTimeout(()=>$("coachPromptCopy").textContent="COPY PROMPT",1400);}catch(e){const a=$("coachPromptText");a.value=text;a.focus();a.select();document.execCommand("copy");}}
+
 function commonMistakeGroups(limit=8){
   const groups={};for(const r of state.history.filter(x=>!x.correct).slice(-500)){const key=`${r.cat}|${r.templateId||r.qid||r.originalQuestion}`;const g=groups[key]||(groups[key]={cat:r.cat,templateId:r.templateId,count:0,record:r,lastTs:0});g.count++;if((r.ts||0)>=g.lastTs){g.record=r;g.lastTs=r.ts||0;}}
   return Object.values(groups).sort((a,b)=>b.count-a.count||b.lastTs-a.lastTs).slice(0,limit);
@@ -661,7 +683,7 @@ async function boot(){
   $("statsBtn").onclick=()=>{renderStatsScreen();showScreen("statsScreen");};
   $("coachBtn").onclick=()=>{renderCoachScreen();showScreen("coachScreen");};
   $("statsBackBtn").onclick=()=>{renderStart();showScreen("startScreen");};
-  $("coachBackBtn").onclick=()=>{renderStart();showScreen("startScreen");};
+  $("coachGenerateBtn").onclick=generateCoachPrompt;$("coachPromptCopy").onclick=copyCoachPrompt;$("coachBackBtn").onclick=()=>{renderStart();showScreen("startScreen");};
   $("continueBtn").onclick=async()=>{await ensureAudio();if(state.completed){renderStart();showScreen("startScreen");}else startSession(false);};
   $("finalBtn").onclick=async()=>{await ensureAudio();startSession(true);};
   $("soundBtn").onclick=async()=>{soundOn=!soundOn;if(soundOn){await ensureAudio();tone(760,.06,.025,'sine');}refreshSoundButton();};
