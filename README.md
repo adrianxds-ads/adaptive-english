@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.5
+# Adaptive English · Campaign 1 v1.6
 
 Local adaptive grammar trainer.
 
@@ -65,3 +65,12 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Correct/incorrect feedback now shows NEW! on first exposure or the exact exposure number (2ª VEZ, 3ª VEZ, etc.) on every answer.
 - Exposure numbering reuses the existing seen-count history, so current progress remains compatible.
 - STORAGE_KEY, 10-second clock, 3,000-question bank, 25 skills, sounds and adaptive engine remain unchanged.
+
+## Version 1.6
+- Splits answer feedback into two blocks: CORRECT/INCORRECT above and a much larger NEW!/Nth-time exposure badge below.
+- Exposure count continues to use the existing per-question history, so prior appearances remain accurate.
+- Slightly reduces answer typography again while preserving the compact one-screen quiz layout.
+- Adds a Learning Score based on an 8-level moving average of the existing Learning Trend composite.
+- Learning Score shows a green up arrow, red down arrow, or neutral arrow versus the previous rolling window.
+- The Learning Trend chart now includes the current moving-average reference line.
+- STORAGE_KEY, 10-second clock, 3,000-question bank, sounds and adaptive engine remain unchanged.

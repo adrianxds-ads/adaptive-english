@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.5";
+const APP_VERSION = "1.6";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -307,12 +307,14 @@ function deltaText(value,goodUp=true,suffix=""){
   const good=goodUp?value>0:value<0,bad=goodUp?value<0:value>0,arrow=value>0?"↑":value<0?"↓":"→";
   return `<span class="delta ${good?"good":bad?"bad":"neutral"}">${arrow} ${Math.abs(value).toFixed(1)}${suffix}</span>`;
 }
-function sparkline(values,format=v=>String(Math.round(v)),lowerBetter=false){
+function sparkline(values,format=v=>String(Math.round(v)),lowerBetter=false,meanLine=null){
   if(values.length<2)return '<div class="footerline">Complete a few levels to build this graph.</div>';
   const w=600,h=108,p=10,min=Math.min(...values),max=Math.max(...values),span=Math.max(.01,max-min);
   const pts=values.map((v,i)=>`${p+i*(w-2*p)/(values.length-1)},${h-p-(v-min)/span*(h-2*p)}`).join(" ");
   const current=values[values.length-1],best=lowerBetter?min:max;
-  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line x1="0" y1="${h-p}" x2="${w}" y2="${h-p}" stroke="rgba(255,255,255,.12)"/><line x1="0" y1="${p}" x2="${w}" y2="${p}" stroke="rgba(255,255,255,.07)"/><polyline points="${pts}" fill="none" stroke="white" stroke-width="3" vector-effect="non-scaling-stroke"/></svg><div class="chartmeta"><span>Now ${format(current)}</span><span>Best ${format(best)}</span><span>${values.length} levels</span></div>`;
+  const meanSvg=Number.isFinite(meanLine)?`<line x1="${p}" y1="${h-p-(meanLine-min)/span*(h-2*p)}" x2="${w-p}" y2="${h-p-(meanLine-min)/span*(h-2*p)}" stroke="rgba(143,215,176,.9)" stroke-width="2" stroke-dasharray="8 6" vector-effect="non-scaling-stroke"/>`:"";
+  const meanMeta=Number.isFinite(meanLine)?`<span>Avg ${format(meanLine)}</span>`:`<span>${values.length} levels</span>`;
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line x1="0" y1="${h-p}" x2="${w}" y2="${h-p}" stroke="rgba(255,255,255,.12)"/><line x1="0" y1="${p}" x2="${w}" y2="${p}" stroke="rgba(255,255,255,.07)"/>${meanSvg}<polyline points="${pts}" fill="none" stroke="white" stroke-width="3" vector-effect="non-scaling-stroke"/></svg><div class="chartmeta"><span>Now ${format(current)}</span><span>Best ${format(best)}</span>${meanMeta}</div>`;
 }
 function learningTrendValue(x){
   const rating=x.rating??x.fluency??0,mastery=x.mastery??0,accuracy=x.accuracy??0,automatic=x.automatic??0;
@@ -320,6 +322,13 @@ function learningTrendValue(x){
 }
 function learningTrendSeries(){
   return state.sessionHistory.filter(x=>x.mode==="training").map(x=>learningTrendValue(x)*100);
+}
+function learningScoreStats(values=learningTrendSeries(),windowSize=8){
+  if(!values.length)return {current:null,previous:null,delta:null,windowSize:0};
+  const n=Math.min(windowSize,values.length),current=mean(values.slice(-n));
+  if(values.length<2)return {current,previous:null,delta:null,windowSize:n};
+  const previous=mean(values.slice(-(n+1),-1));
+  return {current,previous,delta:current-previous,windowSize:n};
 }
 function rankedSkills(){
   return CAMPAIGN.skills.map(s=>({...s,m:state.metrics[s.id],mastery:metricMastery(state.metrics[s.id])})).sort((a,b)=>b.mastery-a.mastery||b.m.attempts-a.m.attempts||a.name.localeCompare(b.name));
@@ -405,7 +414,7 @@ function feedback(ok,type,sec,correct,appearance){
   const f=$("feedback");f.className="feedback "+(ok?"ok":"no");
   const label=ok?(type==="automatic"?"AUTOMATIC":type==="secure"?"CORRECT":"CORRECT · SLOW"):(type==="timeout"?"TIME":"INCORRECT");
   const exposure=appearance===1?"NEW!":appearance+"\u00aa VEZ";
-  f.innerHTML=`${label}<span class="appearance">${exposure}</span><small>${sec.toFixed(2)}s${ok?"":` \u00b7 Correct: ${correct}`}</small>`;
+  f.innerHTML=`<div class="feedback-label">${label}<small>${sec.toFixed(2)}s${ok?"":` \u00b7 Correct: ${correct}`}</small></div><div class="appearance">${exposure}</div>`;
   requestAnimationFrame(()=>f.classList.add("show"));
   setTimeout(()=>f.classList.remove("show"),ok?500:820);
 }
@@ -450,10 +459,16 @@ function renderEnd(s,before){
   $("dAcc").innerHTML=before?deltaText((s.accuracy-before.accuracy)*100,true," pts"):'<span class="delta neutral">First level</span>';
   $("dTime").innerHTML=before?deltaText((s.avgMs-before.avgMs)/1000,false,"s"):'<span class="delta neutral">First level</span>';
   $("dFlu").innerHTML=before?deltaText((st.rating-(before.rating??before.fluency))*100,true," pts"):'<span class="delta neutral">First level</span>';
+  const learning=learningScoreStats();
+  $("learningScore").textContent=learning.current==null?"—":learning.current.toFixed(1);
+  const ld=$("learningScoreDelta");
+  if(learning.delta==null){ld.className="learning-direction neutral";ld.textContent="→ Primera media";}
+  else {const up=learning.delta>.05,down=learning.delta<-.05;ld.className=`learning-direction ${up?"good":down?"bad":"neutral"}`;ld.textContent=`${up?"↑":down?"↓":"→"} ${learning.delta>=0?"+":""}${learning.delta.toFixed(1)}`;}
+  $("learningScoreWindow").textContent=`Media móvil · ${learning.windowSize} nivel${learning.windowSize===1?"":"es"}`;
   renderLevelLesson(session.records);
   const trend=state.sessionHistory.filter(x=>x.mode==="training");
   $("accuracyChart").innerHTML=sparkline(trend.map(x=>x.accuracy*100),v=>`${Math.round(v)}%`);
-  $("learningTrendChart").innerHTML=sparkline(learningTrendSeries(),v=>`${Math.round(v)}`);
+  $("learningTrendChart").innerHTML=sparkline(learningTrendSeries(),v=>`${Math.round(v)}`,false,learning.current);
   const uniqueDone=Object.keys(state.seen).length;
   const repeated=Object.values(state.seen).reduce((n,x)=>n+Math.max(0,(x.count||1)-1),0);
   $("ePhrasesDone").textContent=uniqueDone.toLocaleString();
