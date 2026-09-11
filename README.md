@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.9
+# Adaptive English · Campaign 1 v1.10
 
 Local adaptive grammar trainer.
 
@@ -97,3 +97,10 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Added defensive escaping for dynamic result text and skill names.
 - Sparkline rendering now ignores invalid numeric values safely.
 - Audio degrades gracefully when AudioContext is unavailable; training remains usable.
+
+## Version 1.10
+
+- Rebuilt Learning Curve as a long-term acquisition signal: 65% mastery, 25% coverage, 10% automaticity.
+- Added EMA smoothing so the lower chart shows learning trajectory instead of mirroring level accuracy.
+- Learning Score now reports the current curve point; its arrow compares the latest 8 levels with the previous 8 non-overlapping levels.
+- Lower chart uses the first curve value as a dashed Start reference.
