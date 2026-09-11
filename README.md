@@ -179,3 +179,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Moves answer feedback into the normal quiz layout below the four answers, so it no longer covers the corrected sentence or grammar-focus flash.
 - Shows exposure first (`NEW`, `2Âª VEZ`, etc.) and `CORRECT / INCORRECT` beneath it.
 - Preserves the existing 540 ms / 860 ms question-advance timing and all Campaign 1 progress.
+
+
+## Version 1.22
+- Reframes the primary performance chart as correct answers out of 15: 15 at the top, 0 at the bottom, so higher always means better.
+- Reverses the performance colour field so low scores sit in brown/red bands and high scores rise through green/blue to purple at the top.
+- Keeps the high-contrast white trajectory and expandable chart.
+- Uses clock-time labels for short study spans and calendar-day labels for longer spans; point tooltips include level, correct answers, errors, date and time.

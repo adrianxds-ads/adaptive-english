@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.21";
+const APP_VERSION = "1.22";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -426,22 +426,23 @@ function sparkline(values,format=v=>String(Math.round(v)),lowerBetter=false,refL
 function sessionScoreChart(rows,expanded=false){
   rows=(rows||[]).filter(x=>x.mode==="training"&&Number.isFinite(x.correct)&&Number.isFinite(x.ts));
   if(rows.length<2)return '<div class="footerline">Complete a few levels to build this graph.</div>';
-  const colors=["#7048a8","#5c5eb8","#405fa8","#247c9c","#1c8b7b","#2f8f5b","#728f2f","#9d9a26","#b49a1f","#c87818","#cf691d","#b44a2d","#a63b31","#8f2f3a","#712b42"];
+  const colors=["#6b3f2b","#7b4030","#8d432f","#9f4a2d","#b15a2c","#bb742d","#ad9132","#879b38","#5c9846","#368f5d","#248a78","#267f97","#376fb0","#535fb8","#7048a8"];
   const mobile=!expanded&&window.innerWidth<=620;
   const w=mobile?360:(expanded?920:720),h=mobile?320:(expanded?520:310),L=mobile?40:58,R=mobile?12:22,T=mobile?24:28,B=mobile?42:44,maxY=15;
   const first=rows[0].ts,last=rows[rows.length-1].ts,span=Math.max(1,last-first);
   const xFor=(ts,i)=>rows.length===1?L+(w-L-R)/2:L+((last===first?i/(rows.length-1):(ts-first)/span)*(w-L-R));
-  const yFor=e=>T+(e/maxY)*(h-T-B),errors=r=>Math.max(0,Math.min(15,15-r.correct));
-  const pts=rows.map((r,i)=>`${xFor(r.ts,i).toFixed(1)},${yFor(errors(r)).toFixed(1)}`).join(' ');
-  const bands=colors.map((c,i)=>`<rect x="${L}" y="${yFor(i)}" width="${w-L-R}" height="${Math.max(1,yFor(i+1)-yFor(i))}" fill="${c}" fill-opacity=".28"/>`).join('');
-  const grid=[...Array(16).keys()].map(v=>`<line x1="${L}" y1="${yFor(v)}" x2="${w-R}" y2="${yFor(v)}" stroke="rgba(255,255,255,${v===0||v===15?'.36':'.14'})"/><text x="${L-9}" y="${yFor(v)+3.5}" text-anchor="end" fill="#eef6f1" font-size="${expanded?12:(mobile?9:10)}" font-weight="850">${v}</text>`).join('');
-  const dayMap=new Map();for(const r of rows){const d=new Date(r.ts),key=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;if(!dayMap.has(key))dayMap.set(key,{ts:new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),label:d.toLocaleDateString('es-ES',{day:'numeric',month:'short'})});}
-  const days=[...dayMap.values()],maxLabels=expanded?10:6,step=Math.max(1,Math.ceil(days.length/maxLabels));
-  const labels=days.filter((_,i)=>i%step===0||i===days.length-1).map(d=>`<text x="${xFor(d.ts,0)}" y="${h-13}" text-anchor="middle" fill="#c7d8ce" font-size="${mobile?10:12}" font-weight="800">${d.label}</text>`).join('');
-  const dots=rows.map((r,i)=>`<circle cx="${xFor(r.ts,i)}" cy="${yFor(errors(r))}" r="${expanded?3.6:2.5}" fill="#fff" stroke="#0a0f0c" stroke-width="1.8"><title>Nivel ${r.level}: ${errors(r)} errores · ${r.correct}/15 correctas</title></circle>`).join('');
-  const lineShadow=`<polyline points="${pts}" fill="none" stroke="#050806" stroke-opacity=".75" stroke-width="${expanded?7:6}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+  const yFor=c=>T+((maxY-c)/maxY)*(h-T-B),correct=r=>Math.max(0,Math.min(15,r.correct));
+  const pts=rows.map((r,i)=>`${xFor(r.ts,i).toFixed(1)},${yFor(correct(r)).toFixed(1)}`).join(' ');
+  const bands=colors.map((c,i)=>`<rect x="${L}" y="${yFor(i+1)}" width="${w-L-R}" height="${Math.max(1,yFor(i)-yFor(i+1))}" fill="${c}" fill-opacity=".30"/>`).join('');
+  const grid=[...Array(16).keys()].map(v=>`<line x1="${L}" y1="${yFor(v)}" x2="${w-R}" y2="${yFor(v)}" stroke="rgba(255,255,255,${v===0||v===15?'.38':'.14'})"/><text x="${L-9}" y="${yFor(v)+3.5}" text-anchor="end" fill="#eef6f1" font-size="${expanded?12:(mobile?9:10)}" font-weight="850">${v}</text>`).join('');
+  const shortSpan=(last-first)<=36*3600000,maxLabels=expanded?9:(mobile?5:6);
+  let labels='';
+  if(shortSpan){const count=Math.min(maxLabels,rows.length),idx=[...new Set(Array.from({length:count},(_,k)=>Math.round(k*(rows.length-1)/(count-1))))];labels=idx.map(i=>{const r=rows[i],d=new Date(r.ts),lab=d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});return `<text x="${xFor(r.ts,i)}" y="${h-13}" text-anchor="middle" fill="#c7d8ce" font-size="${mobile?10:12}" font-weight="800">${lab}</text>`;}).join('');}
+  else{const dayMap=new Map();for(const r of rows){const d=new Date(r.ts),key=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;if(!dayMap.has(key))dayMap.set(key,{ts:new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),label:d.toLocaleDateString('es-ES',{day:'numeric',month:'short'})});}const days=[...dayMap.values()],step=Math.max(1,Math.ceil(days.length/maxLabels));labels=days.filter((_,i)=>i%step===0||i===days.length-1).map(d=>`<text x="${xFor(d.ts,0)}" y="${h-13}" text-anchor="middle" fill="#c7d8ce" font-size="${mobile?10:12}" font-weight="800">${d.label}</text>`).join('');}
+  const dots=rows.map((r,i)=>{const d=new Date(r.ts),stamp=d.toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});return `<circle cx="${xFor(r.ts,i)}" cy="${yFor(correct(r))}" r="${expanded?3.8:2.7}" fill="#fff" stroke="#0a0f0c" stroke-width="1.8"><title>Nivel ${r.level}: ${correct(r)}/15 correctas · ${15-correct(r)} errores · ${stamp}</title></circle>`;}).join('');
+  const lineShadow=`<polyline points="${pts}" fill="none" stroke="#050806" stroke-opacity=".78" stroke-width="${expanded?7:6}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
   const line=`<polyline points="${pts}" fill="none" stroke="#ffffff" stroke-width="${expanded?3.6:3}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
-  return `<svg class="score-chart ${expanded?'expanded':''}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet"><rect x="${L}" y="${T}" width="${w-L-R}" height="${h-T-B}" rx="8" fill="#101815"/>${bands}${grid}${lineShadow}${line}${dots}${labels}<text x="${L}" y="15" fill="#dfece5" font-size="${mobile?9:11}" font-weight="900">ERRORS / 15 · LOWER IS BETTER</text></svg>`;
+  return `<svg class="score-chart ${expanded?'expanded':''}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet"><rect x="${L}" y="${T}" width="${w-L-R}" height="${h-T-B}" rx="8" fill="#101815"/>${bands}${grid}${lineShadow}${line}${dots}${labels}<text x="${L}" y="15" fill="#dfece5" font-size="${mobile?9:11}" font-weight="900">CORRECT / 15 · HIGHER IS BETTER</text></svg>`;
 }
 
 function learningCurveBase(x){
