@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.8
+# Adaptive English · Campaign 1 v1.9
 
 Local adaptive grammar trainer.
 
@@ -89,3 +89,11 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Adds question-level lapse memory: a specifically missed question gets a modest review boost only after the normal four-level cooldown.
 - Extends the 1–10 colour language across percentages, progress bars, Learning Score, chart lines and per-skill mastery. Low values use red/brown hues and the maximum uses purple; text uses brighter matching tints for contrast.
 - Keeps the existing STORAGE_KEY, progress, sounds, 10-second clock, 15-question sessions and adaptive skill engine compatible.
+
+## Version 1.9
+
+- Hardened progress import validation and schema checks.
+- Capped answer history at 6,000 rows and session history at 1,000 levels, with a smaller fallback if browser storage reaches quota.
+- Added defensive escaping for dynamic result text and skill names.
+- Sparkline rendering now ignores invalid numeric values safely.
+- Audio degrades gracefully when AudioContext is unavailable; training remains usable.

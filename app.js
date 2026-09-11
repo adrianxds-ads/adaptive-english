@@ -1,9 +1,11 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.8";
+const APP_VERSION = "1.9";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
+const HISTORY_LIMIT = 6000;
+const SESSION_HISTORY_LIMIT = 1000;
 let CAMPAIGN=null, BANK=[], state=null, session=null, timerHandle=null, deadline=0, current=null, locked=false;
 let audioCtx=null, soundOn=true, lastTickShown=TIME_LIMIT+1;
 
@@ -33,14 +35,15 @@ function applyRatingTheme(r){
   const colors={forest:'#10271d',teal:'#0f3030',blue:'#122b46',indigo:'#242849',amber:'#3a2b13',gold:'#49390d'};
   if(meta)meta.setAttribute('content',colors[b.key]||colors.forest);
 }
+function audioSupported(){return !!(window.AudioContext||window.webkitAudioContext);}
 async function ensureAudio(){
   try{
     const AC=window.AudioContext||window.webkitAudioContext;
-    if(!AC)return false;
+    if(!AC){soundOn=false;refreshSoundButton();return false;}
     if(!audioCtx)audioCtx=new AC();
     if(audioCtx.state==='suspended')await audioCtx.resume();
-    return audioCtx.state==='running';
-  }catch(e){return false;}
+    const ok=audioCtx.state==='running';if(!ok){soundOn=false;refreshSoundButton();}return ok;
+  }catch(e){console.warn("Audio unavailable",e);soundOn=false;refreshSoundButton();return false;}
 }
 function tone(freq,dur=.035,gain=.018,type='sine',delay=0){
   if(!soundOn||!audioCtx||audioCtx.state!=='running')return;
@@ -77,7 +80,7 @@ function burstParticles(anchor){
     layer.appendChild(p);setTimeout(()=>p.remove(),850);
   }
 }
-function refreshSoundButton(){const b=$("soundBtn");if(b){b.textContent=soundOn?'🔊':'🔇';b.setAttribute('aria-label',soundOn?'Sound on':'Sound off');}}
+function refreshSoundButton(){const b=$("soundBtn");if(!b)return;if(!audioSupported()){soundOn=false;b.disabled=true;b.textContent='🔇';b.setAttribute('aria-label','Audio unavailable');b.title='Audio unavailable';return;}b.disabled=false;b.textContent=soundOn?'🔊':'🔇';b.setAttribute('aria-label',soundOn?'Sound on':'Sound off');b.title='';}
 
 async function loadCampaign(){
   if(window.__AE_CAMPAIGN__) return window.__AE_CAMPAIGN__;
@@ -98,18 +101,28 @@ function newState(){
     personalBestFluency:0,createdAt:Date.now(),updatedAt:Date.now()
   };
 }
-function loadState(){
-  try{
-    const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
-    if(!s||s.campaignId!==CAMPAIGN.campaignId) return newState();
-    for(const skill of CAMPAIGN.skills) if(!s.metrics[skill.id]) s.metrics[skill.id]=seedMetric(skill.id);
-    s.history=Array.isArray(s.history)?s.history:[];
-    s.sessionHistory=Array.isArray(s.sessionHistory)?s.sessionHistory:[];
-    s.seen=s.seen||{}; s.templateLast=s.templateLast||{};
-    return s;
-  }catch(e){return newState();}
+function validProgressState(s){
+  return !!s&&typeof s==="object"&&s.campaignId===CAMPAIGN.campaignId&&s.schemaVersion===1&&
+    s.metrics&&typeof s.metrics==="object"&&Number.isFinite(s.level)&&Number.isFinite(s.sessions)&&
+    Number.isFinite(s.totalAttempts)&&(s.history==null||Array.isArray(s.history))&&
+    (s.sessionHistory==null||Array.isArray(s.sessionHistory))&&(s.seen==null||typeof s.seen==="object");
 }
-function save(){state.updatedAt=Date.now();localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
+function normaliseProgressState(s){
+  for(const skill of CAMPAIGN.skills)if(!s.metrics[skill.id])s.metrics[skill.id]=seedMetric(skill.id);
+  s.history=Array.isArray(s.history)?s.history.slice(-HISTORY_LIMIT):[];
+  s.sessionHistory=Array.isArray(s.sessionHistory)?s.sessionHistory.slice(-SESSION_HISTORY_LIMIT):[];
+  s.seen=s.seen&&typeof s.seen==="object"?s.seen:{};s.templateLast=s.templateLast&&typeof s.templateLast==="object"?s.templateLast:{};
+  return s;
+}
+function loadState(){
+  try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");return validProgressState(s)?normaliseProgressState(s):newState();}
+  catch(e){return newState();}
+}
+function save(){
+  state.updatedAt=Date.now();state.history=state.history.slice(-HISTORY_LIMIT);state.sessionHistory=state.sessionHistory.slice(-SESSION_HISTORY_LIMIT);
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
+  catch(e){console.error("Progress save failed",e);state.history=state.history.slice(-3000);state.sessionHistory=state.sessionHistory.slice(-500);localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
+}
 
 function metricMastery(m){return .45*m.k+.35*m.a+.20*m.t;}
 function recentRows(n=75){return state.history.slice(-n);}
@@ -330,6 +343,7 @@ function deltaText(value,goodUp=true,suffix=""){
   return `<span class="delta ${good?"good":bad?"bad":"neutral"}">${arrow} ${Math.abs(value).toFixed(1)}${suffix}</span>`;
 }
 function sparkline(values,format=v=>String(Math.round(v)),lowerBetter=false,meanLine=null){
+  values=Array.isArray(values)?values.filter(Number.isFinite):[];
   if(values.length<2)return '<div class="footerline">Complete a few levels to build this graph.</div>';
   const w=600,h=108,p=10,min=Math.min(...values),max=Math.max(...values),span=Math.max(.01,max-min);
   const pts=values.map((v,i)=>`${p+i*(w-2*p)/(values.length-1)},${h-p-(v-min)/span*(h-2*p)}`).join(" ");
@@ -465,7 +479,7 @@ function feedback(ok,type,sec,correct,appearance){
   const f=$("feedback");f.className="feedback "+(ok?"ok":"no");
   const label=ok?(type==="automatic"?"AUTOMATIC":type==="secure"?"CORRECT":"CORRECT · SLOW"):(type==="timeout"?"TIME":"INCORRECT");
   const exposure=appearance===1?"NEW!":appearance+"\u00aa VEZ";
-  f.innerHTML=`<div class="feedback-label">${label}<small>${sec.toFixed(2)}s${ok?"":` \u00b7 Correct: ${correct}`}</small></div><div class="appearance">${exposure}</div>`;
+  f.innerHTML=`<div class="feedback-label">${label}<small>${sec.toFixed(2)}s${ok?"":` \u00b7 Correct: ${escapeHtml(correct)}`}</small></div><div class="appearance">${exposure}</div>`;
   requestAnimationFrame(()=>f.classList.add("show"));
   setTimeout(()=>f.classList.remove("show"),ok?500:820);
 }
@@ -530,7 +544,7 @@ function renderEnd(s,before){
   $("ePhrasesDone").textContent=uniqueDone.toLocaleString();paintText("ePhrasesDone",st.coverage);
   $("eRepeats").textContent=repeated.toLocaleString();
   $("eBankTotal").textContent=BANK.length.toLocaleString();
-  $("weakSkills").innerHTML=rankedSkills().map(x=>`<div class="skillrow"><div class="name">${x.name}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%;background:${valueColor(x.mastery)}"></div></div><div class="pct" style="color:${valueTextColor(x.mastery)}">${pct(x.mastery)}%</div></div>`).join("");
+  $("weakSkills").innerHTML=rankedSkills().map(x=>`<div class="skillrow"><div class="name">${escapeHtml(x.name)}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%;background:${valueColor(x.mastery)}"></div></div><div class="pct" style="color:${valueTextColor(x.mastery)}">${pct(x.mastery)}%</div></div>`).join("");
   const wrong=session.records.filter(r=>!r.correct);
   $("errorsBtn").textContent=`REVIEW ERRORS - ${wrong.length}`;
   $("errorsBtn").classList.toggle("hidden",wrong.length===0);
@@ -547,7 +561,7 @@ function exportProgress(){
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`adaptive-english-progress-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href);
 }
 function importProgress(file){
-  const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);if(s.campaignId!==CAMPAIGN.campaignId)throw Error();localStorage.setItem(STORAGE_KEY,JSON.stringify(s));state=loadState();renderStart();alert("Progress imported.");}catch(e){alert("This progress file is not valid for Campaign 1.");}};r.readAsText(file);
+  const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);if(!validProgressState(s))throw Error("Invalid progress schema");state=normaliseProgressState(s);save();renderStart();alert("Progress imported.");}catch(e){console.error("Progress import rejected",e);alert("This progress file is not valid for Campaign 1.");}};r.readAsText(file);
 }
 function resetProgress(){
   if(confirm("Reset all Campaign 1 progress? Export a backup first if you want to keep it.")){localStorage.removeItem(STORAGE_KEY);state=newState();save();renderStart();}
