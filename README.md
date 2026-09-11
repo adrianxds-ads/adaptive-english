@@ -162,3 +162,7 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Uses real calendar dates on the horizontal axis so multi-day retention is visible.
 - Makes the primary score graph larger than the secondary Learning Curve.
 - Adds an expandable full-screen score chart with per-level points and date labels.
+
+
+## v1.19
+Full 3,000-question bank audit; repaired generator artifacts and predictable-answer families; deterministic four-position correct-answer rotation; exact-phrase + pattern exposure counters.
