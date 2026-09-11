@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="1.10">
-<title>Adaptive English - Campaign 1 - v1.10</title>
+<meta name="ae-version" content="1.11">
+<title>Adaptive English - Campaign 1 - v1.11</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -95,16 +95,20 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 #startScreen .card b,#endScreen .card b,.progress-label strong,.skillrow .pct,.fill,.chart polyline{transition:color .22s ease,background .22s ease,stroke .22s ease}
 .ai-legend-wrap>span{color:#dce9e1}
 </style>
+
+<style id="v111-style">
+.next-campaign-box{margin:14px 0;padding:14px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(8,22,16,.58)}.next-campaign-box.ready{border-color:var(--ai-color);box-shadow:0 0 0 1px rgba(var(--ai-rgb),.22) inset}.next-campaign-head{display:flex;justify-content:space-between;gap:14px;align-items:end;margin-bottom:10px}.next-campaign-head span{display:block;font-size:12px;letter-spacing:.12em;color:#b8c8bf}.next-campaign-head b{display:block;font-size:30px;line-height:1.05}.next-campaign-head em{font-style:normal;font-size:12px;text-align:right;color:#dbe9e0}.next-campaign-box p{margin:10px 0 0;color:#b9c9c0;font-size:13px;line-height:1.35}.next-campaign-box button{margin-top:10px}.next-campaign-end{border-color:rgba(var(--ai-rgb),.48);font-weight:750}
+</style>
 </head>
 <body>
 <div class="app">
 <section id="startScreen" class="screen start">
   <div class="panel">
-    <div id="startKicker" class="kicker">CAMPAIGN 1 - VERSION 1.9</div>
+    <div id="startKicker" class="kicker">CAMPAIGN 1 - VERSION 1.11</div>
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 10</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock · v1.10</div>
+    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock · v1.11</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -121,6 +125,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
       <div class="card"><b id="startMastered">0/25</b><span>Skills mastered</span></div>
       <div class="card"><b id="startTotal">0</b><span>Total answers</span></div>
     </div>
+    <div id="campaign2Box" class="next-campaign-box"><div class="next-campaign-head"><div><span>CAMPAIGN 2 READINESS</span><b id="campaign2Score">0%</b></div><em id="campaign2Stage">Building foundation</em></div><div class="track"><div id="campaign2Fill" class="fill" style="width:0%"></div></div><p id="campaign2Status">Keep training to build evidence.</p><button id="campaign2Copy" class="ghost small hidden">COPY HANDOFF FOR CHATGPT</button></div>
     <div id="campaignStatus" class="statusbox"></div>
     <div class="actions"><button id="startBtn" class="primary">START</button></div>
     <div class="actions">
@@ -164,6 +169,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
       <div class="card"><b id="eMastered">0/25</b><span>Skills mastered</span><div id="dAcc"></div></div>
     </div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="learningScore">—</b><small id="learningScoreWindow">Media móvil</small></div><div id="learningScoreDelta" class="learning-direction neutral">→</div></div>
+    <div id="campaign2End" class="statusbox next-campaign-end hidden"></div>
     <section id="levelLesson" class="level-lesson hidden"></section>
     <div class="charts">
       <div class="section"><h3>Accuracy - all levels</h3><div id="accuracyChart"></div></div>
@@ -182,12 +188,12 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
       <button id="homeBtn" class="secondary">Dashboard</button>
     </div>
-    <div class="footerline">Adaptive English v1.10 - Campaign ends when all 3,000 exercises have been explored.</div>
+    <div class="footerline">Adaptive English v1.11 - Campaign ends when all 3,000 exercises have been explored.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v1.10</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v1.11</div><h1>Errors</h1><p id="errorsCount"></p></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>

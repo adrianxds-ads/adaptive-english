@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.10
+# Adaptive English · Campaign 1 v1.11
 
 Local adaptive grammar trainer.
 
@@ -104,3 +104,11 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Added EMA smoothing so the lower chart shows learning trajectory instead of mirroring level accuracy.
 - Learning Score now reports the current curve point; its arrow compares the latest 8 levels with the previous 8 non-overlapping levels.
 - Lower chart uses the first curve value as a dashed Start reference.
+
+## Version 1.11
+
+- Adds `Campaign 2 Readiness`, a separate advisory signal for when there is enough evidence and broad enough mastery to benefit from a second 3,000-question campaign.
+- Readiness combines coverage, mastery, skill breadth, strong-skill share, the long-term Learning Curve and evidence volume, with hard gates to prevent premature recommendations.
+- Campaign 2 can be recommended before Campaign 1 is fully complete; Campaign 1 can continue as maintenance while Campaign 2 expands into new C1 material.
+- When ready, the dashboard exposes a `COPY HANDOFF FOR CHATGPT` action that prepares a diagnostic prompt; the exported Campaign 1 progress JSON remains the primary data source for designing Campaign 2.
+- Campaign 1 bank, fingerprints, storage key, 15-question sessions and 10-second timing remain unchanged.

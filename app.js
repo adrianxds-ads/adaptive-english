@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.10";
+const APP_VERSION = "1.11";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -156,6 +156,28 @@ function overallStats(){
   const mastered=metrics.filter(m=>metricMastery(m)>=.80&&m.a>=.65&&m.attempts>=8).length;
   const eligible=coverage>=.999&&mastery>=.85&&minSkill>=.70;
   return {coverage,mastery,minSkill,accuracy,auto,avgMs,speed,transfer,fluency,rating,mastered,eligible};
+}
+function campaign2Readiness(){
+  const st=overallStats(),metrics=Object.values(state.metrics),learning=learningScoreStats();
+  const breadth=metrics.filter(m=>metricMastery(m)>=.55).length/metrics.length;
+  const strong=metrics.filter(m=>metricMastery(m)>=.70).length/metrics.length;
+  const weak=metrics.filter(m=>metricMastery(m)<.40).length;
+  const evidence=clamp((state.totalAttempts||0)/2400),curve=clamp((learning.current??st.mastery*100)/100);
+  const score=clamp(.30*st.coverage+.30*st.mastery+.15*breadth+.10*strong+.10*curve+.05*evidence);
+  const gates={evidence:(state.totalAttempts||0)>=2200,coverage:st.coverage>=.65,mastery:st.mastery>=.62,breadth:breadth>=.70,weak:weak<=5};
+  const ready=score>=.70&&Object.values(gates).every(Boolean);
+  const stage=ready?"Campaign 2 recommended":score>=.60?"Approaching Campaign 2":score>=.45?"Building transfer":"Building foundation";
+  const blockers=[];
+  if(!gates.coverage)blockers.push(`${Math.max(0,1950-Object.keys(state.seen).length).toLocaleString()} more unique questions`);
+  if(!gates.mastery)blockers.push(`mastery ${pct(st.mastery)}% → 62%`);
+  if(!gates.breadth)blockers.push(`${Math.max(0,Math.ceil(metrics.length*.70)-Math.round(breadth*metrics.length))} more skills above 55%`);
+  if(!gates.evidence)blockers.push(`${Math.max(0,2200-(state.totalAttempts||0)).toLocaleString()} more answers of evidence`);
+  if(!gates.weak)blockers.push(`reduce sub-40% skills from ${weak} to 5 or fewer`);
+  return {score,ready,stage,breadth,strong,weak,evidence,curve,blockers};
+}
+function campaign2Brief(){
+  const r=campaign2Readiness(),st=overallStats();
+  return `Adaptive English recommends preparing Campaign 2. I will attach/export my Campaign 1 progress JSON. Use that export as the primary diagnostic. Build Campaign 2 as a separate 3,000-question bank that preserves Campaign 1 and the existing app architecture. Prioritize genuinely new C1 material plus targeted transfer for my remaining weak patterns; avoid duplicate questions and retain 15 questions per level, 10-second timing, adaptive selection, dynamic names, micro-lessons, AI Valoration and the long-term Learning Curve. Current handoff: readiness ${pct(r.score)}%, coverage ${pct(st.coverage)}%, mastery ${pct(st.mastery)}%, breadth ${pct(r.breadth)}%, weak skills under 40%: ${r.weak}. First analyze my export and propose the Campaign 2 skill map before generating the new 3,000 questions.`;
 }
 function stageInfo(coverage){
   const seen=Object.keys(state.seen).length;
@@ -418,6 +440,16 @@ function renderLevelLesson(records){
   box.classList.remove("hidden");
 }
 
+function renderCampaign2Readiness(){
+  const r=campaign2Readiness(),score=pct(r.score),fill=$("campaign2Fill"),box=$("campaign2Box");
+  if(box){$("campaign2Score").textContent=`${score}%`;paintText("campaign2Score",r.score);fill.style.width=`${score}%`;paintFill("campaign2Fill",r.score);$("campaign2Stage").textContent=r.stage;$("campaign2Status").textContent=r.ready?"Enough evidence to design the next 3,000 questions. Export Campaign 1 progress and send it to ChatGPT.":`${r.blockers.slice(0,2).join(" · ") || "Keep training to build stronger evidence."}`;$("campaign2Copy").classList.toggle("hidden",!r.ready);box.classList.toggle("ready",r.ready);}
+  const end=$("campaign2End");if(end){const show=r.ready||r.score>=.60;end.classList.toggle("hidden",!show);if(show)end.textContent=r.ready?`CAMPAIGN 2 RECOMMENDED · Readiness ${score}% · Export progress and send it to ChatGPT.`:`CAMPAIGN 2 IS GETTING CLOSE · Readiness ${score}% · Keep consolidating Campaign 1.`;}
+}
+async function copyCampaign2Brief(){
+  const text=campaign2Brief();
+  try{await navigator.clipboard.writeText(text);alert("Campaign 2 handoff copied. Export your progress too and send both to ChatGPT.");}
+  catch(e){const t=document.createElement("textarea");t.value=text;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();alert("Campaign 2 handoff copied. Export your progress too and send both to ChatGPT.");}
+}
 function renderStart(){
   const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating),ai=aiValorationStats();
   applyRatingTheme(st.rating);applyAiTheme(ai);
@@ -440,6 +472,7 @@ function renderStart(){
   if(st.eligible&&!state.completed)status="FINAL CHALLENGE READY · Campaign requirements achieved.";
   if(state.completed)status="CAMPAIGN 1 COMPLETE · Free practice remains available, or load the next campaign later.";
   $("campaignStatus").textContent=status;
+  renderCampaign2Readiness();
 }
 function showScreen(id){["startScreen","gameScreen","endScreen","errorsScreen"].forEach(x=>$(x).classList.add("hidden"));$(id).classList.remove("hidden");}
 function startSession(finalMode=false){
@@ -522,6 +555,7 @@ function renderEnd(s,before){
   $("endAiLevel").textContent=`${ai.level} / 10`;paintText("endAiLevel",ai.score/100);
   $("endAiConfidence").textContent=`AI Valoration · evidencia ${Math.round(ai.confidence*100)}%`;paintText("endAiConfidence",ai.confidence);
   $("aiLegend").innerHTML=aiLegendHtml(ai.level);
+  renderCampaign2Readiness();
   $("endKicker").textContent=s.mode==="final"?"FINAL CHALLENGE":`LEVEL ${s.level} COMPLETE`;
   $("endScore").textContent=`${s.correct}/${s.total} · ${pct(s.accuracy)}%`;$("endScore").style.color=valueTextColor(s.accuracy);
   $("endSub").textContent=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Object.keys(state.seen).length.toLocaleString()}/${BANK.length.toLocaleString()} explored`;
@@ -589,7 +623,7 @@ async function boot(){
   refreshSoundButton();
   $("exportBtn").onclick=exportProgress;$("importBtn").onclick=()=>$("importFile").click();
   $("importFile").onchange=e=>e.target.files[0]&&importProgress(e.target.files[0]);
-  $("resetBtn").onclick=resetProgress;$("homeBtn").onclick=()=>{renderStart();showScreen("startScreen");};
+  $("resetBtn").onclick=resetProgress;$("campaign2Copy").onclick=copyCampaign2Brief;$("homeBtn").onclick=()=>{renderStart();showScreen("startScreen");};
   $("errorsBtn").onclick=()=>showScreen("errorsScreen");
   $("errorsBackBtn").onclick=()=>showScreen("endScreen");
   renderStart();showScreen("startScreen");
