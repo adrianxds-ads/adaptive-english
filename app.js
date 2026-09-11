@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.17";
+const APP_VERSION = "1.18";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -97,7 +97,7 @@ function newState(){
   const metrics={}; CAMPAIGN.skills.forEach(s=>metrics[s.id]=seedMetric(s.id));
   return {
     schemaVersion:1,campaignId:CAMPAIGN.campaignId,level:CAMPAIGN.startingLevel||1,sessions:0,totalAttempts:0,
-    metrics,seen:{},templateLast:{},history:[],sessionHistory:[],finalAttempts:0,completed:false,
+    metrics,seen:{},templateLast:{},history:[],sessionHistory:[],finalAttempts:0,completed:false,contentRevision:2,
     personalBestFluency:0,createdAt:Date.now(),updatedAt:Date.now()
   };
 }
@@ -114,6 +114,12 @@ function normaliseProgressState(s){
   s.seen=s.seen&&typeof s.seen==="object"?s.seen:{};s.templateLast=s.templateLast&&typeof s.templateLast==="object"?s.templateLast:{};
   for(const skill of CAMPAIGN.skills){const m=s.metrics[skill.id];if(!Number.isFinite(m.intervalDays))m.intervalDays=1;if(!Number.isFinite(m.lastTs))m.lastTs=0;}
   for(const r of s.history){const m=s.metrics[r.cat];if(m&&Number.isFinite(r.ts)&&r.ts>(m.lastTs||0))m.lastTs=r.ts;}
+  if((s.contentRevision||1)<2){
+    const revisedCats=new Set(["despite","unless","whose"]),revisedFp=new Set(CAMPAIGN.questions.filter(q=>revisedCats.has(q.cat)).map(q=>q.fingerprint));
+    for(const fp of Object.keys(s.seen))if(revisedFp.has(fp))delete s.seen[fp];
+    for(const t of Object.keys(s.templateLast))if(t.startsWith("despite-")||t.startsWith("unless-")||t.startsWith("whose-"))delete s.templateLast[t];
+    s.contentRevision=2;
+  }
   return s;
 }
 function loadState(){
@@ -393,6 +399,23 @@ function sparkline(values,format=v=>String(Math.round(v)),lowerBetter=false,refL
   const meanMeta=Number.isFinite(refLine)?`<span style="color:${valueTextColor(refLine/100)}">${refLabel} ${format(refLine)}</span>`:`<span>${values.length} levels</span>`;
   return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line x1="0" y1="${h-p}" x2="${w}" y2="${h-p}" stroke="rgba(255,255,255,.12)"/><line x1="0" y1="${p}" x2="${w}" y2="${p}" stroke="rgba(255,255,255,.07)"/>${meanSvg}<polyline points="${pts}" fill="none" stroke="${lineColor}" stroke-width="3" vector-effect="non-scaling-stroke"/></svg><div class="chartmeta"><span style="color:${lineColor}">Now ${format(current)}</span><span style="color:${valueTextColor(best/100)}">Best ${format(best)}</span>${meanMeta}</div>`;
 }
+
+function sessionScoreChart(rows,expanded=false){
+  rows=(rows||[]).filter(x=>x.mode==="training"&&Number.isFinite(x.correct)&&Number.isFinite(x.ts));
+  if(rows.length<2)return '<div class="footerline">Complete a few levels to build this graph.</div>';
+  const w=expanded?900:700,h=expanded?360:230,L=52,R=16,T=18,B=42,maxY=15,midY=7.5;
+  const first=rows[0].ts,last=rows[rows.length-1].ts,span=Math.max(1,last-first);
+  const xFor=(ts,i)=>rows.length===1?L+(w-L-R)/2:L+((last===first?i/(rows.length-1):(ts-first)/span)*(w-L-R));
+  const yFor=v=>T+(maxY-v)/maxY*(h-T-B);
+  const pts=rows.map((r,i)=>`${xFor(r.ts,i).toFixed(1)},${yFor(r.correct).toFixed(1)}`).join(' ');
+  const grid=[15,7.5,0].map(v=>`<line x1="${L}" y1="${yFor(v)}" x2="${w-R}" y2="${yFor(v)}" stroke="rgba(255,255,255,${v===7.5?'.10':'.16'})" stroke-dasharray="${v===7.5?'5 6':'0'}"/><text x="${L-10}" y="${yFor(v)+4}" text-anchor="end" fill="#dce9e1" font-size="13" font-weight="850">${String(v).replace('.5',',5')}</text>`).join('');
+  const dayMap=new Map();for(const r of rows){const d=new Date(r.ts),key=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;if(!dayMap.has(key))dayMap.set(key,{ts:new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),label:d.toLocaleDateString('es-ES',{day:'numeric',month:'short'})});}
+  const days=[...dayMap.values()];const maxLabels=expanded?10:7,step=Math.max(1,Math.ceil(days.length/maxLabels));
+  const labels=days.filter((_,i)=>i%step===0||i===days.length-1).map(d=>`<text x="${xFor(d.ts,0)}" y="${h-13}" text-anchor="middle" fill="#afc3b7" font-size="12" font-weight="800">${d.label}</text>`).join('');
+  const dots=expanded?rows.map((r,i)=>`<circle cx="${xFor(r.ts,i)}" cy="${yFor(r.correct)}" r="3.2" fill="#f4f7f5"><title>Nivel ${r.level}: ${r.correct}/15</title></circle>`).join(''):'';
+  return `<svg class="score-chart ${expanded?'expanded':''}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}<polyline points="${pts}" fill="none" stroke="#8fd7b0" stroke-width="${expanded?4:3.5}" vector-effect="non-scaling-stroke"/>${dots}${labels}<text x="${L}" y="12" fill="#afc3b7" font-size="11" font-weight="850">CORRECT / 15</text></svg>`;
+}
+
 function learningCurveBase(x){
   const mastery=x.mastery??0,coverage=x.coverage??0,automatic=x.automatic??0;
   return clamp(.65*mastery+.25*coverage+.10*automatic);
@@ -488,7 +511,7 @@ function renderStatsScreen(){
   $("statsAiLevel").textContent=`${ai.level} / 10`;paintText("statsAiLevel",ai.score/100);$("statsAiConfidence").textContent=`Evidence ${Math.round(ai.confidence*100)}%`;paintText("statsAiConfidence",ai.confidence);
   $("statsLearningScore").textContent=learning.current==null?"—":learning.current.toFixed(1);if(learning.current!=null)paintText("statsLearningScore",learning.current/100);const ld=$("statsLearningDelta");if(learning.delta==null){ld.className="learning-direction neutral";ld.textContent="→";}else{const up=learning.delta>.05,down=learning.delta<-.05;ld.className=`learning-direction ${up?"good":down?"bad":"neutral"}`;ld.textContent=`${up?"↑":down?"↓":"→"} ${learning.delta>=0?"+":""}${learning.delta.toFixed(1)}`;}$("statsLearningWindow").textContent=`Last ${learning.windowSize} vs previous ${learning.windowSize} levels`;
   [["statsCoverage",st.coverage,true],["statsMastery",st.mastery,true],["statsAccuracy",st.accuracy,true],["statsAutomatic",st.auto,true]].forEach(([id,v,pc])=>{$(id).textContent=pc?`${pct(v)}%`:String(v);paintText(id,v);});$("statsAvg").textContent=st.avgMs?fmtSec(st.avgMs):"—";$("statsTotal").textContent=(state.totalAttempts||0).toLocaleString();
-  $("statsAccuracyChart").innerHTML=sparkline(trend.map(x=>x.accuracy*100),v=>`${Math.round(v)}%`);$("statsLearningChart").innerHTML=sparkline(learningCurveSeries(),v=>`${v.toFixed(1)}`,false,learning.start,"Start");$("statsSkills").innerHTML=skillRowsHtml(rankedSkills());
+  $("statsAccuracyChart").innerHTML=sessionScoreChart(trend,false);$("statsLearningChart").innerHTML=sparkline(learningCurveSeries(),v=>`${v.toFixed(1)}`,false,learning.start,"Start");$("statsSkills").innerHTML=skillRowsHtml(rankedSkills());
   $("statsPeerYou").textContent=peer.actual==null?"—":peer.actual.toFixed(1);$("statsPeerHealthy").textContent=peer.healthyMin.toFixed(1);$("statsPeerExpected").textContent=peer.typical.toFixed(1);$("statsPeerStrong").textContent=peer.strongPace.toFixed(1);const peerText=peer.delta==null?"—":`${peer.delta>=0?"+":""}${peer.delta.toFixed(1)}`;$("statsPeerDelta").textContent=peerText;$("statsPeerDeltaMini").textContent=peerText;const pd=$("statsPeerDelta");pd.className=`peer-delta ${peer.delta==null||Math.abs(peer.delta)<2?"neutral":peer.delta>0?"good":"bad"}`;$("statsPeerLabel").textContent=`${peer.label} · Typical range ${peer.healthyMin.toFixed(1)}–${peer.strongPace.toFixed(1)} at ${peer.attempts.toLocaleString()} answers. Model-based reference, not measured users.`;
   $("statsCampaign2").textContent=`Campaign 2 readiness ${pct(c2.score)}% · ${c2.stage}${c2.ready?" · Recommended now":" · "+(c2.blockers[0]||"Keep consolidating")}`;
 }
@@ -594,7 +617,7 @@ function nextQuestion(){
 function feedback(ok,type,sec,correct,appearance){
   const f=$("feedback");f.className="feedback "+(ok?"ok":"no");
   const label=ok?(type==="automatic"?"AUTOMATIC":type==="secure"?"CORRECT":"CORRECT · SLOW"):(type==="timeout"?"TIME":"INCORRECT");
-  const exposure=appearance===1?"NEW!":appearance+"\u00aa VEZ";
+  const exposure=appearance===1?"1\u00aa VEZ · NEW":appearance+"\u00aa VEZ";
   f.innerHTML=`<div class="feedback-label">${label}<small>${sec.toFixed(2)}s${ok?"":` \u00b7 Correct: ${escapeHtml(correct)}`}</small></div><div class="appearance">${exposure}</div>`;
   requestAnimationFrame(()=>f.classList.add("show"));
   setTimeout(()=>f.classList.remove("show"),ok?500:820);
@@ -701,6 +724,9 @@ async function boot(){
   const seg=$("segments");for(let i=0;i<10;i++){const d=document.createElement("div");d.className="seg";seg.appendChild(d);}
   $("startBtn").onclick=async()=>{await ensureAudio();startSession(false);};
   $("statsBtn").onclick=()=>{renderStatsScreen();showScreen("statsScreen");};
+  $("scoreExpandBtn").onclick=()=>{const rows=state.sessionHistory.filter(x=>x.mode==="training");$("scoreExpandedChart").innerHTML=sessionScoreChart(rows,true);$("scoreModal").classList.remove("hidden");};
+  $("scoreCloseBtn").onclick=()=>$("scoreModal").classList.add("hidden");
+  $("scoreModal").onclick=e=>{if(e.target===$("scoreModal"))$("scoreModal").classList.add("hidden");};
   $("coachBtn").onclick=()=>{renderCoachScreen();showScreen("coachScreen");};
   $("statsBackBtn").onclick=()=>{renderStart();showScreen("startScreen");};
   $("coachGenerateBtn").onclick=generateCoachPrompt;$("coachPromptCopy").onclick=copyCoachPrompt;$("coachBackBtn").onclick=()=>{renderStart();showScreen("startScreen");};

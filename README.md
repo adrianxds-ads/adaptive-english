@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.17
+# Adaptive English · Campaign 1 v1.18
 
 Local adaptive grammar trainer.
 
@@ -155,3 +155,10 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Keeps the established question typography unchanged.
 - Tightens correct/wrong audio cues into shorter, clearer arcade-style signals without delaying question advance.
 - Preserves Campaign 1 data, scheduling, storage key, 15-question sessions and 10-second timer.
+
+
+## Version 1.18
+- Rebuilds the primary Statistics graph as correct answers per 15-question level with a fixed 0 / 7.5 / 15 vertical scale.
+- Uses real calendar dates on the horizontal axis so multi-day retention is visible.
+- Makes the primary score graph larger than the secondary Learning Curve.
+- Adds an expandable full-screen score chart with per-level points and date labels.
