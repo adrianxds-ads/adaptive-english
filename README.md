@@ -173,3 +173,9 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Uses the same error chart in Statistics, expanded view, and end-of-level history.
 - Adds per-question `focus` cues to all 3,000 exercises. After every answer, decisive grammar fragments and the correct completion flash green briefly without changing the existing question-to-question delay.
 - Keeps storage, fingerprints, 15-question levels, 10-second timing, adaptive scheduling, and all existing progress compatible.
+
+
+## v1.21
+- Moves answer feedback into the normal quiz layout below the four answers, so it no longer covers the corrected sentence or grammar-focus flash.
+- Shows exposure first (`NEW`, `2Âª VEZ`, etc.) and `CORRECT / INCORRECT` beneath it.
+- Preserves the existing 540 ms / 860 ms question-advance timing and all Campaign 1 progress.

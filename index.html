@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="1.20">
-<title>Adaptive English - Campaign 1 - v1.20</title>
+<meta name="ae-version" content="1.21">
+<title>Adaptive English - Campaign 1 - v1.21</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -109,7 +109,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 </style>
 
 <style id="v116-style">
-/* v1.20: distinct cover, clearer navigation, larger non-quiz typography */
+/* v1.21: distinct cover, clearer navigation, larger non-quiz typography */
 #startScreen{background:radial-gradient(90% 62% at 92% 4%,rgba(128,42,55,.48),transparent 56%),radial-gradient(72% 48% at 5% 96%,rgba(86,28,38,.34),transparent 58%),linear-gradient(180deg,#4c1f28 0%,#351a20 56%,#241519 100%)!important}
 #startScreen .panel{box-shadow:0 22px 60px rgba(96,30,42,.30),0 20px 50px rgba(0,0,0,.22)!important}
 #startScreen .kicker,#statsScreen .kicker,#coachScreen .kicker,#endScreen .kicker,#errorsScreen .kicker{font-size:14px}
@@ -128,7 +128,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 </style>
 
 <style id="v117-style">
-/* v1.20: faster four-way answer scan + tighter arcade feedback */
+/* v1.21: faster four-way answer scan + tighter arcade feedback */
 .answer{font-size:clamp(19px,4.6vw,29px);line-height:1.055;padding:11px 10px;min-height:102px}
 @media(max-width:520px){.answer{font-size:clamp(18.5px,4.95vw,25.5px);line-height:1.045;padding:10px 8px;min-height:94px}.answers{gap:6px}.question{margin-bottom:6px}}
 </style>
@@ -138,7 +138,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 </style>
 
 <style id="v120-style">
-/* v1.20: 15-band error rainbow + zero-delay grammar focus flash */
+/* v1.21: 15-band error rainbow + zero-delay grammar focus flash */
 .score-chart{background:#0d1612;border:1px solid rgba(255,255,255,.13);border-radius:12px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
 #questionText .grammar-cue,#questionText .grammar-answer{border-radius:.22em;padding:.02em .10em;margin:0 -.01em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
 #questionText.focus-active .grammar-cue,#questionText.focus-active .grammar-answer{animation:grammarCue .48s ease-out both}
@@ -146,6 +146,19 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 @keyframes grammarCue{0%{background:transparent;color:inherit;text-shadow:none}18%{background:rgba(66,238,139,.62);color:#effff5;text-shadow:0 0 14px rgba(104,255,171,.72)}68%{background:rgba(66,238,139,.34);color:#effff5;text-shadow:0 0 9px rgba(104,255,171,.48)}100%{background:transparent;color:inherit;text-shadow:none}}
 @keyframes grammarAnswerCue{0%{background:transparent;color:inherit;text-shadow:none}16%{background:rgba(74,255,155,.82);color:#07160e;text-shadow:0 0 16px rgba(125,255,183,.80)}72%{background:rgba(74,255,155,.44);color:#effff5;text-shadow:0 0 10px rgba(125,255,183,.55)}100%{background:transparent;color:inherit;text-shadow:none}}
 @media(max-width:620px){.score-chart{height:310px}.score-chart.expanded{height:min(72vh,620px)}}
+</style>
+
+<style id="v121-style">
+/* v1.21: in-flow feedback below answers so grammar correction remains visible */
+#gameScreen .feedback{position:relative;z-index:6;left:auto;top:auto;transform:none!important;width:100%;margin:7px 0 0;padding:0;opacity:0;pointer-events:none;display:flex;flex-direction:column;gap:5px;min-height:78px;transition:opacity .06s ease}
+#gameScreen .feedback.show{opacity:1;transform:none!important}
+#gameScreen .feedback .appearance{order:1;width:100%;margin:0;padding:5px 10px 6px;border-radius:7px;font-size:clamp(18px,4.8vw,26px);line-height:1;font-weight:950;letter-spacing:.02em;box-shadow:none}
+#gameScreen .feedback .feedback-label{order:2;width:100%;margin:0;padding:7px 10px 8px;border-radius:7px;font-size:clamp(24px,6.8vw,36px);line-height:1;font-weight:950;box-shadow:none}
+#gameScreen .feedback small{margin-top:3px;font-size:10px}
+#gameScreen .feedback.ok .appearance,#gameScreen .feedback.ok .feedback-label{background:rgba(39,146,92,.94)}
+#gameScreen .feedback.no .appearance,#gameScreen .feedback.no .feedback-label{background:rgba(199,66,83,.96)}
+#gameScreen .feedback.ok.show,#gameScreen .feedback.no.show{animation:none}
+@media(max-width:520px){#gameScreen .feedback{min-height:70px;margin-top:5px;gap:4px}#gameScreen .feedback .appearance{font-size:19px;padding:4px 8px 5px}#gameScreen .feedback .feedback-label{font-size:27px;padding:6px 8px 7px}}
 </style>
 </head>
 <body>
@@ -156,7 +169,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 10</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock · v1.20</div>
+    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock · v1.21</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -193,7 +206,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 
 <section id="statsScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">DASHBOARD · v1.20</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
+    <div class="resulttitle"><div class="kicker">DASHBOARD · v1.21</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 10</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
@@ -206,7 +219,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">MY COACH · v1.20</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div class="resulttitle"><div class="kicker">MY COACH · v1.21</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
     <div id="coachIntro" class="statusbox"></div>
     <div class="section"><h3>Focus now</h3><div id="coachFocus" class="coach-grid"></div></div>
     <div class="section"><h3>Common mistakes</h3><div id="coachMistakes"></div></div>
@@ -228,6 +241,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
   <div class="playfield">
     <div class="question"><h2 id="questionText"></h2></div>
     <div id="answers" class="answers"></div>
+    <div id="feedback" class="feedback" aria-live="polite"></div>
   </div>
 </section>
 
@@ -267,12 +281,12 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
     </div>
-    <div class="footerline">Adaptive English v1.20 - Campaign ends when all 3,000 exercises have been explored.</div>
+    <div class="footerline">Adaptive English v1.21 - Campaign ends when all 3,000 exercises have been explored.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v1.20</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v1.21</div><h1>Errors</h1><p id="errorsCount"></p></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>
@@ -280,7 +294,6 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 </div>
 <section id="scoreModal" class="score-modal hidden"><div class="score-modal-card"><div class="chart-title-row"><div><div class="kicker">PERFORMANCE OVER TIME</div><h2>Errors · /15</h2></div><button id="scoreCloseBtn" class="secondary">CLOSE</button></div><div id="scoreExpandedChart"></div><p class="meta">Each point is one 15-question level. 0 errors is perfect; 15 is the maximum. The horizontal axis uses real calendar days.</p></div></section>
 <div id="particles" class="particles" aria-hidden="true"></div>
-<div id="feedback" class="feedback"></div>
 <script src="./lessons.js"></script>
 <script src="./app.js"></script>
 <script>
