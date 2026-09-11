@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.22";
+const APP_VERSION = "1.23";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -609,11 +609,19 @@ function renderStart(){
   renderCampaign2Readiness();
 }
 function showScreen(id){["startScreen","statsScreen","coachScreen","gameScreen","endScreen","errorsScreen"].forEach(x=>$(x).classList.add("hidden"));$(id).classList.remove("hidden");}
+function adaptiveLevelTarget(plan){
+  if(!Array.isArray(plan)||!plan.length)return null;
+  const training=state.sessionHistory.filter(x=>x.mode==="training"&&Number.isFinite(x.correct)&&Number.isFinite(x.total)).slice(-8),recentExpected=training.length?mean(training.map(x=>15*x.correct/x.total)):15*(state.history.length?overallStats().accuracy:.50),globalAcc=state.history.length?overallStats().accuracy:.50;
+  const expected=plan.reduce((sum,q)=>{const m=state.metrics[q.cat],rows=state.history.filter(r=>r.cat===q.cat).slice(-20),recent=rows.length?rows.filter(r=>r.correct).length/rows.length:null;let p=recent!=null&&rows.length>=5?.55*recent+.45*metricMastery(m):.68*metricMastery(m)+.32*globalAcc;const info=seenInfo(q);if(!info)p-=.045;else if(info.lastCorrect===false)p-=.055;else if(info.lastCorrect===true)p+=.02;return sum+clamp(p,.12,.92);},0);
+  const planExpected=15*expected/plan.length,baseline=.58*planExpected+.42*recentExpected,stretch=training.length>=4?.55:.35;
+  return clamp(Math.round((baseline+stretch)*2)/2,3.5,14.5);
+}
 function startSession(finalMode=false){
   applyRatingTheme(overallStats().rating);
   const raw=finalMode?buildFinalPlan():buildTrainingPlan();
-  session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),plan:raw.map(shuffleOptions)};
-  $("sessionLevel").textContent=finalMode?"FINAL":`L${state.level}`;
+  const target=finalMode?null:adaptiveLevelTarget(raw);
+  session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),target,plan:raw.map(shuffleOptions)};
+  $("sessionLevel").innerHTML=finalMode?"FINAL":`L${state.level}<small class="level-target">TARGET ${target.toFixed(1)}</small>`;
   showScreen("gameScreen");nextQuestion();
 }
 function renderSegments(left){
@@ -675,7 +683,7 @@ function finishSession(){
   const before=state.sessionHistory.length?state.sessionHistory[state.sessionHistory.length-1]:null;
   state.sessions++;if(session.mode==="training")state.level++;
   let st=overallStats();
-  const snap={level:completedLevel,ts:Date.now(),mode:session.mode,correct:session.correct,total:n,accuracy,avgMs,automatic:auto,mastery:st.mastery,coverage:st.coverage,fluency:st.fluency,rating:st.rating};
+  const snap={level:completedLevel,ts:Date.now(),mode:session.mode,correct:session.correct,total:n,accuracy,avgMs,automatic:auto,mastery:st.mastery,coverage:st.coverage,fluency:st.fluency,rating:st.rating,target:session.target,targetDelta:session.target==null?null:session.correct-session.target,targetHit:session.target==null?null:session.correct>=session.target};
   state.sessionHistory.push(snap);
   const aiNow=aiValorationStats();snap.aiScore=aiNow.score;snap.aiLevel=aiNow.level;snap.aiConfidence=aiNow.confidence;
   state.personalBestFluency=Math.max(state.personalBestFluency||0,st.rating);
@@ -693,7 +701,9 @@ function renderEnd(s,before){
   $("aiLegend").innerHTML=aiLegendHtml(ai.level);
   renderCampaign2Readiness();
   $("endKicker").textContent=s.mode==="final"?"FINAL CHALLENGE":`LEVEL ${s.level} COMPLETE`;
-  $("endScore").textContent=`${s.correct}/${s.total} · ${pct(s.accuracy)}%`;$("endScore").style.color=valueTextColor(s.accuracy);
+  const targetHit=s.target==null?null:s.correct>=s.target,targetDelta=s.target==null?null:s.correct-s.target;
+  $("endScore").textContent=`${s.correct}/${s.total} · ${pct(s.accuracy)}%`;$("endScore").style.color=targetHit==null?valueTextColor(s.accuracy):(targetHit?"#82e6a9":"#ff7d8e");
+  const targetEl=$("endTarget");if(targetEl){targetEl.className=`target-result ${targetHit==null?"hidden":targetHit?"hit":"miss"}`;targetEl.innerHTML=targetHit==null?"":`<span>TARGET ${s.target.toFixed(1)}</span><b>${targetDelta>=0?"+":""}${targetDelta.toFixed(1)}</b><small>${targetHit?"TARGET BEATEN":"TARGET MISSED"}</small>`;}
   $("endSub").textContent=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Object.keys(state.seen).length.toLocaleString()}/${BANK.length.toLocaleString()} explored`;
   $("eAvg").textContent=fmtSec(s.avgMs);$("eAuto").textContent=pct(s.automatic)+"%";paintText("eAuto",s.automatic);$("eFluency").textContent=pct(st.rating);paintText("eFluency",st.rating);
   $("eCoverage").textContent=pct(st.coverage)+"%";paintText("eCoverage",st.coverage);$("eMastery").textContent=pct(st.mastery)+"%";paintText("eMastery",st.mastery);$("eMastered").textContent=`${st.mastered}/${CAMPAIGN.skills.length}`;paintText("eMastered",st.mastered/CAMPAIGN.skills.length);

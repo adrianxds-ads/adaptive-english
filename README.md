@@ -186,3 +186,9 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Reverses the performance colour field so low scores sit in brown/red bands and high scores rise through green/blue to purple at the top.
 - Keeps the high-contrast white trajectory and expandable chart.
 - Uses clock-time labels for short study spans and calendar-day labels for longer spans; point tooltips include level, correct answers, errors, date and time.
+
+
+## Version 1.23
+- Adds a per-level adaptive stretch TARGET based on recent performance and selected-question difficulty.
+- Uses 0.5-point increments; saves target, delta and hit/miss in session history.
+- Shows TARGET in the HUD and colors the final result green when met/beaten, red when missed.
