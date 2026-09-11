@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.11
+# Adaptive English · Campaign 1 v1.12
 
 Local adaptive grammar trainer.
 
@@ -112,3 +112,10 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Campaign 2 can be recommended before Campaign 1 is fully complete; Campaign 1 can continue as maintenance while Campaign 2 expands into new C1 material.
 - When ready, the dashboard exposes a `COPY HANDOFF FOR CHATGPT` action that prepares a diagnostic prompt; the exported Campaign 1 progress JSON remains the primary data source for designing Campaign 2.
 - Campaign 1 bank, fingerprints, storage key, 15-question sessions and 10-second timing remain unchanged.
+
+## Version 1.12
+
+- Adds two start-dashboard entry points: `STATISTICS` and `MY COACH`.
+- Statistics mirrors the longitudinal learning dashboard before a session: AI Valoration, Learning Score, accuracy and learning-curve charts, Campaign 2 readiness, and all 25 skills.
+- My Coach turns stored performance data into a study file with five adaptive priorities, recurring mistake patterns from recent history, rules, examples, coach cues, and all skills ordered weakest to strongest.
+- Both screens are read-only study views and do not change the adaptive engine, campaign bank, progress identity, 15-question sessions, or 10-second timing.
