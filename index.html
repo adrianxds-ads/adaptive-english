@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="1.2">
-<title>Adaptive English - Campaign 1 - v1.2</title>
+<meta name="ae-version" content="1.3">
+<title>Adaptive English - Campaign 1 - v1.3</title>
 <link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
 :root{--bg:#10271d;--bg-top:#163427;--bg-mid:#102d21;--bg-bottom:#10271d;--glow1:rgba(47,94,67,.55);--glow2:rgba(39,78,57,.45);--panel:#172f24;--text:#f4f7f5;--muted:#b7c9bf;--line:rgba(255,255,255,.12);--ok:#27925c;--bad:#c74253;--red:#c93545;--blue:#1767b7;--yellow:#9b7208;--green:#2b7d3b}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
@@ -33,15 +34,34 @@ button{font:inherit}.app{width:min(760px,100%);margin:0 auto;min-height:100dvh}.
 @media(max-width:520px){.screen{padding:12px 10px 20px}.panel{padding:18px 14px;border-radius:14px}.grid{grid-template-columns:repeat(2,1fr)}.top{min-height:92px}.toprow{grid-template-columns:74px 1fr 74px}.timer{width:64px;height:64px}.timer strong{font-size:20px}.qnum b{font-size:42px}.playfield{justify-content:center;padding-bottom:14px;transform:translateY(-6vh)}.question{min-height:88px;padding:13px 12px}.answer{min-height:96px;padding:12px 9px}}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.phrasegrid{grid-template-columns:repeat(3,1fr);margin-top:10px}.charts .section{margin-top:0}.chart{height:108px}.chartmeta{display:flex;justify-content:space-between;gap:8px;margin-top:7px;font-size:11px;color:var(--muted);font-weight:800}.review{justify-content:flex-start}.review .panel{min-height:calc(100dvh - 36px)}.review .resulttitle{text-align:left}.review .resulttitle h1{font-size:clamp(38px,9vw,58px)}.errors details{margin:8px 0;border-top:1px solid rgba(255,255,255,.08);padding-top:10px}.errors summary{font-size:14px;line-height:1.35}.errors p{font-size:13px;line-height:1.55}@media(max-width:520px){.charts{grid-template-columns:1fr}.phrasegrid{grid-template-columns:repeat(3,1fr);gap:6px}.phrasegrid .card{padding:10px 5px}.phrasegrid .card b{font-size:22px}.phrasegrid .card span{font-size:8px}}
 </style>
+<style id="v13-style">
+button,.answer{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.timer strong{font-size:30px}.qnum b{font-size:clamp(56px,12vw,72px)}.qnum span{font-size:12px}.leveltag{font-size:14px}.soundbtn{width:42px;height:42px;font-size:20px}
+.question{min-height:118px;padding:20px 17px}.question h2{font-size:clamp(30px,6.8vw,46px);line-height:1.08;font-weight:760}
+.answer{min-height:126px;padding:17px 13px;font-size:clamp(25px,5.8vw,37px);font-weight:900;transition:transform .055s ease,filter .075s ease,opacity .09s ease,box-shadow .09s ease}
+.answer:active{transform:scale(.975);filter:brightness(1.09)}.card b{font-size:30px}.progress-label{font-size:14px}.statusbox{font-size:14px}
+.feedback{top:23%;width:min(112vw,860px);padding:22px;font-size:clamp(48px,13vw,86px);letter-spacing:-.025em;box-shadow:0 18px 55px rgba(0,0,0,.28);transition:opacity .08s ease,transform .1s cubic-bezier(.2,.9,.3,1.35)}
+.feedback.show{transform:translate(-50%,-50%) rotate(-3deg) scale(1.04)}.feedback.ok.show{animation:feedbackPop .42s ease}.feedback.no.show{animation:feedbackWrong .45s ease}
+body.feedback-correct .game{animation:correctPulse .32s ease}body.feedback-wrong .game{animation:wrongShake .34s ease}
+body.feedback-correct::after,body.feedback-wrong::after{content:"";position:fixed;inset:0;z-index:8;pointer-events:none;animation:screenFlash .34s ease forwards}
+body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong::after{background:rgba(236,61,82,.22)}
+.particles{position:fixed;inset:0;z-index:11;pointer-events:none;overflow:hidden}.particle{position:absolute;left:0;top:0;width:var(--size,9px);height:var(--size,9px);border-radius:3px;background:var(--particle-color,#fff);opacity:0;transform:translate(-50%,-50%);animation:particleBurst .68s cubic-bezier(.12,.78,.28,1) var(--delay,0ms) forwards}
+.learning-trend .chart{background:linear-gradient(180deg,rgba(143,215,176,.08),rgba(255,255,255,.025))}
+@keyframes feedbackPop{0%{transform:translate(-50%,-50%) rotate(-5deg) scale(.72)}55%{transform:translate(-50%,-50%) rotate(2deg) scale(1.09)}100%{transform:translate(-50%,-50%) rotate(-3deg) scale(1.04)}}
+@keyframes feedbackWrong{0%,100%{transform:translate(-50%,-50%) rotate(-3deg) scale(1.04)}25%{transform:translate(calc(-50% - 12px),-50%) rotate(-5deg) scale(1.03)}55%{transform:translate(calc(-50% + 11px),-50%) rotate(-1deg) scale(1.03)}}
+@keyframes correctPulse{50%{transform:scale(1.008)}}@keyframes wrongShake{0%,100%{transform:translateX(0)}30%{transform:translateX(-7px)}65%{transform:translateX(7px)}}
+@keyframes screenFlash{0%{opacity:0}28%{opacity:1}100%{opacity:0}}@keyframes particleBurst{0%{opacity:1;transform:translate(-50%,-50%) scale(.45) rotate(0deg)}75%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1) rotate(var(--rot))}}
+@media(max-width:520px){.timer strong{font-size:27px}.qnum b{font-size:56px}.question{min-height:104px;padding:15px 12px}.question h2{font-size:clamp(29px,7.8vw,39px)}.answer{min-height:108px;padding:13px 9px;font-size:clamp(24px,6.3vw,32px)}.card b{font-size:28px}}
+</style>
 </head>
 <body>
 <div class="app">
 <section id="startScreen" class="screen start">
   <div class="panel">
-    <div id="startKicker" class="kicker">CAMPAIGN 1 - VERSION 1.2</div>
+    <div id="startKicker" class="kicker">CAMPAIGN 1 - VERSION 1.3</div>
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
-    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock - v1.1</div>
+    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock · v1.3</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -101,31 +121,32 @@ button{font:inherit}.app{width:min(760px,100%);margin:0 auto;min-height:100dvh}.
     </div>
     <div class="charts">
       <div class="section"><h3>Accuracy - all levels</h3><div id="accuracyChart"></div></div>
-      <div class="section"><h3>Avg response time - all levels</h3><div id="timeChart"></div></div>
+      <div class="section learning-trend"><h3>Learning Trend · global</h3><div id="learningTrendChart"></div></div>
     </div>
     <div class="grid phrasegrid">
       <div class="card"><b id="ePhrasesDone">0</b><span>Unique phrases done</span></div>
       <div class="card"><b id="eRepeats">0</b><span>Repeated</span></div>
       <div class="card"><b id="eBankTotal">3000</b><span>Bank total</span></div>
     </div>
-    <div class="section"><h3>Priority skills</h3><div id="weakSkills"></div></div>
+    <div class="section"><h3>Skills · highest → lowest</h3><div id="weakSkills"></div></div>
     <div class="actions">
       <button id="continueBtn" class="primary">CONTINUE</button>
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
       <button id="homeBtn" class="secondary">Dashboard</button>
     </div>
-    <div class="footerline">Adaptive English v1.2 - Campaign ends when all 3,000 exercises have been explored.</div>
+    <div class="footerline">Adaptive English v1.3 - Campaign ends when all 3,000 exercises have been explored.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">LEVEL REVIEW - v1.1</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v1.3</div><h1>Errors</h1><p id="errorsCount"></p></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>
 </section>
 </div>
+<div id="particles" class="particles" aria-hidden="true"></div>
 <div id="feedback" class="feedback"></div>
 <script src="./app.js"></script>
 <script>

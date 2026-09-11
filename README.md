@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.1
+# Adaptive English · Campaign 1 v1.3
 
 Local adaptive grammar trainer.
 
@@ -38,3 +38,13 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Feedback banner moved higher and question/answers made more legible.
 - First 40 sessions prefer prompts of 12 words or fewer.
 - Stronger alternating tick-tock and live rating-band colour updates.
+
+
+## Version 1.3
+- Faster touch response using pointer-down handling plus subtle device haptics when supported.
+- Larger question, answer, timer, level and statistic typography for mobile use.
+- More expressive correct/incorrect feedback with screen pulse/shake and particles on correct answers.
+- Removed the longitudinal response-time graph and added a global Learning Trend computed from existing session history.
+- Skills are displayed from highest to lowest mastery across all 25 skills.
+- Sounds, the fixed 10-second clock, 3,000-question bank and adaptive selection algorithm are preserved.
+- STORAGE_KEY remains adaptive_english_campaign1_v1, so existing progress stays compatible.

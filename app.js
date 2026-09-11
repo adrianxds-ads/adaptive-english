@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.2";
+const APP_VERSION = "1.3";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -53,6 +53,30 @@ function playTick(strong=false,step=0){const f=strong?(step%2?1540:1260):(step%2
 function playCorrect(){tone(523.25,.065,.030,'sine');tone(659.25,.075,.026,'triangle',.042);tone(783.99,.105,.024,'sine',.095);}
 function playWrong(){tone(330,.065,.020,'triangle');tone(247,.090,.018,'sine',.055);}
 function playComplete(){tone(392,.075,.022,'sine');tone(523.25,.085,.024,'triangle',.070);tone(659.25,.100,.026,'sine',.145);tone(783.99,.155,.028,'sine',.230);}
+function haptic(ok){
+  try{if(navigator.vibrate)navigator.vibrate(ok?18:[24,16,42]);}catch(e){}
+}
+function pulseFeedback(ok){
+  const cls=ok?"feedback-correct":"feedback-wrong";
+  document.body.classList.remove("feedback-correct","feedback-wrong");
+  void document.body.offsetWidth;
+  document.body.classList.add(cls);
+  setTimeout(()=>document.body.classList.remove(cls),430);
+}
+function burstParticles(anchor){
+  const layer=$("particles");if(!layer)return;
+  const r=anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null;
+  const cx=r?r.left+r.width/2:innerWidth/2,cy=r?r.top+r.height/2:innerHeight*.55;
+  const colors=["#ffffff","#8fd7b0","#f4d35e","#79a9d1","#f3a56b"];
+  for(let i=0;i<28;i++){
+    const p=document.createElement("i"),a=(Math.PI*2*i/28)+(Math.random()-.5)*.3,d=70+Math.random()*150;
+    p.className="particle";p.style.left=cx+"px";p.style.top=cy+"px";
+    p.style.setProperty("--dx",Math.cos(a)*d+"px");p.style.setProperty("--dy",Math.sin(a)*d+"px");
+    p.style.setProperty("--rot",Math.round((Math.random()-.5)*720)+"deg");p.style.setProperty("--size",(6+Math.random()*8)+"px");
+    p.style.setProperty("--delay",Math.round(Math.random()*70)+"ms");p.style.setProperty("--particle-color",colors[i%colors.length]);
+    layer.appendChild(p);setTimeout(()=>p.remove(),850);
+  }
+}
 function refreshSoundButton(){const b=$("soundBtn");if(b){b.textContent=soundOn?'🔊':'🔇';b.setAttribute('aria-label',soundOn?'Sound on':'Sound off');}}
 
 async function loadCampaign(){
@@ -290,8 +314,15 @@ function sparkline(values,format=v=>String(Math.round(v)),lowerBetter=false){
   const current=values[values.length-1],best=lowerBetter?min:max;
   return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line x1="0" y1="${h-p}" x2="${w}" y2="${h-p}" stroke="rgba(255,255,255,.12)"/><line x1="0" y1="${p}" x2="${w}" y2="${p}" stroke="rgba(255,255,255,.07)"/><polyline points="${pts}" fill="none" stroke="white" stroke-width="3" vector-effect="non-scaling-stroke"/></svg><div class="chartmeta"><span>Now ${format(current)}</span><span>Best ${format(best)}</span><span>${values.length} levels</span></div>`;
 }
-function topWeak(n=5){
-  return CAMPAIGN.skills.map(s=>({...s,m:state.metrics[s.id],mastery:metricMastery(state.metrics[s.id]),p:catPriority(s.id)})).sort((a,b)=>b.p-a.p).slice(0,n);
+function learningTrendValue(x){
+  const rating=x.rating??x.fluency??0,mastery=x.mastery??0,accuracy=x.accuracy??0,automatic=x.automatic??0;
+  return clamp(.42*rating+.28*mastery+.20*accuracy+.10*automatic);
+}
+function learningTrendSeries(){
+  return state.sessionHistory.filter(x=>x.mode==="training").map(x=>learningTrendValue(x)*100);
+}
+function rankedSkills(){
+  return CAMPAIGN.skills.map(s=>({...s,m:state.metrics[s.id],mastery:metricMastery(state.metrics[s.id])})).sort((a,b)=>b.mastery-a.mastery||b.m.attempts-a.m.attempts||a.name.localeCompare(b.name));
 }
 function renderStart(){
   const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating);
@@ -314,7 +345,7 @@ function renderStart(){
   if(state.completed)status="CAMPAIGN 1 COMPLETE · Free practice remains available, or load the next campaign later.";
   $("campaignStatus").textContent=status;
 }
-function showScreen(id){["startScreen","gameScreen","endScreen"].forEach(x=>$(x).classList.add("hidden"));$(id).classList.remove("hidden");}
+function showScreen(id){["startScreen","gameScreen","endScreen","errorsScreen"].forEach(x=>$(x).classList.add("hidden"));$(id).classList.remove("hidden");}
 function startSession(finalMode=false){
   applyRatingTheme(overallStats().rating);
   const raw=finalMode?buildFinalPlan():buildTrainingPlan();
@@ -345,7 +376,7 @@ function nextQuestion(){
   $("qIndex").textContent=session.index+1;$("qTotal").textContent="/ "+session.plan.length;
   $("questionText").textContent=current.q;
   const wrap=$("answers");wrap.innerHTML="";
-  current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=txt;b.onclick=()=>answer(i,false);wrap.appendChild(b);});
+  current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=txt;b.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"){e.preventDefault();answer(i,false);}});b.addEventListener("click",()=>answer(i,false));wrap.appendChild(b);});
   $("timerText").textContent="10.0";renderSegments(10);startTimer();
 }
 function feedback(ok,type,sec,correct){
@@ -353,7 +384,7 @@ function feedback(ok,type,sec,correct){
   const label=ok?(type==="automatic"?"AUTOMATIC":type==="secure"?"CORRECT":"CORRECT · SLOW"):(type==="timeout"?"TIME":"INCORRECT");
   f.innerHTML=`${label}<small>${sec.toFixed(2)}s${ok?"":` · Correct: ${correct}`}</small>`;
   requestAnimationFrame(()=>f.classList.add("show"));
-  setTimeout(()=>f.classList.remove("show"),ok?520:900);
+  setTimeout(()=>f.classList.remove("show"),ok?500:820);
 }
 function answer(pos,timeout=false){
   if(locked)return;locked=true;clearInterval(timerHandle);
@@ -366,8 +397,8 @@ function answer(pos,timeout=false){
   state.seen[current.fingerprint]={count:info.count+1,lastLevel:state.level,lastTs:Date.now()};state.templateLast[current.templateId]=state.level;
   const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,review:!!previousSeen,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:current.q,userAnswer:pos>=0?current.display[pos]:"No answer",correctAnswer:current.display[current.correctPos],rule:current.rule};
   state.history.push(rec);state.history=state.history.slice(-12000);state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
-  const answeredIndex=session.index,delay=ok?650:1050;setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
-  try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{feedback(ok,type,sec,rec.correctAnswer);}catch(e){console.error("Feedback failed",e);}
+  const answeredIndex=session.index,delay=ok?540:860;setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
+  try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer);}catch(e){console.error("Feedback failed",e);}
 }
 function finishSession(){
   clearInterval(timerHandle);
@@ -397,13 +428,13 @@ function renderEnd(s,before){
   $("dFlu").innerHTML=before?deltaText((st.rating-(before.rating??before.fluency))*100,true," pts"):'<span class="delta neutral">First level</span>';
   const trend=state.sessionHistory.filter(x=>x.mode==="training");
   $("accuracyChart").innerHTML=sparkline(trend.map(x=>x.accuracy*100),v=>`${Math.round(v)}%`);
-  $("timeChart").innerHTML=sparkline(trend.map(x=>x.avgMs/1000),v=>`${v.toFixed(1)}s`,true);
+  $("learningTrendChart").innerHTML=sparkline(learningTrendSeries(),v=>`${Math.round(v)}`);
   const uniqueDone=Object.keys(state.seen).length;
   const repeated=Object.values(state.seen).reduce((n,x)=>n+Math.max(0,(x.count||1)-1),0);
   $("ePhrasesDone").textContent=uniqueDone.toLocaleString();
   $("eRepeats").textContent=repeated.toLocaleString();
   $("eBankTotal").textContent=BANK.length.toLocaleString();
-  $("weakSkills").innerHTML=topWeak().map(x=>`<div class="skillrow"><div class="name">${x.name}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%"></div></div><div class="pct">${pct(x.mastery)}%</div></div>`).join("");
+  $("weakSkills").innerHTML=rankedSkills().map(x=>`<div class="skillrow"><div class="name">${x.name}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%"></div></div><div class="pct">${pct(x.mastery)}%</div></div>`).join("");
   const wrong=session.records.filter(r=>!r.correct);
   $("errorsBtn").textContent=`REVIEW ERRORS - ${wrong.length}`;
   $("errorsBtn").classList.toggle("hidden",wrong.length===0);
