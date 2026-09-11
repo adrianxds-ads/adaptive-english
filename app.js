@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.3";
+const APP_VERSION = "1.4";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -324,6 +324,28 @@ function learningTrendSeries(){
 function rankedSkills(){
   return CAMPAIGN.skills.map(s=>({...s,m:state.metrics[s.id],mastery:metricMastery(state.metrics[s.id])})).sort((a,b)=>b.mastery-a.mastery||b.m.attempts-a.m.attempts||a.name.localeCompare(b.name));
 }
+function selectLevelLesson(records){
+  const wrong=records.filter(r=>!r.correct);
+  if(wrong.length){
+    const groups={};
+    for(const r of wrong){const g=groups[r.cat]||(groups[r.cat]={cat:r.cat,count:0,totalMs:0,maxMs:0,record:r});g.count++;g.totalMs+=r.ms||0;if((r.ms||0)>=g.maxMs){g.maxMs=r.ms||0;g.record=r;}}
+    const g=Object.values(groups).sort((a,b)=>b.count-a.count||b.totalMs-a.totalMs||b.maxMs-a.maxMs)[0];
+    return {kind:"error",count:g.count,record:g.record};
+  }
+  const record=[...records].sort((a,b)=>(b.ms||0)-(a.ms||0))[0];
+  return record?{kind:"reinforce",count:0,record}:null;
+}
+function renderLevelLesson(records){
+  const box=$("levelLesson"),pick=selectLevelLesson(records||[]);if(!box)return;
+  if(!pick){box.classList.add("hidden");box.innerHTML="";return;}
+  const r=pick.record,lesson=(window.AE_LESSONS||{})[r.cat]||{es:`La regla clave de este patr\u00f3n es: ${r.rule||"f\u00edjate en la estructura de la respuesta correcta."}`,en:r.rule||"Focus on the structure of the correct answer.",formula:r.correctAnswer||"",example:String(r.question||"").replace("___",r.correctAnswer||"___"),translation:"",cue:"Identifica primero el patr\u00f3n y despu\u00e9s completa la forma verbal."};
+  const skill=CAMPAIGN.skills.find(s=>s.id===r.cat),title=skill?.name||r.skill||r.cat;
+  const kicker=pick.kind==="error"?(pick.count>1?`ERROR DOMINANTE \u00b7 ${pick.count} FALLOS EN ESTE NIVEL`:"ERROR CLAVE DEL NIVEL"):"NIVEL PERFECTO \u00b7 TIP DE REFUERZO";
+  const source=pick.kind==="error"?`<div class="lesson-choice"><div><b>Tu respuesta</b><br>${escapeHtml(r.userAnswer)}</div><div class="correct"><b>Respuesta correcta</b><br>${escapeHtml(r.correctAnswer)}</div></div>`:`<div class="lesson-choice"><div class="correct"><b>Respuesta que conviene automatizar</b><br>${escapeHtml(r.correctAnswer)}</div></div>`;
+  box.innerHTML=`<div class="lesson-kicker">${kicker}</div><h2>${escapeHtml(title)}</h2><div class="lesson-source"><b>${pick.kind==="error"?"La pregunta en la que m\u00e1s conviene fijarse":"La pregunta m\u00e1s lenta del nivel"}:</b><br>${escapeHtml(r.question)}${source}</div><div class="lesson-languages"><div class="lesson-lang"><h3>ESPA\u00d1OL \u00b7 ENTI\u00c9NDELO</h3><p>${escapeHtml(lesson.es)}</p></div><div class="lesson-lang"><h3>ENGLISH \u00b7 LOCK IT IN</h3><p>${escapeHtml(lesson.en)}</p></div></div><div class="lesson-formula">${escapeHtml(lesson.formula)}</div><div class="lesson-example"><strong>${escapeHtml(lesson.example)}</strong>${lesson.translation?escapeHtml(lesson.translation):""}</div><div class="lesson-cue">\u{1F4A1} Para la pr\u00f3xima: ${escapeHtml(lesson.cue)}</div>`;
+  box.classList.remove("hidden");
+}
+
 function renderStart(){
   const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating);
   applyRatingTheme(st.rating);
@@ -426,6 +448,7 @@ function renderEnd(s,before){
   $("dAcc").innerHTML=before?deltaText((s.accuracy-before.accuracy)*100,true," pts"):'<span class="delta neutral">First level</span>';
   $("dTime").innerHTML=before?deltaText((s.avgMs-before.avgMs)/1000,false,"s"):'<span class="delta neutral">First level</span>';
   $("dFlu").innerHTML=before?deltaText((st.rating-(before.rating??before.fluency))*100,true," pts"):'<span class="delta neutral">First level</span>';
+  renderLevelLesson(session.records);
   const trend=state.sessionHistory.filter(x=>x.mode==="training");
   $("accuracyChart").innerHTML=sparkline(trend.map(x=>x.accuracy*100),v=>`${Math.round(v)}%`);
   $("learningTrendChart").innerHTML=sparkline(learningTrendSeries(),v=>`${Math.round(v)}`);
