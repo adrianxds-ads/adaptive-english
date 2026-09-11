@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.7";
+const APP_VERSION = "1.8";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -180,6 +180,26 @@ function updateMetric(q,ok,sec,type){
   return speed;
 }
 function seenInfo(q){return state.seen[q.fingerprint]||null;}
+const DISPLAY_NAMES={
+  Marta:{kind:"f",pool:["Ana","Eva","Mia","Zoe","Lea","Sara","Emma","Nora","Lisa","Luna","Amy","Ava","Ivy","May","Lia","Noa","Iris","Elsa","Alma","Lucy"]},
+  Nina:{kind:"f",pool:["Ana","Eva","Mia","Zoe","Lea","Sara","Emma","Nora","Lisa","Luna","Amy","Ava","Ivy","May","Lia","Noa","Iris","Elsa","Alma","Lucy"]},
+  Clara:{kind:"f",pool:["Ana","Eva","Mia","Zoe","Lea","Sara","Emma","Nora","Lisa","Luna","Amy","Ava","Ivy","May","Lia","Noa","Iris","Elsa","Alma","Lucy"]},
+  Daniel:{kind:"m",pool:["Tom","Ben","Max","Ian","Dan","Eli","Hugo","Luca","Noah","Adam","Eric","Joel","Marc","Luke","Jack","Liam","Owen","Ryan","Paul","Nico"]},
+  Leo:{kind:"m",pool:["Tom","Ben","Max","Ian","Dan","Eli","Hugo","Luca","Noah","Adam","Eric","Joel","Marc","Luke","Jack","Liam","Owen","Ryan","Paul","Nico"]},
+  Alex:{kind:"n",pool:["Sam","Kim","Lee","Ari","Ash","Sky","Robin","Jules","Casey","Jamie","Remy","Riley"]}
+};
+function stableHash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function visibleCard(q){
+  const occurrence=(seenInfo(q)?.count||0)+1,all=[q.q,...(q.display||[])].join(" "),map={};
+  for(const [original,def] of Object.entries(DISPLAY_NAMES))if(new RegExp(`\\b${original}\\b`).test(all)){
+    const base=stableHash(`${q.fingerprint}|${original}`)%def.pool.length,used=session?.usedDisplayNames;let name=def.pool[(base+occurrence-1)%def.pool.length];
+    if(used){for(let step=0;step<def.pool.length&&used.has(name);step++)name=def.pool[(base+occurrence+step)%def.pool.length];used.add(name);}
+    map[original]=name;
+  }
+  const swap=text=>Object.entries(map).reduce((s,[from,to])=>s.replace(new RegExp(`\\b${from}\\b`,"g"),to),String(text));
+  return {question:swap(q.q),options:(q.display||[]).map(swap),names:map,occurrence};
+}
+
 function qScore(q,sessionCats,sessionTemplates,mode){
   const info=seenInfo(q),isNew=!info,m=state.metrics[q.cat];
   let s=Math.random()*.10;
@@ -199,6 +219,8 @@ function qScore(q,sessionCats,sessionTemplates,mode){
     const ago=state.level-info.lastLevel;
     if(ago<4)s-=3.0;else if(ago<9)s-=1.15;else if(ago<16)s-=.35;
     s-=Math.min(.65,Math.log1p(info.count)*.18);
+    // A concrete lapse gets a modest boost only after the normal cooldown.
+    if(info.lastCorrect===false&&ago>=4)s+=Math.min(.85,.38+(info.lapses||1)*.12);
   }
   const ta=state.templateLast[q.templateId];
   if(ta!=null){
@@ -312,9 +334,10 @@ function sparkline(values,format=v=>String(Math.round(v)),lowerBetter=false,mean
   const w=600,h=108,p=10,min=Math.min(...values),max=Math.max(...values),span=Math.max(.01,max-min);
   const pts=values.map((v,i)=>`${p+i*(w-2*p)/(values.length-1)},${h-p-(v-min)/span*(h-2*p)}`).join(" ");
   const current=values[values.length-1],best=lowerBetter?min:max;
-  const meanSvg=Number.isFinite(meanLine)?`<line x1="${p}" y1="${h-p-(meanLine-min)/span*(h-2*p)}" x2="${w-p}" y2="${h-p-(meanLine-min)/span*(h-2*p)}" stroke="rgba(143,215,176,.9)" stroke-width="2" stroke-dasharray="8 6" vector-effect="non-scaling-stroke"/>`:"";
-  const meanMeta=Number.isFinite(meanLine)?`<span>Avg ${format(meanLine)}</span>`:`<span>${values.length} levels</span>`;
-  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line x1="0" y1="${h-p}" x2="${w}" y2="${h-p}" stroke="rgba(255,255,255,.12)"/><line x1="0" y1="${p}" x2="${w}" y2="${p}" stroke="rgba(255,255,255,.07)"/>${meanSvg}<polyline points="${pts}" fill="none" stroke="white" stroke-width="3" vector-effect="non-scaling-stroke"/></svg><div class="chartmeta"><span>Now ${format(current)}</span><span>Best ${format(best)}</span>${meanMeta}</div>`;
+  const lineColor=valueTextColor(current/100);
+  const meanSvg=Number.isFinite(meanLine)?`<line x1="${p}" y1="${h-p-(meanLine-min)/span*(h-2*p)}" x2="${w-p}" y2="${h-p-(meanLine-min)/span*(h-2*p)}" stroke="${valueTextColor(meanLine/100)}" stroke-opacity=".72" stroke-width="2" stroke-dasharray="8 6" vector-effect="non-scaling-stroke"/>`:"";
+  const meanMeta=Number.isFinite(meanLine)?`<span style="color:${valueTextColor(meanLine/100)}">Avg ${format(meanLine)}</span>`:`<span>${values.length} levels</span>`;
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line x1="0" y1="${h-p}" x2="${w}" y2="${h-p}" stroke="rgba(255,255,255,.12)"/><line x1="0" y1="${p}" x2="${w}" y2="${p}" stroke="rgba(255,255,255,.07)"/>${meanSvg}<polyline points="${pts}" fill="none" stroke="${lineColor}" stroke-width="3" vector-effect="non-scaling-stroke"/></svg><div class="chartmeta"><span style="color:${lineColor}">Now ${format(current)}</span><span style="color:${valueTextColor(best/100)}">Best ${format(best)}</span>${meanMeta}</div>`;
 }
 function learningTrendValue(x){
   const rating=x.rating??x.fluency??0,mastery=x.mastery??0,accuracy=x.accuracy??0,automatic=x.automatic??0;
@@ -348,6 +371,12 @@ function applyAiTheme(ai=aiValorationStats()){
   document.documentElement.style.setProperty("--ai-color",def.color);document.documentElement.style.setProperty("--ai-rgb",def.rgb);return ai;
 }
 function aiLegendHtml(current){return AI_LEVELS.map(x=>`<div class="ai-legend-item ${x.level===current?"current":""}"><i style="--swatch:${x.color}"></i><b>${x.level}</b></div>`).join("");}
+const AI_TEXT_COLORS=["#ff7d8e","#ff9675","#ffb84d","#e6c94c","#b5cf65","#73d89d","#5ed7c5","#65c4e4","#8ba7ff","#c19cff"];
+function valueLevel(v){return Math.max(1,Math.min(10,Math.ceil(clamp(Number(v)||0)*10)));}
+function valueColor(v){return AI_LEVELS[valueLevel(v)-1].color;}
+function valueTextColor(v){return AI_TEXT_COLORS[valueLevel(v)-1];}
+function paintText(id,v){const el=$(id);if(el)el.style.color=valueTextColor(v);}
+function paintFill(id,v){const el=$(id);if(el)el.style.background=valueColor(v);}
 
 function rankedSkills(){
   return CAMPAIGN.skills.map(s=>({...s,m:state.metrics[s.id],mastery:metricMastery(state.metrics[s.id])})).sort((a,b)=>b.mastery-a.mastery||b.m.attempts-a.m.attempts||a.name.localeCompare(b.name));
@@ -377,19 +406,19 @@ function renderLevelLesson(records){
 function renderStart(){
   const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating),ai=aiValorationStats();
   applyRatingTheme(st.rating);applyAiTheme(ai);
-  $("startAiLevel").textContent=`${ai.level} / 10`;
-  $("startAiConfidence").textContent=`AI Valoration · evidencia ${Math.round(ai.confidence*100)}%`;
+  $("startAiLevel").textContent=`${ai.level} / 10`;paintText("startAiLevel",ai.score/100);
+  $("startAiConfidence").textContent=`AI Valoration · evidencia ${Math.round(ai.confidence*100)}%`;paintText("startAiConfidence",ai.confidence);
   $("startKicker").textContent=`CAMPAIGN 1 · ${currentStageText()}`;
   $("startLevel").textContent=`LEVEL ${state.level}`;
   $("startBtn").textContent=state.sessions?`CONTINUE · LEVEL ${state.level}`:`START · LEVEL ${state.level}`;
   $("coverageText").textContent=`${Object.keys(state.seen).length.toLocaleString()} / ${BANK.length.toLocaleString()}`;
-  $("coverageFill").style.width=pct(st.coverage)+"%";
-  $("masteryText").textContent=pct(st.mastery)+"%";$("masteryFill").style.width=pct(st.mastery)+"%";
-  $("startFluency").textContent=st.rating?pct(st.rating):"—";
-  $("startAccuracy").textContent=st.accuracy?pct(st.accuracy)+"%":"—";
+  $("coverageFill").style.width=pct(st.coverage)+"%";paintFill("coverageFill",st.coverage);paintText("coverageText",st.coverage);
+  $("masteryText").textContent=pct(st.mastery)+"%";$("masteryFill").style.width=pct(st.mastery)+"%";paintFill("masteryFill",st.mastery);paintText("masteryText",st.mastery);
+  $("startFluency").textContent=st.rating?pct(st.rating):"—";paintText("startFluency",st.rating);
+  $("startAccuracy").textContent=st.accuracy?pct(st.accuracy)+"%":"—";paintText("startAccuracy",st.accuracy);
   $("startAvg").textContent=st.avgMs?fmtSec(st.avgMs):"—";
-  $("startAuto").textContent=st.auto?pct(st.auto)+"%":"—";
-  $("startMastered").textContent=`${st.mastered}/${CAMPAIGN.skills.length}`;
+  $("startAuto").textContent=st.auto?pct(st.auto)+"%":"—";paintText("startAuto",st.auto);
+  $("startMastered").textContent=`${st.mastered}/${CAMPAIGN.skills.length}`;paintText("startMastered",st.mastered/CAMPAIGN.skills.length);
   $("startTotal").textContent=(state.totalAttempts||0).toLocaleString();
   let status=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Math.max(0,sg.to-sg.seen)} new exercises until the next stage.`;
   if(st.coverage>=.999&&!st.eligible)status="All 3,000 exercises explored. Consolidation continues until mastery ≥85% and every skill ≥70%.";
@@ -401,7 +430,7 @@ function showScreen(id){["startScreen","gameScreen","endScreen","errorsScreen"].
 function startSession(finalMode=false){
   applyRatingTheme(overallStats().rating);
   const raw=finalMode?buildFinalPlan():buildTrainingPlan();
-  session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],plan:raw.map(shuffleOptions)};
+  session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),plan:raw.map(shuffleOptions)};
   $("sessionLevel").textContent=finalMode?"FINAL":`L${state.level}`;
   showScreen("gameScreen");nextQuestion();
 }
@@ -426,9 +455,10 @@ function nextQuestion(){
   current=session.plan[session.index];
   if(!current||!Array.isArray(current.display)||current.display.length!==4||!Number.isInteger(current.correctPos)||current.correctPos<0||current.correctPos>3){console.error("Skipping invalid question",current);session.index++;setTimeout(nextQuestion,0);return;}
   $("qIndex").textContent=session.index+1;$("qTotal").textContent="/ "+session.plan.length;
-  $("questionText").textContent=current.q;
+  const view=visibleCard(current);current.visibleQuestion=view.question;current.visibleOptions=view.options;current.visibleNames=view.names;
+  $("questionText").textContent=view.question;
   const wrap=$("answers");wrap.innerHTML="";
-  current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=txt;b.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"){e.preventDefault();answer(i,false);}});b.addEventListener("click",()=>answer(i,false));wrap.appendChild(b);});
+  current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=view.options[i];b.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"){e.preventDefault();answer(i,false);}});b.addEventListener("click",()=>answer(i,false));wrap.appendChild(b);});
   $("timerText").textContent="10.0";renderSegments(10);startTimer();
 }
 function feedback(ok,type,sec,correct,appearance){
@@ -446,10 +476,11 @@ function answer(pos,timeout=false){
   const buttons=[...$("answers").children];
   buttons.forEach((b,i)=>{b.disabled=true;b.classList.remove("good","bad","dim");if(i===current.correctPos)b.classList.add("good");else b.classList.add("dim");});
   if(!ok&&pos>=0){buttons[pos].classList.remove("dim");buttons[pos].classList.add("bad");}
-  const previousSeen=state.seen[current.fingerprint]||null,speedScore=updateMetric(current,ok,sec,type),info=previousSeen||{count:0,lastLevel:-99};
-  const appearance=info.count+1;
-  state.seen[current.fingerprint]={count:appearance,lastLevel:state.level,lastTs:Date.now()};state.templateLast[current.templateId]=state.level;
-  const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,occurrence:appearance,review:!!previousSeen,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:current.q,userAnswer:pos>=0?current.display[pos]:"No answer",correctAnswer:current.display[current.correctPos],rule:current.rule};
+  const previousSeen=state.seen[current.fingerprint]||null,speedScore=updateMetric(current,ok,sec,type),info=previousSeen||{count:0,lastLevel:-99,lapses:0};
+  const appearance=info.count+1,lapses=(info.lapses||0)+(ok?0:1);
+  state.seen[current.fingerprint]={count:appearance,lastLevel:state.level,lastTs:Date.now(),lastCorrect:ok,lapses};state.templateLast[current.templateId]=state.level;
+  const shownQuestion=current.visibleQuestion||current.q,shownOptions=current.visibleOptions||current.display;
+  const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,occurrence:appearance,review:!!previousSeen,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:shownQuestion,originalQuestion:current.q,userAnswer:pos>=0?shownOptions[pos]:"No answer",correctAnswer:shownOptions[current.correctPos],rule:current.rule};
   state.history.push(rec);state.history=state.history.slice(-12000);state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
   const answeredIndex=session.index,delay=ok?540:860;setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
   try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance);}catch(e){console.error("Feedback failed",e);}
@@ -473,19 +504,19 @@ function finishSession(){
 function renderEnd(s,before){
   const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating),ai=aiValorationStats();
   applyRatingTheme(st.rating);applyAiTheme(ai);
-  $("endAiLevel").textContent=`${ai.level} / 10`;
-  $("endAiConfidence").textContent=`AI Valoration · evidencia ${Math.round(ai.confidence*100)}%`;
+  $("endAiLevel").textContent=`${ai.level} / 10`;paintText("endAiLevel",ai.score/100);
+  $("endAiConfidence").textContent=`AI Valoration · evidencia ${Math.round(ai.confidence*100)}%`;paintText("endAiConfidence",ai.confidence);
   $("aiLegend").innerHTML=aiLegendHtml(ai.level);
   $("endKicker").textContent=s.mode==="final"?"FINAL CHALLENGE":`LEVEL ${s.level} COMPLETE`;
-  $("endScore").textContent=`${s.correct}/${s.total} · ${pct(s.accuracy)}%`;
+  $("endScore").textContent=`${s.correct}/${s.total} · ${pct(s.accuracy)}%`;$("endScore").style.color=valueTextColor(s.accuracy);
   $("endSub").textContent=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Object.keys(state.seen).length.toLocaleString()}/${BANK.length.toLocaleString()} explored`;
-  $("eAvg").textContent=fmtSec(s.avgMs);$("eAuto").textContent=pct(s.automatic)+"%";$("eFluency").textContent=pct(st.rating);
-  $("eCoverage").textContent=pct(st.coverage)+"%";$("eMastery").textContent=pct(st.mastery)+"%";$("eMastered").textContent=`${st.mastered}/${CAMPAIGN.skills.length}`;
+  $("eAvg").textContent=fmtSec(s.avgMs);$("eAuto").textContent=pct(s.automatic)+"%";paintText("eAuto",s.automatic);$("eFluency").textContent=pct(st.rating);paintText("eFluency",st.rating);
+  $("eCoverage").textContent=pct(st.coverage)+"%";paintText("eCoverage",st.coverage);$("eMastery").textContent=pct(st.mastery)+"%";paintText("eMastery",st.mastery);$("eMastered").textContent=`${st.mastered}/${CAMPAIGN.skills.length}`;paintText("eMastered",st.mastered/CAMPAIGN.skills.length);
   $("dAcc").innerHTML=before?deltaText((s.accuracy-before.accuracy)*100,true," pts"):'<span class="delta neutral">First level</span>';
   $("dTime").innerHTML=before?deltaText((s.avgMs-before.avgMs)/1000,false,"s"):'<span class="delta neutral">First level</span>';
   $("dFlu").innerHTML=before?deltaText((st.rating-(before.rating??before.fluency))*100,true," pts"):'<span class="delta neutral">First level</span>';
   const learning=learningScoreStats();
-  $("learningScore").textContent=learning.current==null?"—":learning.current.toFixed(1);
+  $("learningScore").textContent=learning.current==null?"—":learning.current.toFixed(1);if(learning.current!=null){$("learningScore").style.color=valueTextColor(learning.current/100);$("learningScore").closest(".learning-score-box").style.borderColor=valueColor(learning.current/100);}
   const ld=$("learningScoreDelta");
   if(learning.delta==null){ld.className="learning-direction neutral";ld.textContent="→ Primera media";}
   else {const up=learning.delta>.05,down=learning.delta<-.05;ld.className=`learning-direction ${up?"good":down?"bad":"neutral"}`;ld.textContent=`${up?"↑":down?"↓":"→"} ${learning.delta>=0?"+":""}${learning.delta.toFixed(1)}`;}
@@ -496,10 +527,10 @@ function renderEnd(s,before){
   $("learningTrendChart").innerHTML=sparkline(learningTrendSeries(),v=>`${Math.round(v)}`,false,learning.current);
   const uniqueDone=Object.keys(state.seen).length;
   const repeated=Object.values(state.seen).reduce((n,x)=>n+Math.max(0,(x.count||1)-1),0);
-  $("ePhrasesDone").textContent=uniqueDone.toLocaleString();
+  $("ePhrasesDone").textContent=uniqueDone.toLocaleString();paintText("ePhrasesDone",st.coverage);
   $("eRepeats").textContent=repeated.toLocaleString();
   $("eBankTotal").textContent=BANK.length.toLocaleString();
-  $("weakSkills").innerHTML=rankedSkills().map(x=>`<div class="skillrow"><div class="name">${x.name}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%"></div></div><div class="pct">${pct(x.mastery)}%</div></div>`).join("");
+  $("weakSkills").innerHTML=rankedSkills().map(x=>`<div class="skillrow"><div class="name">${x.name}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%;background:${valueColor(x.mastery)}"></div></div><div class="pct" style="color:${valueTextColor(x.mastery)}">${pct(x.mastery)}%</div></div>`).join("");
   const wrong=session.records.filter(r=>!r.correct);
   $("errorsBtn").textContent=`REVIEW ERRORS - ${wrong.length}`;
   $("errorsBtn").classList.toggle("hidden",wrong.length===0);

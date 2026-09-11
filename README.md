@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.7
+# Adaptive English · Campaign 1 v1.8
 
 Local adaptive grammar trainer.
 
@@ -82,3 +82,10 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Dashboard and level-complete screen inherit the current AI-level colour; the quiz screen remains unchanged.
 - Adds a compact 1–10 colour legend at the bottom of the results screen.
 - Existing STORAGE_KEY, progress, 3,000-question bank, 10-second clock, sounds and adaptive engine remain compatible.
+
+## Version 1.8
+- Keeps the 3,000-question bank and every fingerprint unchanged while varying short display names at runtime.
+- Name variation preserves grammatical gender/pronouns, updates question and answer options consistently, changes across repeat exposures, and avoids reusing a display name within a session when possible.
+- Adds question-level lapse memory: a specifically missed question gets a modest review boost only after the normal four-level cooldown.
+- Extends the 1–10 colour language across percentages, progress bars, Learning Score, chart lines and per-skill mastery. Low values use red/brown hues and the maximum uses purple; text uses brighter matching tints for contrast.
+- Keeps the existing STORAGE_KEY, progress, sounds, 10-second clock, 15-question sessions and adaptive skill engine compatible.

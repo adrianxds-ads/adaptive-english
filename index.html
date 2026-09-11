@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="1.7">
-<title>Adaptive English - Campaign 1 - v1.7</title>
+<meta name="ae-version" content="1.8">
+<title>Adaptive English - Campaign 1 - v1.8</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -89,16 +89,22 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 .ai-legend-wrap{margin:16px 0 4px;padding:12px;border-radius:12px;background:rgba(0,0,0,.13);border:1px solid rgba(255,255,255,.06)}.ai-legend-wrap>span{display:block;font-size:10px;font-weight:950;letter-spacing:.10em;color:var(--muted);margin-bottom:9px}.ai-legend{display:grid;grid-template-columns:repeat(10,1fr);gap:5px}.ai-legend-item{display:grid;place-items:center;gap:4px;padding:5px 2px;border-radius:7px;font-size:10px;opacity:.72}.ai-legend-item i{display:block;width:100%;height:13px;border-radius:4px;background:var(--swatch)}.ai-legend-item.current{opacity:1;background:rgba(255,255,255,.09);outline:1px solid rgba(255,255,255,.16)}.ai-legend-item.current b{font-size:13px}
 @media(max-width:520px){.ai-valuation-box{padding:13px 14px}.ai-valuation-box b{font-size:42px}.ai-legend{grid-template-columns:repeat(5,1fr)}.ai-legend-item i{height:16px}}
 </style>
+
+<style id="v18-style">
+/* v1.8: one semantic 1-10 colour language across performance metrics */
+#startScreen .card b,#endScreen .card b,.progress-label strong,.skillrow .pct,.fill,.chart polyline{transition:color .22s ease,background .22s ease,stroke .22s ease}
+.ai-legend-wrap>span{color:#dce9e1}
+</style>
 </head>
 <body>
 <div class="app">
 <section id="startScreen" class="screen start">
   <div class="panel">
-    <div id="startKicker" class="kicker">CAMPAIGN 1 - VERSION 1.7</div>
+    <div id="startKicker" class="kicker">CAMPAIGN 1 - VERSION 1.8</div>
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 10</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock · v1.7</div>
+    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock · v1.8</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -169,19 +175,19 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
       <div class="card"><b id="eBankTotal">3000</b><span>Bank total</span></div>
     </div>
     <div class="section"><h3>Skills · highest → lowest</h3><div id="weakSkills"></div></div>
-    <div class="ai-legend-wrap"><span>AI VALORATION · ESCALA 1–10</span><div id="aiLegend" class="ai-legend"></div></div>
+    <div class="ai-legend-wrap"><span>CÓDIGO DE COLOR · 1 BAJO → 10 MÁXIMO</span><div id="aiLegend" class="ai-legend"></div></div>
     <div class="actions">
       <button id="continueBtn" class="primary">CONTINUE</button>
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
       <button id="homeBtn" class="secondary">Dashboard</button>
     </div>
-    <div class="footerline">Adaptive English v1.7 - Campaign ends when all 3,000 exercises have been explored.</div>
+    <div class="footerline">Adaptive English v1.8 - Campaign ends when all 3,000 exercises have been explored.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v1.7</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v1.8</div><h1>Errors</h1><p id="errorsCount"></p></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>
