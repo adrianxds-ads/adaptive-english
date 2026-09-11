@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.13
+# Adaptive English · Campaign 1 v1.14
 
 Local adaptive grammar trainer.
 
@@ -125,3 +125,10 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - Separates `MY COACH` ranking from quiz scheduling: 55% mastery gap, 35% recent error rate, 10% lack of automaticity.
 - Adds a `VIRTUAL PEER` synthetic pace benchmark based on a saturating practice curve calibrated to Campaign 1; it is explicitly not presented as a population average.
 - Shows YOU / VIRTUAL PEER / PACE in Statistics and a compact pace indicator on the start dashboard.
+
+## Version 1.14
+
+- Replaces the single Virtual Peer point estimate with a `Typical Learner Model` reference band.
+- Shows central typical pace plus a model-based healthy/strong range; the comparison is explicitly not a measured user average.
+- Keeps diminishing-gain practice dynamics and uses answer count as the comparison axis.
+- Preserves the separate pedagogical `MY COACH` priority introduced in v1.13.
