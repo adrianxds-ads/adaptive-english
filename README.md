@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.18
+# Adaptive English · Campaign 1 v1.20
 
 Local adaptive grammar trainer.
 
@@ -166,3 +166,10 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 
 ## v1.19
 Full 3,000-question bank audit; repaired generator artifacts and predictable-answer families; deterministic four-position correct-answer rotation; exact-phrase + pattern exposure counters.
+
+
+## v1.20
+- Rebuilds the score graph as a 15-band error rainbow: 1–15 errors are individually colour-coded, with a white high-contrast trajectory and full integer scale.
+- Uses the same error chart in Statistics, expanded view, and end-of-level history.
+- Adds per-question `focus` cues to all 3,000 exercises. After every answer, decisive grammar fragments and the correct completion flash green briefly without changing the existing question-to-question delay.
+- Keeps storage, fingerprints, 15-question levels, 10-second timing, adaptive scheduling, and all existing progress compatible.

@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.19";
+const APP_VERSION = "1.20";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -263,7 +263,21 @@ function visibleCard(q){
     map[original]=name;
   }
   const swap=text=>Object.entries(map).reduce((s,[from,to])=>s.replace(new RegExp(`\\b${from}\\b`,"g"),to),String(text));
-  return {question:swap(q.q),options:(q.display||[]).map(swap),names:map,occurrence};
+  return {question:swap(q.q),options:(q.display||[]).map(swap),focus:(q.focus||[]).map(swap),names:map,occurrence};
+}
+
+function focusMarkup(text,answer,fragments=[]){
+  text=String(text);const ranges=[];
+  for(const frag of [...new Set(fragments.filter(Boolean))].sort((a,b)=>b.length-a.length)){
+    const start=text.indexOf(frag);if(start>=0)ranges.push({start,end:start+frag.length,kind:"cue",text:frag});
+  }
+  const gap=text.indexOf("___");if(gap>=0)ranges.push({start:gap,end:gap+3,kind:"answer",text:String(answer)});
+  ranges.sort((a,b)=>a.start-b.start||(a.kind==="answer"?-1:1));let cursor=0,html="";
+  for(const r of ranges){if(r.start<cursor)continue;html+=escapeHtml(text.slice(cursor,r.start));html+=`<span class="grammar-${r.kind}">${escapeHtml(r.text)}</span>`;cursor=r.end;}
+  return html+escapeHtml(text.slice(cursor));
+}
+function flashGrammarFocus(text,answer,fragments){
+  const el=$("questionText");if(!el)return;el.innerHTML=focusMarkup(text,answer,fragments);el.classList.remove("focus-active");void el.offsetWidth;el.classList.add("focus-active");
 }
 
 function qScore(q,sessionCats,sessionTemplates,mode){
@@ -412,17 +426,22 @@ function sparkline(values,format=v=>String(Math.round(v)),lowerBetter=false,refL
 function sessionScoreChart(rows,expanded=false){
   rows=(rows||[]).filter(x=>x.mode==="training"&&Number.isFinite(x.correct)&&Number.isFinite(x.ts));
   if(rows.length<2)return '<div class="footerline">Complete a few levels to build this graph.</div>';
-  const w=expanded?900:700,h=expanded?360:230,L=52,R=16,T=18,B=42,maxY=15,midY=7.5;
+  const colors=["#7048a8","#5c5eb8","#405fa8","#247c9c","#1c8b7b","#2f8f5b","#728f2f","#9d9a26","#b49a1f","#c87818","#cf691d","#b44a2d","#a63b31","#8f2f3a","#712b42"];
+  const mobile=!expanded&&window.innerWidth<=620;
+  const w=mobile?360:(expanded?920:720),h=mobile?320:(expanded?520:310),L=mobile?40:58,R=mobile?12:22,T=mobile?24:28,B=mobile?42:44,maxY=15;
   const first=rows[0].ts,last=rows[rows.length-1].ts,span=Math.max(1,last-first);
   const xFor=(ts,i)=>rows.length===1?L+(w-L-R)/2:L+((last===first?i/(rows.length-1):(ts-first)/span)*(w-L-R));
-  const yFor=v=>T+(maxY-v)/maxY*(h-T-B);
-  const pts=rows.map((r,i)=>`${xFor(r.ts,i).toFixed(1)},${yFor(r.correct).toFixed(1)}`).join(' ');
-  const grid=[15,7.5,0].map(v=>`<line x1="${L}" y1="${yFor(v)}" x2="${w-R}" y2="${yFor(v)}" stroke="rgba(255,255,255,${v===7.5?'.10':'.16'})" stroke-dasharray="${v===7.5?'5 6':'0'}"/><text x="${L-10}" y="${yFor(v)+4}" text-anchor="end" fill="#dce9e1" font-size="13" font-weight="850">${String(v).replace('.5',',5')}</text>`).join('');
+  const yFor=e=>T+(e/maxY)*(h-T-B),errors=r=>Math.max(0,Math.min(15,15-r.correct));
+  const pts=rows.map((r,i)=>`${xFor(r.ts,i).toFixed(1)},${yFor(errors(r)).toFixed(1)}`).join(' ');
+  const bands=colors.map((c,i)=>`<rect x="${L}" y="${yFor(i)}" width="${w-L-R}" height="${Math.max(1,yFor(i+1)-yFor(i))}" fill="${c}" fill-opacity=".28"/>`).join('');
+  const grid=[...Array(16).keys()].map(v=>`<line x1="${L}" y1="${yFor(v)}" x2="${w-R}" y2="${yFor(v)}" stroke="rgba(255,255,255,${v===0||v===15?'.36':'.14'})"/><text x="${L-9}" y="${yFor(v)+3.5}" text-anchor="end" fill="#eef6f1" font-size="${expanded?12:(mobile?9:10)}" font-weight="850">${v}</text>`).join('');
   const dayMap=new Map();for(const r of rows){const d=new Date(r.ts),key=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;if(!dayMap.has(key))dayMap.set(key,{ts:new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),label:d.toLocaleDateString('es-ES',{day:'numeric',month:'short'})});}
-  const days=[...dayMap.values()];const maxLabels=expanded?10:7,step=Math.max(1,Math.ceil(days.length/maxLabels));
-  const labels=days.filter((_,i)=>i%step===0||i===days.length-1).map(d=>`<text x="${xFor(d.ts,0)}" y="${h-13}" text-anchor="middle" fill="#afc3b7" font-size="12" font-weight="800">${d.label}</text>`).join('');
-  const dots=expanded?rows.map((r,i)=>`<circle cx="${xFor(r.ts,i)}" cy="${yFor(r.correct)}" r="3.2" fill="#f4f7f5"><title>Nivel ${r.level}: ${r.correct}/15</title></circle>`).join(''):'';
-  return `<svg class="score-chart ${expanded?'expanded':''}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}<polyline points="${pts}" fill="none" stroke="#8fd7b0" stroke-width="${expanded?4:3.5}" vector-effect="non-scaling-stroke"/>${dots}${labels}<text x="${L}" y="12" fill="#afc3b7" font-size="11" font-weight="850">CORRECT / 15</text></svg>`;
+  const days=[...dayMap.values()],maxLabels=expanded?10:6,step=Math.max(1,Math.ceil(days.length/maxLabels));
+  const labels=days.filter((_,i)=>i%step===0||i===days.length-1).map(d=>`<text x="${xFor(d.ts,0)}" y="${h-13}" text-anchor="middle" fill="#c7d8ce" font-size="${mobile?10:12}" font-weight="800">${d.label}</text>`).join('');
+  const dots=rows.map((r,i)=>`<circle cx="${xFor(r.ts,i)}" cy="${yFor(errors(r))}" r="${expanded?3.6:2.5}" fill="#fff" stroke="#0a0f0c" stroke-width="1.8"><title>Nivel ${r.level}: ${errors(r)} errores · ${r.correct}/15 correctas</title></circle>`).join('');
+  const lineShadow=`<polyline points="${pts}" fill="none" stroke="#050806" stroke-opacity=".75" stroke-width="${expanded?7:6}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+  const line=`<polyline points="${pts}" fill="none" stroke="#ffffff" stroke-width="${expanded?3.6:3}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+  return `<svg class="score-chart ${expanded?'expanded':''}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet"><rect x="${L}" y="${T}" width="${w-L-R}" height="${h-T-B}" rx="8" fill="#101815"/>${bands}${grid}${lineShadow}${line}${dots}${labels}<text x="${L}" y="15" fill="#dfece5" font-size="${mobile?9:11}" font-weight="900">ERRORS / 15 · LOWER IS BETTER</text></svg>`;
 }
 
 function learningCurveBase(x){
@@ -617,7 +636,7 @@ function nextQuestion(){
   current=session.plan[session.index];
   if(!current||!Array.isArray(current.display)||current.display.length!==4||!Number.isInteger(current.correctPos)||current.correctPos<0||current.correctPos>3){console.error("Skipping invalid question",current);session.index++;setTimeout(nextQuestion,0);return;}
   $("qIndex").textContent=session.index+1;$("qTotal").textContent="/ "+session.plan.length;
-  const view=visibleCard(current);current.visibleQuestion=view.question;current.visibleOptions=view.options;current.visibleNames=view.names;
+  const view=visibleCard(current);current.visibleQuestion=view.question;current.visibleOptions=view.options;current.visibleFocus=view.focus;current.visibleNames=view.names;
   $("questionText").textContent=view.question;
   const wrap=$("answers");wrap.innerHTML="";
   current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=view.options[i];b.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"){e.preventDefault();answer(i,false);}});b.addEventListener("click",()=>answer(i,false));wrap.appendChild(b);});
@@ -644,6 +663,7 @@ function answer(pos,timeout=false){
   state.seen[current.fingerprint]={count:appearance,lastLevel:state.level,lastTs:now,lastCorrect:ok,lapses,intervalDays,nextDueTs:now+intervalDays*86400000};state.templateLast[current.templateId]=state.level;state.templateSeen[current.templateId]={count:patternAppearance,lastLevel:state.level,lastTs:now};
   const shownQuestion=current.visibleQuestion||current.q,shownOptions=current.visibleOptions||current.display;
   const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,occurrence:appearance,patternOccurrence:patternAppearance,review:!!previousSeen,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:shownQuestion,originalQuestion:current.q,userAnswer:pos>=0?shownOptions[pos]:"No answer",correctAnswer:shownOptions[current.correctPos],rule:current.rule};
+  try{flashGrammarFocus(shownQuestion,rec.correctAnswer,current.visibleFocus||current.focus||[]);}catch(e){console.error("Grammar focus flash failed",e);}
   state.history.push(rec);state.history=state.history.slice(-12000);state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
   const answeredIndex=session.index,delay=ok?540:860;setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
   try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance);}catch(e){console.error("Feedback failed",e);}
@@ -687,7 +707,7 @@ function renderEnd(s,before){
   $("learningScoreWindow").textContent=`Curva longitudinal · ${learning.windowSize} vs ${learning.windowSize} niveles`;
   renderLevelLesson(session.records);
   const trend=state.sessionHistory.filter(x=>x.mode==="training");
-  $("accuracyChart").innerHTML=sparkline(trend.map(x=>x.accuracy*100),v=>`${Math.round(v)}%`);
+  $("accuracyChart").innerHTML=sessionScoreChart(trend,false);
   $("learningTrendChart").innerHTML=sparkline(learningCurveSeries(),v=>`${v.toFixed(1)}`,false,learning.start,"Start");
   const uniqueDone=Object.keys(state.seen).length;
   const repeated=Object.values(state.seen).reduce((n,x)=>n+Math.max(0,(x.count||1)-1),0);
