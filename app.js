@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.4";
+const APP_VERSION = "1.5";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -342,7 +342,7 @@ function renderLevelLesson(records){
   const skill=CAMPAIGN.skills.find(s=>s.id===r.cat),title=skill?.name||r.skill||r.cat;
   const kicker=pick.kind==="error"?(pick.count>1?`ERROR DOMINANTE \u00b7 ${pick.count} FALLOS EN ESTE NIVEL`:"ERROR CLAVE DEL NIVEL"):"NIVEL PERFECTO \u00b7 TIP DE REFUERZO";
   const source=pick.kind==="error"?`<div class="lesson-choice"><div><b>Tu respuesta</b><br>${escapeHtml(r.userAnswer)}</div><div class="correct"><b>Respuesta correcta</b><br>${escapeHtml(r.correctAnswer)}</div></div>`:`<div class="lesson-choice"><div class="correct"><b>Respuesta que conviene automatizar</b><br>${escapeHtml(r.correctAnswer)}</div></div>`;
-  box.innerHTML=`<div class="lesson-kicker">${kicker}</div><h2>${escapeHtml(title)}</h2><div class="lesson-source"><b>${pick.kind==="error"?"La pregunta en la que m\u00e1s conviene fijarse":"La pregunta m\u00e1s lenta del nivel"}:</b><br>${escapeHtml(r.question)}${source}</div><div class="lesson-languages"><div class="lesson-lang"><h3>ESPA\u00d1OL \u00b7 ENTI\u00c9NDELO</h3><p>${escapeHtml(lesson.es)}</p></div><div class="lesson-lang"><h3>ENGLISH \u00b7 LOCK IT IN</h3><p>${escapeHtml(lesson.en)}</p></div></div><div class="lesson-formula">${escapeHtml(lesson.formula)}</div><div class="lesson-example"><strong>${escapeHtml(lesson.example)}</strong>${lesson.translation?escapeHtml(lesson.translation):""}</div><div class="lesson-cue">\u{1F4A1} Para la pr\u00f3xima: ${escapeHtml(lesson.cue)}</div>`;
+  box.innerHTML=`<div class="lesson-kicker">${kicker}</div><h2>${escapeHtml(title)}</h2><div class="lesson-source"><b>${pick.kind==="error"?"La pregunta en la que m\u00e1s conviene fijarse":"La pregunta m\u00e1s lenta del nivel"}:</b><br>${escapeHtml(r.question)}${source}</div><div class="lesson-languages"><div class="lesson-lang"><h3>ESPA\u00d1OL \u00b7 ENTI\u00c9NDELO</h3><p>${escapeHtml(lesson.es)}</p></div></div><div class="lesson-formula">${escapeHtml(lesson.formula)}</div><div class="lesson-example"><strong>${escapeHtml(lesson.example)}</strong>${lesson.translation?escapeHtml(lesson.translation):""}</div><div class="lesson-cue">\u{1F4A1} Para la pr\u00f3xima: ${escapeHtml(lesson.cue)}</div>`;
   box.classList.remove("hidden");
 }
 
@@ -401,10 +401,11 @@ function nextQuestion(){
   current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=txt;b.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"){e.preventDefault();answer(i,false);}});b.addEventListener("click",()=>answer(i,false));wrap.appendChild(b);});
   $("timerText").textContent="10.0";renderSegments(10);startTimer();
 }
-function feedback(ok,type,sec,correct){
+function feedback(ok,type,sec,correct,appearance){
   const f=$("feedback");f.className="feedback "+(ok?"ok":"no");
   const label=ok?(type==="automatic"?"AUTOMATIC":type==="secure"?"CORRECT":"CORRECT · SLOW"):(type==="timeout"?"TIME":"INCORRECT");
-  f.innerHTML=`${label}<small>${sec.toFixed(2)}s${ok?"":` · Correct: ${correct}`}</small>`;
+  const exposure=appearance===1?"NEW!":appearance+"\u00aa VEZ";
+  f.innerHTML=`${label}<span class="appearance">${exposure}</span><small>${sec.toFixed(2)}s${ok?"":` \u00b7 Correct: ${correct}`}</small>`;
   requestAnimationFrame(()=>f.classList.add("show"));
   setTimeout(()=>f.classList.remove("show"),ok?500:820);
 }
@@ -416,11 +417,12 @@ function answer(pos,timeout=false){
   buttons.forEach((b,i)=>{b.disabled=true;b.classList.remove("good","bad","dim");if(i===current.correctPos)b.classList.add("good");else b.classList.add("dim");});
   if(!ok&&pos>=0){buttons[pos].classList.remove("dim");buttons[pos].classList.add("bad");}
   const previousSeen=state.seen[current.fingerprint]||null,speedScore=updateMetric(current,ok,sec,type),info=previousSeen||{count:0,lastLevel:-99};
-  state.seen[current.fingerprint]={count:info.count+1,lastLevel:state.level,lastTs:Date.now()};state.templateLast[current.templateId]=state.level;
-  const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,review:!!previousSeen,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:current.q,userAnswer:pos>=0?current.display[pos]:"No answer",correctAnswer:current.display[current.correctPos],rule:current.rule};
+  const appearance=info.count+1;
+  state.seen[current.fingerprint]={count:appearance,lastLevel:state.level,lastTs:Date.now()};state.templateLast[current.templateId]=state.level;
+  const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,occurrence:appearance,review:!!previousSeen,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:current.q,userAnswer:pos>=0?current.display[pos]:"No answer",correctAnswer:current.display[current.correctPos],rule:current.rule};
   state.history.push(rec);state.history=state.history.slice(-12000);state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
   const answeredIndex=session.index,delay=ok?540:860;setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
-  try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer);}catch(e){console.error("Feedback failed",e);}
+  try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance);}catch(e){console.error("Feedback failed",e);}
 }
 function finishSession(){
   clearInterval(timerHandle);

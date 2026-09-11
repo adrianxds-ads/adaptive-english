@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.4
+# Adaptive English · Campaign 1 v1.5
 
 Local adaptive grammar trainer.
 
@@ -56,4 +56,12 @@ The PWA package uses `index.html`, `app.js`, `campaign-01.json`, `manifest.webma
 - It shows the exact question, the user's answer, the correct answer, Spanish and English explanations, a formula, a translated example and a next-time cue.
 - Perfect levels still show one reinforcement lesson based on the slowest correct response.
 - The question area is more compact so the prompt and all four answer cards fit in one visual scan; answer typography remains large.
+- STORAGE_KEY, 10-second clock, 3,000-question bank, 25 skills, sounds and adaptive engine remain unchanged.
+
+
+## Version 1.5
+- Slightly reduces answer typography while preserving the current compact question layout.
+- Keeps the end-of-level micro-lesson explanation in Spanish only; formula and bilingual example remain.
+- Correct/incorrect feedback now shows NEW! on first exposure or the exact exposure number (2ª VEZ, 3ª VEZ, etc.) on every answer.
+- Exposure numbering reuses the existing seen-count history, so current progress remains compatible.
 - STORAGE_KEY, 10-second clock, 3,000-question bank, 25 skills, sounds and adaptive engine remain unchanged.
