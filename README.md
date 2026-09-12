@@ -208,3 +208,11 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Adds above/exact/below target breakdown.
 - Performance graph overlays adaptive TARGET as a cyan dashed series against the white actual-score series.
 - ChatGPT coach handoff now includes target-performance statistics.
+
+
+## Version 1.26
+- Adds 25 fixed canonical Daily Keys, one per Campaign 1 grammar category.
+- Daily Key uses Spanish → English productive recall and stays fixed for the local calendar day.
+- Daily Key selection uses the existing coach weakness priority and never changes mastery just by viewing/revealing it.
+- Adds a compact Keyring of previously selected unique Keys, capped at 25; repeat days increase exposure instead of duplicating cards.
+- User-facing skill labels become Keys while internal skill IDs remain unchanged.

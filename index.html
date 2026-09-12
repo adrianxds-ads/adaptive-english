@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="1.25">
-<title>Adaptive English - Campaign 1 - v1.25</title>
+<meta name="ae-version" content="1.26">
+<title>Adaptive English - Campaign 1 - v1.26</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -109,7 +109,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 </style>
 
 <style id="v116-style">
-/* v1.25: distinct cover, clearer navigation, larger non-quiz typography */
+/* v1.26: distinct cover, clearer navigation, larger non-quiz typography */
 #startScreen{background:radial-gradient(90% 62% at 92% 4%,rgba(128,42,55,.48),transparent 56%),radial-gradient(72% 48% at 5% 96%,rgba(86,28,38,.34),transparent 58%),linear-gradient(180deg,#4c1f28 0%,#351a20 56%,#241519 100%)!important}
 #startScreen .panel{box-shadow:0 22px 60px rgba(96,30,42,.30),0 20px 50px rgba(0,0,0,.22)!important}
 #startScreen .kicker,#statsScreen .kicker,#coachScreen .kicker,#endScreen .kicker,#errorsScreen .kicker{font-size:14px}
@@ -128,7 +128,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 </style>
 
 <style id="v117-style">
-/* v1.25: faster four-way answer scan + tighter arcade feedback */
+/* v1.26: faster four-way answer scan + tighter arcade feedback */
 .answer{font-size:clamp(19px,4.6vw,29px);line-height:1.055;padding:11px 10px;min-height:102px}
 @media(max-width:520px){.answer{font-size:clamp(18.5px,4.95vw,25.5px);line-height:1.045;padding:10px 8px;min-height:94px}.answers{gap:6px}.question{margin-bottom:6px}}
 </style>
@@ -138,7 +138,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 </style>
 
 <style id="v120-style">
-/* v1.25: 15-band error rainbow + zero-delay grammar focus flash */
+/* v1.26: 15-band error rainbow + zero-delay grammar focus flash */
 .score-chart{background:#0d1612;border:1px solid rgba(255,255,255,.13);border-radius:12px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
 #questionText .grammar-cue,#questionText .grammar-answer{border-radius:.22em;padding:.02em .10em;margin:0 -.01em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
 #questionText.focus-active .grammar-cue,#questionText.focus-active .grammar-answer{animation:grammarCue .48s ease-out both}
@@ -149,7 +149,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 </style>
 
 <style id="v121-style">
-/* v1.25: in-flow feedback below answers so grammar correction remains visible */
+/* v1.26: in-flow feedback below answers so grammar correction remains visible */
 #gameScreen .feedback{position:relative;z-index:6;left:auto;top:auto;transform:none!important;width:100%;margin:7px 0 0;padding:0;opacity:0;pointer-events:none;display:flex;flex-direction:column;gap:5px;min-height:78px;transition:opacity .06s ease}
 #gameScreen .feedback.show{opacity:1;transform:none!important}
 #gameScreen .feedback .appearance{order:1;width:100%;margin:0;padding:5px 10px 6px;border-radius:7px;font-size:clamp(18px,4.8vw,26px);line-height:1;font-weight:950;letter-spacing:.02em;box-shadow:none}
@@ -163,7 +163,7 @@ body.feedback-correct::after{background:rgba(50,210,126,.20)}body.feedback-wrong
 <style id="v123-style">.leveltag .level-target{display:block;margin-top:4px;font-size:10px;letter-spacing:.05em;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:3px 6px;white-space:nowrap}.target-result{margin:10px auto 4px;width:min(360px,100%);display:grid;grid-template-columns:1fr auto;align-items:center;gap:3px 12px;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-align:left}.target-result span{font-size:13px;font-weight:950;letter-spacing:.08em}.target-result b{grid-row:1/3;grid-column:2;font-size:30px;line-height:1}.target-result small{font-size:10px;font-weight:900;letter-spacing:.08em}.target-result.hit{background:rgba(39,146,92,.18);border-color:rgba(130,230,169,.44);color:#a7f0c4}.target-result.miss{background:rgba(199,66,83,.18);border-color:rgba(255,125,142,.44);color:#ff9baa}@media(max-width:520px){.leveltag .level-target{font-size:9px;padding:3px 5px}.target-result{padding:9px 12px}.target-result b{font-size:28px}}</style>
 
 <style id="v124-style">
-/* v1.25: cognitive UI pass */
+/* v1.26: cognitive UI pass */
 .answer:nth-child(1){background:#77531f}.answer:nth-child(2){background:#1f6264}.answer:nth-child(3){background:#405582}.answer:nth-child(4){background:#74405a}
 .answer{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.14),inset 0 -3px 0 rgba(0,0,0,.18)}
 body.feedback-correct::after,body.feedback-wrong::after{display:none!important}
@@ -176,6 +176,9 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important}.answer,.feedback,.game,.particle{animation:none!important;transition:none!important}.particle{display:none!important}#questionText.focus-active .grammar-cue,#questionText.focus-active .grammar-answer{animation:none!important;color:#ffd566!important;text-shadow:none!important}}
 </style>
 <style id="v125-style">.target-stats-section{border-color:rgba(77,208,225,.20)}.target-grid{grid-template-columns:repeat(4,1fr);margin:10px 0 0}.target-grid .card b{font-variant-numeric:tabular-nums}.target-stats-section .statusbox{margin-top:9px}@media(max-width:620px){.target-grid{grid-template-columns:repeat(2,1fr)}} </style>
+<style id="v126-style">
+.daily-key-section{margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,214,102,.20)}.daily-key-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:9px}.daily-key-head span{display:block;color:#ffd566;font-size:11px;font-weight:950;letter-spacing:.12em}.daily-key-head b{display:block;margin-top:4px;font-size:17px;color:#f5ead0}.daily-key-head em{font-style:normal;color:#ffd566;font-size:22px;font-weight:950}.daily-key-card{width:100%;min-height:210px;border:1px solid rgba(255,213,102,.44);border-radius:16px;padding:0;background:linear-gradient(155deg,#2c2515,#161d18 58%,#101713);color:#f7f2e8;box-shadow:inset 0 0 0 1px rgba(255,213,102,.06),0 14px 34px rgba(0,0,0,.22);cursor:pointer;overflow:hidden}.daily-key-face{min-height:210px;padding:22px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.daily-key-face small{color:#d7b95d;font-size:11px;font-weight:950;letter-spacing:.12em}.daily-key-face strong{display:block;margin:13px 0;font-size:clamp(25px,6vw,38px);line-height:1.12}.daily-key-face span{color:#bbaF91;font-size:11px;font-weight:850;letter-spacing:.07em}.daily-key-back{display:none}.daily-key-back strong{color:#fff0bd}.daily-key-back b{display:block;margin:1px 0 11px;padding:8px 11px;border-radius:9px;background:rgba(255,213,102,.10);color:#ffd566;font-size:14px}.daily-key-card.revealed .daily-key-front{display:none}.daily-key-card.revealed .daily-key-back{display:flex}.keyring-toggle{width:100%;margin-top:9px;border-color:rgba(255,213,102,.25);color:#f0d98d}.keyring-list{display:grid;gap:6px;margin-top:8px}.keyring-item{display:flex;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:9px;background:rgba(255,213,102,.055);border:1px solid rgba(255,213,102,.10)}.keyring-item span{font-size:12px;font-weight:850}.keyring-item small{white-space:nowrap;color:#c7b57c;font-size:10px;font-weight:850}@media(max-width:520px){.daily-key-card,.daily-key-face{min-height:190px}.daily-key-face{padding:18px 15px}.daily-key-face strong{font-size:clamp(24px,7vw,31px)}.daily-key-head b{font-size:16px}}@media(prefers-reduced-motion:reduce){.daily-key-card{transition:none!important}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -185,7 +188,7 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 10</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 skills · 15 questions per level · fixed 10-second clock · v1.25</div>
+    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v1.26</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -199,7 +202,7 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
       <div class="card"><b id="startAccuracy">—</b><span>Recent accuracy</span></div>
       <div class="card"><b id="startAvg">—</b><span>Avg response</span></div>
       <div class="card"><b id="startAuto">—</b><span>Automatic</span></div>
-      <div class="card"><b id="startMastered">0/25</b><span>Skills mastered</span></div>
+      <div class="card"><b id="startMastered">0/25</b><span>Keys mastered</span></div>
       <div class="card"><b id="startTotal">0</b><span>Total answers</span></div>
     </div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER · PACE</span><b id="startPeerDelta" class="peer-delta neutral">—</b></div><small id="startPeerStatus">Model-based typical range · not measured users</small></div>
@@ -207,7 +210,7 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
     <div id="campaignStatus" class="statusbox"></div>
     <div class="actions"><button id="startBtn" class="primary">START</button></div>
     <div class="dashboard-menu">
-      <button id="statsBtn" class="secondary menu-btn"><b>STATISTICS</b><span>Graphs · progress · skills</span></button>
+      <button id="statsBtn" class="secondary menu-btn"><b>STATISTICS</b><span>Graphs · progress · keys</span></button>
       <button id="coachBtn" class="secondary menu-btn"><b>MY COACH</b><span>Focus · common mistakes · rules</span></button>
     </div>
     <div class="actions">
@@ -216,13 +219,14 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
       <button id="resetBtn" class="ghost small">Reset</button>
       <input id="importFile" type="file" accept="application/json">
     </div>
+    <section class="daily-key-section"><div id="dailyKeyHost"></div><button id="keyringToggle" class="ghost small keyring-toggle hidden" type="button" aria-expanded="false">KEYRING</button><div id="keyringList" class="keyring-list hidden"></div></section>
   </div>
 </section>
 
 
 <section id="statsScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">DASHBOARD · v1.25</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
+    <div class="resulttitle"><div class="kicker">DASHBOARD · v1.26</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 10</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
@@ -230,17 +234,17 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
     <div class="charts stats-charts"><div class="section score-section"><div class="chart-title-row"><h3>Correct answers · /15</h3><button id="scoreExpandBtn" class="ghost small">EXPAND</button></div><div id="statsAccuracyChart"></div></div><div class="section learning-trend"><h3>Learning Curve · long-term</h3><div id="statsLearningChart"></div></div></div>
     <div class="section target-stats-section"><h3>Target performance</h3><div class="grid target-grid"><div class="card"><b id="targetAvg">—</b><span>Avg target /15</span></div><div class="card"><b id="targetActualAvg">—</b><span>Avg actual /15</span></div><div class="card"><b id="targetDeltaAvg">—</b><span>Avg vs target</span></div><div class="card"><b id="targetHitRate">—</b><span>Targets met</span></div></div><div id="targetBreakdown" class="statusbox"></div></div>
     <div id="statsCampaign2" class="statusbox"></div>
-    <div class="section"><h3>Skills · highest → lowest</h3><div id="statsSkills"></div></div>
+    <div class="section"><h3>Keys · highest → lowest</h3><div id="statsSkills"></div></div>
     <div class="screen-nav"><button id="statsBackBtn" class="primary">BACK TO DASHBOARD</button></div>
   </div>
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">MY COACH · v1.25</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div class="resulttitle"><div class="kicker">MY COACH · v1.26</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
     <div id="coachIntro" class="statusbox"></div>
     <div class="section"><h3>Focus now</h3><div id="coachFocus" class="coach-grid"></div></div>
     <div class="section"><h3>Common mistakes</h3><div id="coachMistakes"></div></div>
-    <div class="section"><h3>All skills · weakest → strongest</h3><div id="coachSkills"></div></div>
+    <div class="section"><h3>All keys · weakest → strongest</h3><div id="coachSkills"></div></div>
     <div class="section coach-prompt-section"><h3>ChatGPT handoff</h3><p class="meta">Generate a compact diagnostic snapshot to paste directly into ChatGPT. JSON export is only needed for a deep audit.</p><button id="coachGenerateBtn" class="secondary">GENERATE CHATGPT PROMPT</button><div id="coachPromptBox" class="hidden coach-prompt-box"><textarea id="coachPromptText" readonly spellcheck="false"></textarea><button id="coachPromptCopy" class="primary">COPY PROMPT</button></div></div>
     <div class="screen-nav"><button id="coachBackBtn" class="primary">BACK TO DASHBOARD</button></div>
   </div>
@@ -276,7 +280,7 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
       <div class="card"><b id="eFluency">0</b><span>AE rating</span><div id="dFlu"></div></div>
       <div class="card"><b id="eCoverage">0%</b><span>Coverage</span></div>
       <div class="card"><b id="eMastery">0%</b><span>Mastery</span></div>
-      <div class="card"><b id="eMastered">0/25</b><span>Skills mastered</span><div id="dAcc"></div></div>
+      <div class="card"><b id="eMastered">0/25</b><span>Keys mastered</span><div id="dAcc"></div></div>
     </div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="learningScore">—</b><small id="learningScoreWindow">Media móvil</small></div><div id="learningScoreDelta" class="learning-direction neutral">→</div></div>
     <div id="campaign2End" class="statusbox next-campaign-end hidden"></div>
@@ -290,7 +294,7 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
       <div class="card"><b id="eRepeats">0</b><span>Repeated</span></div>
       <div class="card"><b id="eBankTotal">3000</b><span>Bank total</span></div>
     </div>
-    <div class="section"><h3>Skills · highest → lowest</h3><div id="weakSkills"></div></div>
+    <div class="section"><h3>Keys · highest → lowest</h3><div id="weakSkills"></div></div>
     <div class="ai-legend-wrap"><span>CÓDIGO DE COLOR · 1 BAJO → 10 MÁXIMO</span><div id="aiLegend" class="ai-legend"></div></div>
     <div class="actions">
       <button id="continueBtn" class="primary">NEXT LEVEL</button>
@@ -298,12 +302,12 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
     </div>
-    <div class="footerline">Adaptive English v1.25 - Campaign ends when all 3,000 exercises have been explored.</div>
+    <div class="footerline">Adaptive English v1.26 - Campaign ends when all 3,000 exercises have been explored.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v1.25</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v1.26</div><h1>Errors</h1><p id="errorsCount"></p></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>
@@ -312,6 +316,7 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
 <section id="scoreModal" class="score-modal hidden"><div class="score-modal-card"><div class="chart-title-row"><div><div class="kicker">PERFORMANCE OVER TIME</div><h2>Correct answers · /15</h2></div><button id="scoreCloseBtn" class="secondary">CLOSE</button></div><div id="scoreExpandedChart"></div><p class="meta">Each point is one 15-question level. White = your actual score; cyan = the adaptive TARGET. 15 correct is perfect; 0 is the minimum. Higher is better. The horizontal axis uses real time: hours for short spans, calendar days for longer spans.</p></div></section>
 <div id="particles" class="particles" aria-hidden="true"></div>
 <script src="./lessons.js"></script>
+<script src="./keys.js"></script>
 <script src="./app.js"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
