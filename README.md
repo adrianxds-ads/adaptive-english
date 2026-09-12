@@ -223,3 +223,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Unlocked Keys live in a horizontal swipe carousel; tap once to reveal, tap again to advance. The next locked Key peeks from the right.
 - Correct answers use an original short discovery chime (not copied game audio), and the timer/feedback use the same fantasy-adventure reward language.
 - Campaign completion keeps all existing knowledge gates and additionally requires KEY JOURNEY 25/25.
+
+
+## v1.28 · Wrong-answer reveal
+- Wrong answers now surface the correct option in a high-contrast banner directly above the corrected sentence.
+- The banner preserves the correct option's answer colour while using white text and a gold discovery glow for fast visual binding.
+- The 10-step time rail moved below the answer/feedback panel so timing stays visible without competing with the correction.
+- Correct answers stay clean: the extra correct-answer banner only appears after errors/timeouts.
