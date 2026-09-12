@@ -230,3 +230,9 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - The banner preserves the correct option's answer colour while using white text and a gold discovery glow for fast visual binding.
 - The 10-step time rail moved below the answer/feedback panel so timing stays visible without competing with the correction.
 - Correct answers stay clean: the extra correct-answer banner only appears after errors/timeouts.
+
+
+## v1.30
+- Practice Tree now grows from cumulative LEVEL, not total answers.
+- One tree stage unlocks every 50 LEVELS; LEVEL 10,000 completes 200 stages.
+- Added a persistent global level key so future campaigns can continue the same lifetime LEVEL sequence.

@@ -1,7 +1,8 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.29";
+const APP_VERSION = "1.30";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
+const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
 const HISTORY_LIMIT = 6000;
@@ -10,6 +11,8 @@ let CAMPAIGN=null, BANK=[], state=null, session=null, timerHandle=null, deadline
 let audioCtx=null, soundOn=true, lastTickShown=TIME_LIMIT+1;
 
 const $=id=>document.getElementById(id);
+function storedGlobalLevel(){try{return Math.max(1,Math.floor(Number(localStorage.getItem(GLOBAL_LEVEL_KEY))||1));}catch(e){return 1;}}
+function syncGlobalLevel(level){const n=Math.max(1,Math.floor(Number(level)||1),storedGlobalLevel());try{localStorage.setItem(GLOBAL_LEVEL_KEY,String(n));}catch(e){}return n;}
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
 const pct=x=>Math.round(x*100);
@@ -97,7 +100,7 @@ function seedMetric(cat){
 function newState(){
   const metrics={}; CAMPAIGN.skills.forEach(s=>metrics[s.id]=seedMetric(s.id));
   return {
-    schemaVersion:1,campaignId:CAMPAIGN.campaignId,level:CAMPAIGN.startingLevel||1,sessions:0,totalAttempts:0,
+    schemaVersion:1,campaignId:CAMPAIGN.campaignId,level:Math.max(CAMPAIGN.startingLevel||1,storedGlobalLevel()),sessions:0,totalAttempts:0,
     metrics,seen:{},templateLast:{},templateSeen:{},history:[],sessionHistory:[],finalAttempts:0,completed:false,contentRevision:3,
     dailyKey:{date:"",cat:""},keyring:[],keyJourneyStart:"",personalBestFluency:0,createdAt:Date.now(),updatedAt:Date.now()
   };
@@ -109,6 +112,7 @@ function validProgressState(s){
     (s.sessionHistory==null||Array.isArray(s.sessionHistory))&&(s.seen==null||typeof s.seen==="object");
 }
 function normaliseProgressState(s){
+  s.level=syncGlobalLevel(s.level);
   for(const skill of CAMPAIGN.skills)if(!s.metrics[skill.id])s.metrics[skill.id]=seedMetric(skill.id);
   s.history=Array.isArray(s.history)?s.history.slice(-HISTORY_LIMIT):[];
   s.sessionHistory=Array.isArray(s.sessionHistory)?s.sessionHistory.slice(-SESSION_HISTORY_LIMIT):[];
@@ -659,9 +663,9 @@ function growthTreeParts(){
 }
 function renderGrowthTree(){
   const host=$("growthTreeHost");if(!host)return;
-  const answers=Math.max(0,Number(state.totalAttempts)||0),stage=Math.min(200,Math.floor(answers/50)),parts=growthTreeParts().slice(0,stage);
+  const level=syncGlobalLevel(state.level),stage=Math.min(200,Math.floor(level/50)),parts=growthTreeParts().slice(0,stage);
   const branch=parts.filter(x=>x.kind==="branch").map(x=>x.html).join(""),leaf=parts.filter(x=>x.kind==="leaf").map(x=>x.html).join("");
-  host.innerHTML=`<div class="growth-tree-canvas" data-tree-stage="${stage}"><svg viewBox="0 0 420 300" role="img" aria-label="Practice tree, growth stage ${stage} of 200"><defs><linearGradient id="treeTrunk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5d3827"/><stop offset=".55" stop-color="#76503a"/><stop offset="1" stop-color="#957258"/></linearGradient></defs><ellipse class="tree-ground" cx="210" cy="282" rx="78" ry="7"/> <g class="tree-branches" fill="none" stroke="url(#treeTrunk)" stroke-linecap="round" stroke-linejoin="round">${branch}</g><g class="tree-leaves">${leaf}</g></svg></div><div class="growth-tree-count"><b>${answers.toLocaleString()}</b><span>QUESTIONS</span></div>`;
+  host.innerHTML=`<div class="growth-tree-canvas" data-tree-stage="${stage}"><svg viewBox="0 0 420 300" role="img" aria-label="Practice tree, growth stage ${stage} of 200"><defs><linearGradient id="treeTrunk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5d3827"/><stop offset=".55" stop-color="#76503a"/><stop offset="1" stop-color="#957258"/></linearGradient></defs><ellipse class="tree-ground" cx="210" cy="282" rx="78" ry="7"/> <g class="tree-branches" fill="none" stroke="url(#treeTrunk)" stroke-linecap="round" stroke-linejoin="round">${branch}</g><g class="tree-leaves">${leaf}</g></svg></div><div class="growth-tree-count"><b>${level.toLocaleString()}</b><span>LEVEL</span></div>`;
 }
 
 function renderStart(){
@@ -766,7 +770,7 @@ function finishSession(){
   clearInterval(timerHandle);
   const completedLevel=state.level,n=session.records.length,accuracy=session.correct/n,avgMs=Math.round(mean(session.records.map(r=>r.ms))),auto=session.automatic/n;
   const before=state.sessionHistory.length?state.sessionHistory[state.sessionHistory.length-1]:null;
-  state.sessions++;if(session.mode==="training")state.level++;
+  state.sessions++;if(session.mode==="training"){state.level++;syncGlobalLevel(state.level);}
   let st=overallStats();
   const snap={level:completedLevel,ts:Date.now(),mode:session.mode,correct:session.correct,total:n,accuracy,avgMs,automatic:auto,mastery:st.mastery,coverage:st.coverage,fluency:st.fluency,rating:st.rating,target:session.target,targetDelta:session.target==null?null:session.correct-session.target,targetHit:session.target==null?null:session.correct>=session.target};
   state.sessionHistory.push(snap);
