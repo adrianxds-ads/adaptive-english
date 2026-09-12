@@ -201,3 +201,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Replaces the four pre-answer red/blue/yellow/green tiles with a more balanced amber/teal/indigo/raspberry palette so no option carries a built-in success/failure cue.
 - Removes the full-screen correctness flash, reduces success particles from 28 to 6, and adds prefers-reduced-motion handling.
 - Keeps question/answer typography, target algorithm, 15-question levels, 10-second timer, bank, mastery model and progress storage unchanged.
+
+
+## Version 1.25
+- Adds longitudinal TARGET statistics: average target, average actual score, average delta vs target and target hit rate.
+- Adds above/exact/below target breakdown.
+- Performance graph overlays adaptive TARGET as a cyan dashed series against the white actual-score series.
+- ChatGPT coach handoff now includes target-performance statistics.
