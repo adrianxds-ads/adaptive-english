@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.26";
+const APP_VERSION = "1.27";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -53,7 +53,7 @@ function tone(freq,dur=.035,gain=.018,type='sine',delay=0){
   o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+dur+.01);
 }
 function playTick(strong=false,step=0){const f=strong?(step%2?1540:1260):(step%2?1280:980);tone(f,strong?.034:.026,strong?.026:.016,'square');}
-function playCorrect(){tone(587.33,.050,.030,'triangle');tone(739.99,.060,.027,'sine',.034);tone(880,.082,.025,'triangle',.074);}
+function playCorrect(){const notes=[440,587.33,783.99,1046.5];notes.forEach((f,i)=>{tone(f,i===3?.11:.052,i===3?.024:.020,i%2?'sine':'triangle',i*.047);if(i>0)tone(f*2,.032,.007,'sine',i*.047+.012);});}
 function playWrong(){tone(311.13,.050,.020,'triangle');tone(220,.070,.017,'sine',.042);}
 function playComplete(){tone(392,.075,.022,'sine');tone(523.25,.085,.024,'triangle',.070);tone(659.25,.100,.026,'sine',.145);tone(783.99,.155,.028,'sine',.230);}
 function haptic(ok){
@@ -99,7 +99,7 @@ function newState(){
   return {
     schemaVersion:1,campaignId:CAMPAIGN.campaignId,level:CAMPAIGN.startingLevel||1,sessions:0,totalAttempts:0,
     metrics,seen:{},templateLast:{},templateSeen:{},history:[],sessionHistory:[],finalAttempts:0,completed:false,contentRevision:3,
-    dailyKey:{date:"",cat:""},keyring:[],personalBestFluency:0,createdAt:Date.now(),updatedAt:Date.now()
+    dailyKey:{date:"",cat:""},keyring:[],keyJourneyStart:"",personalBestFluency:0,createdAt:Date.now(),updatedAt:Date.now()
   };
 }
 function validProgressState(s){
@@ -113,7 +113,7 @@ function normaliseProgressState(s){
   s.history=Array.isArray(s.history)?s.history.slice(-HISTORY_LIMIT):[];
   s.sessionHistory=Array.isArray(s.sessionHistory)?s.sessionHistory.slice(-SESSION_HISTORY_LIMIT):[];
   s.seen=s.seen&&typeof s.seen==="object"?s.seen:{};s.templateLast=s.templateLast&&typeof s.templateLast==="object"?s.templateLast:{};s.templateSeen=s.templateSeen&&typeof s.templateSeen==="object"?s.templateSeen:{};
-  s.dailyKey=s.dailyKey&&typeof s.dailyKey==="object"?s.dailyKey:{date:"",cat:""};s.keyring=Array.isArray(s.keyring)?s.keyring.filter(x=>x&&typeof x.cat==="string").slice(-25):[];const rebuildTemplateSeen=!Object.keys(s.templateSeen).length;
+  s.dailyKey=s.dailyKey&&typeof s.dailyKey==="object"?s.dailyKey:{date:"",cat:""};s.keyring=Array.isArray(s.keyring)?s.keyring.filter(x=>x&&typeof x.cat==="string").slice(0,25):[];const firstKeyDate=s.keyring.map(x=>x.firstDate).filter(Boolean).sort()[0]||s.dailyKey.date||"";s.keyJourneyStart=typeof s.keyJourneyStart==="string"&&s.keyJourneyStart?s.keyJourneyStart:firstKeyDate;s.keyring.forEach((x,i)=>x.number=i+1);const rebuildTemplateSeen=!Object.keys(s.templateSeen).length;
   for(const skill of CAMPAIGN.skills){const m=s.metrics[skill.id];if(!Number.isFinite(m.intervalDays))m.intervalDays=1;if(!Number.isFinite(m.lastTs))m.lastTs=0;}
   for(const r of s.history){const m=s.metrics[r.cat];if(m&&Number.isFinite(r.ts)&&r.ts>(m.lastTs||0))m.lastTs=r.ts;if(rebuildTemplateSeen&&r.templateId){const g=s.templateSeen[r.templateId]||(s.templateSeen[r.templateId]={count:0,lastTs:0,lastLevel:-99});g.count++;if((r.ts||0)>g.lastTs){g.lastTs=r.ts||0;g.lastLevel=r.level??g.lastLevel;}}}
   if((s.contentRevision||1)<2){
@@ -177,8 +177,9 @@ function overallStats(){
   // AE Rating is the competence indicator. LEVEL remains the session number.
   const rating=history.length?clamp(.35*accuracy+.25*speed+.20*transfer+.20*mastery):0;
   const mastered=metrics.filter(m=>metricMastery(m)>=.80&&m.a>=.65&&m.attempts>=8).length;
-  const eligible=coverage>=.999&&mastery>=.85&&minSkill>=.70;
-  return {coverage,mastery,minSkill,accuracy,auto,avgMs,speed,transfer,fluency,rating,mastered,eligible};
+  const keysUnlocked=Math.min(25,Array.isArray(state.keyring)?state.keyring.length:0);
+  const eligible=coverage>=.999&&mastery>=.85&&minSkill>=.70&&keysUnlocked>=25;
+  return {coverage,mastery,minSkill,accuracy,auto,avgMs,speed,transfer,fluency,rating,mastered,keysUnlocked,eligible};
 }
 function campaign2Readiness(){
   const st=overallStats(),metrics=Object.values(state.metrics),learning=learningScoreStats();
@@ -187,20 +188,21 @@ function campaign2Readiness(){
   const weak=metrics.filter(m=>metricMastery(m)<.40).length;
   const evidence=clamp((state.totalAttempts||0)/2400),curve=clamp((learning.current??st.mastery*100)/100);
   const score=clamp(.30*st.coverage+.30*st.mastery+.15*breadth+.10*strong+.10*curve+.05*evidence);
-  const gates={evidence:(state.totalAttempts||0)>=2200,coverage:st.coverage>=.65,mastery:st.mastery>=.62,breadth:breadth>=.70,weak:weak<=5};
+  const gates={evidence:(state.totalAttempts||0)>=2200,coverage:st.coverage>=.65,mastery:st.mastery>=.62,breadth:breadth>=.70,weak:weak<=5,keys:st.keysUnlocked>=25};
   const ready=score>=.70&&Object.values(gates).every(Boolean);
   const stage=ready?"Campaign 2 recommended":score>=.60?"Approaching Campaign 2":score>=.45?"Building transfer":"Building foundation";
   const blockers=[];
   if(!gates.coverage)blockers.push(`${Math.max(0,1950-Object.keys(state.seen).length).toLocaleString()} more unique questions`);
   if(!gates.mastery)blockers.push(`mastery ${pct(st.mastery)}% → 62%`);
-  if(!gates.breadth)blockers.push(`${Math.max(0,Math.ceil(metrics.length*.70)-Math.round(breadth*metrics.length))} more skills above 55%`);
+  if(!gates.breadth)blockers.push(`${Math.max(0,Math.ceil(metrics.length*.70)-Math.round(breadth*metrics.length))} more Keys above 55%`);
   if(!gates.evidence)blockers.push(`${Math.max(0,2200-(state.totalAttempts||0)).toLocaleString()} more answers of evidence`);
-  if(!gates.weak)blockers.push(`reduce sub-40% skills from ${weak} to 5 or fewer`);
+  if(!gates.weak)blockers.push(`reduce sub-40% Keys from ${weak} to 5 or fewer`);
+  if(!gates.keys)blockers.push(`${25-st.keysUnlocked} more daily Keys to unlock`);
   return {score,ready,stage,breadth,strong,weak,evidence,curve,blockers};
 }
 function campaign2Brief(){
   const r=campaign2Readiness(),st=overallStats();
-  return `Adaptive English recommends preparing Campaign 2. I will attach/export my Campaign 1 progress JSON. Use that export as the primary diagnostic. Build Campaign 2 as a separate 3,000-question bank that preserves Campaign 1 and the existing app architecture. Prioritize genuinely new C1 material plus targeted transfer for my remaining weak patterns; avoid duplicate questions and retain 15 questions per level, 10-second timing, adaptive selection, dynamic names, micro-lessons, AI Valoration and the long-term Learning Curve. Current handoff: readiness ${pct(r.score)}%, coverage ${pct(st.coverage)}%, mastery ${pct(st.mastery)}%, breadth ${pct(r.breadth)}%, weak skills under 40%: ${r.weak}. First analyze my export and propose the Campaign 2 skill map before generating the new 3,000 questions.`;
+  return `Adaptive English recommends preparing Campaign 2. I will attach/export my Campaign 1 progress JSON. Use that export as the primary diagnostic. Build Campaign 2 as a separate 3,000-question bank that preserves Campaign 1 and the existing app architecture. Prioritize genuinely new C1 material plus targeted transfer for my remaining weak patterns; avoid duplicate questions and retain 15 questions per level, 10-second timing, adaptive selection, dynamic names, micro-lessons, AI Valoration and the long-term Learning Curve. Current handoff: readiness ${pct(r.score)}%, coverage ${pct(st.coverage)}%, mastery ${pct(st.mastery)}%, breadth ${pct(r.breadth)}%, weak Keys under 40%: ${r.weak}, Key Journey ${st.keysUnlocked}/25. First analyze my export and propose the Campaign 2 skill map before generating the new 3,000 questions.`;
 }
 function stageInfo(coverage){
   const seen=Object.keys(state.seen).length;
@@ -598,26 +600,39 @@ async function copyCampaign2Brief(){
   catch(e){const t=document.createElement("textarea");t.value=text;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();alert("Campaign 2 handoff copied. Export your progress too and send both to ChatGPT.");}
 }
 function localDateKey(ts=Date.now()){const d=new Date(ts),p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
-function dailyKeyDateLabel(dateKey){const [y,m,d]=String(dateKey).split("-").map(Number),dt=new Date(y,m-1,d);return Number.isFinite(dt.getTime())?dt.toLocaleDateString("es-ES",{day:"numeric",month:"short"}).replace(".","").toUpperCase():dateKey;}
+function calendarDayNumber(dateKey){const [y,m,d]=String(dateKey).split("-").map(Number);return Math.floor(Date.UTC(y,m-1,d)/86400000);}
+function addCalendarDays(dateKey,days){const [y,m,d]=String(dateKey).split("-").map(Number),dt=new Date(Date.UTC(y,m-1,d)+days*86400000),p=n=>String(n).padStart(2,"0");return `${dt.getUTCFullYear()}-${p(dt.getUTCMonth()+1)}-${p(dt.getUTCDate())}`;}
 function ensureDailyKey(){
-  const today=localDateKey(),keys=window.AE_KEYS||{};
-  if(state.dailyKey?.date===today&&keys[state.dailyKey.cat])return state.dailyKey;
-  const ranked=coachSkillStats().filter(x=>keys[x.id]),evidenced=ranked.filter(x=>(x.m.attempts||0)>=3),pick=(evidenced.length?evidenced:ranked)[0]||CAMPAIGN.skills.find(x=>keys[x.id]);
-  if(!pick)return null;
-  state.dailyKey={date:today,cat:pick.id};
-  const existing=state.keyring.find(x=>x.cat===pick.id);
-  if(existing){existing.lastDate=today;existing.exposures=(existing.exposures||1)+1;}else state.keyring.push({cat:pick.id,firstDate:today,lastDate:today,exposures:1});
-  state.keyring=state.keyring.filter(x=>keys[x.cat]).slice(-25);save();return state.dailyKey;
+  const today=localDateKey(),keys=window.AE_KEYS||{};let changed=false;
+  const unique=[],used=new Set();for(const x of (Array.isArray(state.keyring)?state.keyring:[])){if(keys[x?.cat]&&!used.has(x.cat)){used.add(x.cat);unique.push(x);}}
+  state.keyring=unique.slice(0,25);state.keyring.forEach((x,i)=>{if(x.number!==i+1){x.number=i+1;changed=true;}});
+  if(!state.keyJourneyStart){state.keyJourneyStart=state.keyring.map(x=>x.firstDate).filter(Boolean).sort()[0]||state.dailyKey?.date||today;changed=true;}
+  const elapsed=Math.max(0,calendarDayNumber(today)-calendarDayNumber(state.keyJourneyStart)),target=Math.min(25,Math.max(state.keyring.length,elapsed+1));
+  while(state.keyring.length<target){
+    const taken=new Set(state.keyring.map(x=>x.cat)),ranked=coachSkillStats().filter(x=>keys[x.id]&&!taken.has(x.id)),evidenced=ranked.filter(x=>(x.m.attempts||0)>=3),pick=(evidenced.length?evidenced:ranked)[0]||CAMPAIGN.skills.find(x=>keys[x.id]&&!taken.has(x.id));
+    if(!pick)break;const n=state.keyring.length+1,unlockDate=addCalendarDays(state.keyJourneyStart,n-1);state.keyring.push({cat:pick.id,number:n,firstDate:unlockDate,lastDate:unlockDate,exposures:1});changed=true;
+  }
+  const active=state.keyring[Math.min(state.keyring.length,target)-1]||state.keyring[state.keyring.length-1];if(!active)return null;
+  if(state.dailyKey?.date!==today||state.dailyKey?.cat!==active.cat){state.dailyKey={date:today,cat:active.cat};changed=true;}
+  if(changed)save();return {...state.dailyKey,number:active.number||state.keyring.indexOf(active)+1,unlocked:state.keyring.length,start:state.keyJourneyStart};
+}
+function keySlideHtml(x){
+  const key=(window.AE_KEYS||{})[x.cat],skill=CAMPAIGN.skills.find(s=>s.id===x.cat),m=state.metrics[x.cat],mastery=m?metricMastery(m):0,n=x.number||1;
+  return `<article class="key-slide" data-key-number="${n}"><div class="key-slide-meta"><span>KEY ${n} / 25</span><small>${pct(mastery)}% MASTERY</small></div><button class="daily-key-card" type="button" aria-expanded="false"><div class="daily-key-face daily-key-front"><small>ESPAÑOL → INGLÉS</small><strong>${escapeHtml(key.front)}</strong><span>TOCA PARA REVELAR</span></div><div class="daily-key-face daily-key-back"><small>KEY ${n} UNLOCKED</small><strong>${escapeHtml(key.back)}</strong><b>${escapeHtml(key.formula)}</b><span>${escapeHtml(key.cue)}</span></div></button></article>`;
 }
 function renderDailyKey(){
-  const host=$("dailyKeyHost"),dk=ensureDailyKey();if(!host||!dk)return;
-  const key=(window.AE_KEYS||{})[dk.cat],skill=CAMPAIGN.skills.find(x=>x.id===dk.cat),m=state.metrics[dk.cat],mastery=m?metricMastery(m):0;
-  host.innerHTML=`<div class="daily-key-head"><div><span>DAILY KEY · ${dailyKeyDateLabel(dk.date)}</span><b>${escapeHtml(skill?.name||dk.cat)}</b></div><em>${pct(mastery)}%</em></div><button id="dailyKeyCard" class="daily-key-card" type="button" aria-expanded="false"><div class="daily-key-face daily-key-front"><small>ESPAÑOL → INGLÉS</small><strong>${escapeHtml(key.front)}</strong><span>TOCA PARA REVELAR</span></div><div class="daily-key-face daily-key-back"><small>KEY UNLOCKED</small><strong>${escapeHtml(key.back)}</strong><b>${escapeHtml(key.formula)}</b><span>${escapeHtml(key.cue)}</span></div></button>`;
-  const card=$("dailyKeyCard");card.onclick=()=>{const on=card.classList.toggle("revealed");card.setAttribute("aria-expanded",String(on));};
-  const ring=$("keyringList"),toggle=$("keyringToggle"),past=[...state.keyring].filter(x=>x.cat!==dk.cat).sort((a,b)=>String(b.lastDate).localeCompare(String(a.lastDate)));
-  if(!ring||!toggle)return;toggle.textContent=`KEYRING · ${state.keyring.length}/25`;toggle.classList.toggle("hidden",!past.length);ring.innerHTML=past.map(x=>{const s=CAMPAIGN.skills.find(y=>y.id===x.cat);return `<div class="keyring-item"><span>${escapeHtml(s?.name||x.cat)}</span><small>${dailyKeyDateLabel(x.lastDate)}${(x.exposures||1)>1?` · ×${x.exposures}`:""}</small></div>`;}).join("");toggle.onclick=()=>{const hidden=ring.classList.toggle("hidden");toggle.setAttribute("aria-expanded",String(!hidden));};
+  const host=$("dailyKeyHost"),journey=ensureDailyKey();if(!host||!journey)return;
+  const unlocked=[...state.keyring].sort((a,b)=>(a.number||0)-(b.number||0)),lockedN=Math.min(25,unlocked.length+1);
+  const marks=Array.from({length:25},(_,i)=>`<i class="${i<unlocked.length?"on":""}"></i>`).join("");
+  const locked=unlocked.length<25?`<article class="key-slide key-slide-locked" data-key-number="${lockedN}"><div class="key-slide-meta"><span>KEY ${lockedN} / 25</span><small>LOCKED</small></div><div class="daily-key-card locked-card"><div class="daily-key-face"><small>NEXT SECRET</small><strong>◇</strong><b>KEY ${lockedN}</b><span>SE DESBLOQUEA CON EL PRÓXIMO DÍA</span></div></div></article>`:"";
+  host.innerHTML=`<div class="daily-key-head"><div><span>KEY JOURNEY</span><b>${unlocked.length} / 25 UNLOCKED</b></div><em>${unlocked.length}/25</em></div><div class="key-marks" aria-label="${unlocked.length} of 25 Keys unlocked">${marks}</div><div id="keyCarousel" class="key-carousel">${unlocked.map(keySlideHtml).join("")}${locked}</div><div class="key-carousel-hint">DESLIZA ↔ · 1 TOQUE REVELA · 2º TOQUE AVANZA</div>`;
+  const carousel=$("keyCarousel"),slides=[...carousel.querySelectorAll(".key-slide")],cards=[...carousel.querySelectorAll("button.daily-key-card")];
+  const centerSlide=(slide,behavior="smooth")=>{if(!slide)return;const left=Math.max(0,slide.offsetLeft-(carousel.clientWidth-slide.clientWidth)/2);carousel.scrollTo({left,behavior});};
+  cards.forEach((card,i)=>card.addEventListener("click",()=>{if(!card.classList.contains("revealed")){card.classList.add("revealed");card.setAttribute("aria-expanded","true");return;}centerSlide(slides[i+1]);}));
+  requestAnimationFrame(()=>{const current=slides.find(x=>Number(x.dataset.keyNumber)===journey.number);centerSlide(current,"auto");});
 }
 function renderStart(){
+  ensureDailyKey();
   const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating),ai=aiValorationStats();
   applyRatingTheme(st.rating);applyAiTheme(ai);
   $("startAiLevel").textContent=`${ai.level} / 10`;paintText("startAiLevel",ai.score/100);
@@ -636,7 +651,7 @@ function renderStart(){
   $("startTotal").textContent=(state.totalAttempts||0).toLocaleString();
   const peer=typicalLearnerStats(),spd=$("startPeerDelta");spd.textContent=peer.delta==null?"—":`${peer.delta>=0?"+":""}${peer.delta.toFixed(1)}`;spd.className=`peer-delta ${peer.delta==null||Math.abs(peer.delta)<2?"neutral":peer.delta>0?"good":"bad"}`;$("startPeerStatus").textContent=`${peer.label} · typical ${peer.typical.toFixed(1)} · range ${peer.healthyMin.toFixed(1)}–${peer.strongPace.toFixed(1)}`;
   let status=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Math.max(0,sg.to-sg.seen)} new exercises until the next stage.`;
-  if(st.coverage>=.999&&!st.eligible)status="All 3,000 exercises explored. Consolidation continues until mastery ≥85% and every key ≥70%.";
+  if(st.coverage>=.999&&!st.eligible){const knowledgeReady=st.mastery>=.85&&st.minSkill>=.70;status=knowledgeReady&&st.keysUnlocked<25?`Knowledge gates achieved. KEY JOURNEY ${st.keysUnlocked}/25 · Campaign remains locked until all 25 Keys are collected.`:`All 3,000 exercises explored. Consolidation continues until mastery ≥85%, every Key ≥70%, and KEY JOURNEY reaches 25/25.`;}
   if(st.eligible&&!state.completed)status="FINAL CHALLENGE READY · Campaign requirements achieved.";
   if(state.completed)status="CAMPAIGN 1 COMPLETE · Free practice remains available, or load the next campaign later.";
   $("campaignStatus").textContent=status;
@@ -668,7 +683,7 @@ function startTimer(){
   timerHandle=setInterval(()=>{
     const left=Math.max(0,(deadline-performance.now())/1000),shown=Math.ceil(left);
     $("timerText").textContent=left.toFixed(1);
-    $("timer").style.setProperty("--timer-cut",`${100-left/TIME_LIMIT*100}%`);
+    $("timer").style.setProperty("--timer-cut",`${100-left/TIME_LIMIT*100}%`);$("timer").classList.toggle("urgent",left<=3);
     renderSegments(left);
     if(shown<lastTickShown&&shown>0&&shown<TIME_LIMIT){playTick(shown<=3,shown);lastTickShown=shown;}
     if(left<=0){clearInterval(timerHandle);answer(-1,true);}
@@ -684,13 +699,13 @@ function nextQuestion(){
   $("questionText").textContent=view.question;
   const wrap=$("answers");wrap.innerHTML="";
   current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=view.options[i];b.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"){e.preventDefault();answer(i,false);}});b.addEventListener("click",()=>answer(i,false));wrap.appendChild(b);});
-  $("timerText").textContent="10.0";renderSegments(10);startTimer();
+  $("timerText").textContent="10.0";$("timer").classList.remove("urgent");renderSegments(10);startTimer();
 }
 function feedback(ok,type,sec,correct,appearance,patternAppearance){
   const f=$("feedback");f.className="feedback "+(ok?"ok":"no");
   const label=ok?(type==="automatic"?"AUTOMATIC":type==="secure"?"CORRECT":"CORRECT · SLOW"):(type==="timeout"?"TIME":"INCORRECT");
   const exposure=appearance===1?"NEW":appearance+"\u00aa VEZ";
-  f.innerHTML=`<div class="appearance">${exposure}<small class="pattern-appearance">PATTERN ${patternAppearance}\u00aa VEZ</small></div><div class="feedback-label">${label}<small>${sec.toFixed(2)}s${ok?"":` \u00b7 Correct: ${escapeHtml(correct)}`}</small></div>`;
+  f.innerHTML=`<div class="feedback-question">Q ${session.index+1}<small>/ ${session.plan.length}</small></div><div class="feedback-label">${label}<small>${sec.toFixed(2)}s${ok?"":` · Correct: ${escapeHtml(correct)}`}</small></div><div class="appearance">${exposure}<small class="pattern-appearance">PATTERN ${patternAppearance}ª VEZ</small></div>`;
   requestAnimationFrame(()=>f.classList.add("show"));
   const hold=ok?980:(type==="fast-wrong"?1540:type==="timeout"?1390:1340);setTimeout(()=>f.classList.remove("show"),hold);
 }

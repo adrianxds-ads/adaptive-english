@@ -216,3 +216,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Daily Key selection uses the existing coach weakness priority and never changes mastery just by viewing/revealing it.
 - Adds a compact Keyring of previously selected unique Keys, capped at 25; repeat days increase exposure instead of duplicating cards.
 - User-facing skill labels become Keys while internal skill IDs remain unchanged.
+
+
+## v1.27 · Key Journey
+- Campaign 1 has a 25-Key calendar gate: one unique Key unlocks per real calendar day, so the campaign cannot be completed in fewer than 25 days.
+- Unlocked Keys live in a horizontal swipe carousel; tap once to reveal, tap again to advance. The next locked Key peeks from the right.
+- Correct answers use an original short discovery chime (not copied game audio), and the timer/feedback use the same fantasy-adventure reward language.
+- Campaign completion keeps all existing knowledge gates and additionally requires KEY JOURNEY 25/25.
