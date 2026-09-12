@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.28";
+const APP_VERSION = "1.29";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
@@ -637,6 +637,33 @@ function renderDailyKey(){
   cards.forEach((card,i)=>card.addEventListener("click",()=>{if(!card.classList.contains("revealed")){card.classList.add("revealed");card.setAttribute("aria-expanded","true");return;}centerSlide(slides[i+1]);}));
   requestAnimationFrame(()=>{const current=slides.find(x=>Number(x.dataset.keyNumber)===journey.number);centerSlide(current,"auto");});
 }
+function treeRand(seed=129){let t=seed>>>0;return()=>{t+=0x6D2B79F5;let x=t;x=Math.imul(x^x>>>15,x|1);x^=x+Math.imul(x^x>>>7,x|61);return((x^x>>>14)>>>0)/4294967296;};}
+let TREE_PARTS_CACHE=null;
+function growthTreeParts(){
+  if(TREE_PARTS_CACHE)return TREE_PARTS_CACHE;
+  const rnd=treeRand(20260912),branches=[],leaves=[];
+  const grow=(x,y,len,ang,width,depth,dist)=>{
+    const sway=(rnd()-.5)*.18,angle=ang+sway,x2=x+Math.cos(angle)*len,y2=y+Math.sin(angle)*len;
+    const bend=(rnd()-.5)*10,mx=(x+x2)/2+Math.cos(angle+Math.PI/2)*bend,my=(y+y2)/2+Math.sin(angle+Math.PI/2)*bend;
+    const score=dist+len*.58+depth*2+rnd()*2;
+    branches.push({score,html:`<path d="M ${x.toFixed(1)} ${y.toFixed(1)} Q ${mx.toFixed(1)} ${my.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke-width="${Math.max(1.25,width).toFixed(2)}"/>`});
+    if(depth>=4){const rot=Math.round((rnd()-.5)*90),rx=(5+rnd()*5).toFixed(1),ry=(2.8+rnd()*3).toFixed(1),green=["#607d3b","#769447","#8ca85a","#526f36"][Math.floor(rnd()*4)];leaves.push({score:score+8+rnd()*15,html:`<ellipse cx="${(x2+(rnd()-.5)*7).toFixed(1)}" cy="${(y2+(rnd()-.5)*6).toFixed(1)}" rx="${rx}" ry="${ry}" transform="rotate(${rot} ${x2.toFixed(1)} ${y2.toFixed(1)})" fill="${green}"/>`});}
+    if(depth>=6)return;
+    const next=len*(.72+rnd()*.09),w=width*.72,spread=.35+rnd()*.20;
+    grow(x2,y2,next,angle-spread,w,depth+1,dist+len);
+    grow(x2,y2,next*(.92+rnd()*.12),angle+spread*(.88+rnd()*.22),w*.96,depth+1,dist+len);
+  };
+  grow(210,274,56,-Math.PI/2,12,0,0);
+  const parts=[...branches.map(x=>({...x,kind:"branch"})),...leaves.map(x=>({...x,kind:"leaf"}))].sort((a,b)=>a.score-b.score||a.kind.localeCompare(b.kind)).slice(0,200);
+  TREE_PARTS_CACHE=parts.map((x,i)=>({...x,stage:i+1}));return TREE_PARTS_CACHE;
+}
+function renderGrowthTree(){
+  const host=$("growthTreeHost");if(!host)return;
+  const answers=Math.max(0,Number(state.totalAttempts)||0),stage=Math.min(200,Math.floor(answers/50)),parts=growthTreeParts().slice(0,stage);
+  const branch=parts.filter(x=>x.kind==="branch").map(x=>x.html).join(""),leaf=parts.filter(x=>x.kind==="leaf").map(x=>x.html).join("");
+  host.innerHTML=`<div class="growth-tree-canvas" data-tree-stage="${stage}"><svg viewBox="0 0 420 300" role="img" aria-label="Practice tree, growth stage ${stage} of 200"><defs><linearGradient id="treeTrunk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5d3827"/><stop offset=".55" stop-color="#76503a"/><stop offset="1" stop-color="#957258"/></linearGradient></defs><ellipse class="tree-ground" cx="210" cy="282" rx="78" ry="7"/> <g class="tree-branches" fill="none" stroke="url(#treeTrunk)" stroke-linecap="round" stroke-linejoin="round">${branch}</g><g class="tree-leaves">${leaf}</g></svg></div><div class="growth-tree-count"><b>${answers.toLocaleString()}</b><span>QUESTIONS</span></div>`;
+}
+
 function renderStart(){
   ensureDailyKey();
   const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating),ai=aiValorationStats();
@@ -663,6 +690,7 @@ function renderStart(){
   $("campaignStatus").textContent=status;
   renderCampaign2Readiness();
   renderDailyKey();
+  renderGrowthTree();
 }
 function showScreen(id){["startScreen","statsScreen","coachScreen","gameScreen","endScreen","errorsScreen"].forEach(x=>$(x).classList.add("hidden"));$(id).classList.remove("hidden");}
 function adaptiveLevelTarget(plan){
@@ -711,7 +739,7 @@ function feedback(ok,type,sec,correct,appearance,patternAppearance){
   const f=$("feedback");f.className="feedback "+(ok?"ok":"no");
   const label=ok?(type==="automatic"?"AUTOMATIC":type==="secure"?"CORRECT":"CORRECT · SLOW"):(type==="timeout"?"TIME":"INCORRECT");
   const exposure=appearance===1?"NEW":appearance+"\u00aa VEZ";
-  f.innerHTML=`<div class="feedback-question">Q ${session.index+1}<small>/ ${session.plan.length}</small></div><div class="feedback-label">${label}<small>${sec.toFixed(2)}s${ok?"":` · Correct: ${escapeHtml(correct)}`}</small></div><div class="appearance">${exposure}<small class="pattern-appearance">PATTERN ${patternAppearance}ª VEZ</small></div>`;
+  f.innerHTML=`<div class="feedback-question">${exposure}</div><div class="feedback-label">${label}<small>${sec.toFixed(2)}s${ok?"":` · Correct: ${escapeHtml(correct)}`}</small></div><div class="appearance"><small class="pattern-appearance">PATTERN ${patternAppearance}ª VEZ</small></div>`;
   requestAnimationFrame(()=>f.classList.add("show"));
   const hold=ok?980:(type==="fast-wrong"?1540:type==="timeout"?1390:1340);setTimeout(()=>f.classList.remove("show"),hold);
 }
