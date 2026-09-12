@@ -236,3 +236,9 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Practice Tree now grows from cumulative LEVEL, not total answers.
 - One tree stage unlocks every 50 LEVELS; LEVEL 10,000 completes 200 stages.
 - Added a persistent global level key so future campaigns can continue the same lifetime LEVEL sequence.
+
+
+## v1.31
+- Unified the app around the same 15-colour performance scale used by the /15 score chart.
+- AI Valoration now uses levels 1–15; metric fills and text hues map 0–100% into the same 15 bands.
+- Each colour band spans about 6.67 percentage points; band 15 is the existing purple maximum.
