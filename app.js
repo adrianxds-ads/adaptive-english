@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "2.6";
+const APP_VERSION = "2.7";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -839,7 +839,7 @@ function nextQuestion(){
   if(!current||!Array.isArray(current.display)||current.display.length!==4||!Number.isInteger(current.correctPos)||current.correctPos<0||current.correctPos>3){console.error("Skipping invalid question",current);session.index++;setTimeout(nextQuestion,0);return;}
   $("qIndex").textContent=session.index+1;$("qTotal").textContent="/ "+session.plan.length;
   const view=visibleCard(current);current.visibleQuestion=view.question;current.visibleOptions=view.options;current.visibleFocus=view.focus;current.visibleNames=view.names;
-  $("questionText").textContent=view.question;
+  $("questionText").classList.remove("focus-active");$("questionText").textContent=view.question;
   const wrap=$("answers");wrap.innerHTML="";
   current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=view.options[i];b.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"){e.preventDefault();answer(i,false);}});b.addEventListener("click",()=>answer(i,false));wrap.appendChild(b);});
   $("timerText").textContent="10.0";$("timer").classList.remove("urgent");renderSegments(10);startTimer();
@@ -847,10 +847,9 @@ function nextQuestion(){
 function feedback(ok,type,sec,correct,appearance,patternAppearance){
   const f=$("feedback");f.className="feedback "+(ok?"ok":"no");
   const label=ok?(type==="automatic"?"AUTOMATIC":type==="secure"?"CORRECT":"CORRECT · SLOW"):(type==="timeout"?"TIME":"INCORRECT");
-  const exposure=appearance===1?"NEW":appearance+"\u00aa VEZ";
-  f.innerHTML=`<div class="feedback-question">${exposure}</div><div class="feedback-label">${label}<small>${sec.toFixed(2)}s</small></div>${ok?"":`<div class="feedback-correct-line">CORRECT · ${escapeHtml(correct)}</div>`}<div class="appearance"><small class="pattern-appearance">PATTERN ${patternAppearance}ª VEZ</small></div>`;
+  f.innerHTML=`<div class="feedback-exposure"><strong>${appearance}</strong><span>ª VEZ</span><small>ESTA FRASE</small></div><div class="feedback-label"><b>${label}</b><small>${sec.toFixed(2)}s</small></div><div class="appearance"><small>PATRÓN</small><b>${patternAppearance}ª</b></div>`;
   requestAnimationFrame(()=>f.classList.add("show"));
-  const hold=ok?980:(type==="fast-wrong"?1540:type==="timeout"?1390:1340);setTimeout(()=>f.classList.remove("show"),hold);
+  const hold=ok?1030:(type==="fast-wrong"?1580:type==="timeout"?1430:1380);setTimeout(()=>f.classList.remove("show"),hold);
 }
 function answer(pos,timeout=false){
   if(locked)return;locked=true;clearInterval(timerHandle);

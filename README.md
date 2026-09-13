@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v2.6
+# Adaptive English · Campaign 1 v2.7
 
 Local adaptive grammar trainer.
 
@@ -309,3 +309,11 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Moved answer-result feedback below the answer grid so it no longer covers the gold correction or Memory Echo.
 - Revealed Keys now return automatically to the Spanish front after 10 seconds, with a softer closing sound.
 - Training engine, fixed 10-second timer, 15-question level size, scheduler, mastery model and progress key remain unchanged.
+
+## v2.7 · Cognitive feedback hierarchy
+
+- Phrase exposure count is now the primary visual signal on every answer.
+- Every phrase shows an explicit count (`1ª VEZ`, `2ª VEZ`, etc.) instead of `NEW`.
+- Correct/incorrect colour remains strong but secondary; pattern count and response time remain supporting data.
+- Wrong-answer correction stays above the question; the full sentence keeps its gold grammar-focus flash; music echo remains independent.
+- Adaptive engine, fixed 10-second timer, 15-question levels, scheduler, mastery model and storage key are unchanged.
