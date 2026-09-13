@@ -259,3 +259,22 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Emergency exit is transactional: it restores the exact pre-level Campaign state, so abandoned questions do not count toward attempts, history, seen/review counts, mastery, tree growth, sessions, or LEVEL completion.
 - The dashboard outer background now uses the current Adrián Visual System rank colour (1–15), while the inner panel stays dark for readability.
 - The persisted AI/AVS rank therefore becomes the ambient colour seen whenever the app opens.
+
+
+## v2.2
+- Canonical AVS colour semantics are now applied consistently across charts, metrics, target statistics and result states.
+- Absolute scalar values use their own 1–15 AVS rank colour. Raw counts and uncalibrated latency remain neutral.
+- The /15 performance graph now uses AVS-coloured score segments and points; TARGET uses the same value colours but a dashed/hollow visual grammar instead of a fixed cyan.
+- Learning Curve segments change colour with their actual 0–100 value instead of inheriting only the latest point colour.
+- Positive/negative deltas use fixed AVS semantic colours (Emerald/Wine); Gold remains reserved for maximum/reward states such as a cleared target.
+- Correct/incorrect gameplay states now use canonical AVS Emerald/Wine rather than legacy green/red values.
+- Ambient app background follows the current global AI/AVS rank; individual metrics still colour themselves by their own values.
+
+
+## v2.3
+- Upgrades the shared Adrián Visual System to AVS 2.0 with strictly increasing perceptual lightness from rank 1 to 15.
+- Each rank now has canonical accent, surface, chart-band and readable text variants; Gold remains rank 15 / maximum-reward.
+- Dashboard ambience uses the darker rank surface, while charts and metrics use rank accent/band/text variants.
+- Restores visible Unique phrases and Repeated phrases counts on the dashboard; repeated means distinct phrases seen at least twice.
+- Daily Keys can now flip front/back repeatedly; horizontal swipe remains the navigation mechanism.
+- TARGET CLEARED and TARGET MISSED now use longer, clearly distinct original musical stingers.

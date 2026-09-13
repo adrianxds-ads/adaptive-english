@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "2.1";
+const APP_VERSION = "2.3";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -8,12 +8,16 @@ const TIME_LIMIT = 10;
 const HISTORY_LIMIT = 6000;
 const SESSION_HISTORY_LIMIT = 1000;
 const VISUAL_SYSTEM=window.ADRIAN_VISUAL_SYSTEM||null;
-const COLOR_BANDS_15=(VISUAL_SYSTEM?.ranks||["#2B1B18","#3A211D","#52231F","#6B2926","#84352C","#A34B2A","#B96B25","#9A8128","#6E8735","#3F8F4B","#278C70","#2D7FA3","#3F63B2","#6B4AB8","#E2B84B"]).map(x=>typeof x==="string"?x:x.color);
+const AVS_RANKS=VISUAL_SYSTEM?.ranks||[{color:"#422522",surface:"#1A1714",band:"#291F1B",text:"#91817F"},{color:"#512927",surface:"#1F1915",band:"#30211D",text:"#9A8382"},{color:"#632D2A",surface:"#241A16",band:"#3A231F",text:"#A58583"},{color:"#762F32",surface:"#2B1B19",band:"#442423",text:"#B08688"},{color:"#843729",surface:"#2F1D16",band:"#4B281E",text:"#B88B83"},{color:"#904311",surface:"#33210E",band:"#512E12",text:"#BF9275"},{color:"#90570C",surface:"#33270D",band:"#51390F",text:"#BF9E72"},{color:"#8B6B05",surface:"#312E0A",band:"#4F430C",text:"#BCA96E"},{color:"#798136",surface:"#2B351A",band:"#454F25",text:"#B1B68A"},{color:"#57965A",surface:"#213C26",band:"#335A38",text:"#9EC29F"},{color:"#32A48F",surface:"#154037",band:"#206153",text:"#88CABE"},{color:"#4AA7C8",surface:"#1C4149",band:"#2D6271",text:"#96CCDF"},{color:"#7AA5EC",surface:"#2C4054",band:"#466184",text:"#B2CBF4"},{color:"#BB9EF0",surface:"#413E56",band:"#675E86",text:"#D8C7F6"},{color:"#E7BF57",surface:"#4F4925",band:"#7E6F36",text:"#F1DA9E"}];
+const COLOR_BANDS_15=AVS_RANKS.map(x=>x.color);
+const SURFACE_BANDS_15=AVS_RANKS.map(x=>x.surface||x.color);
+const GRAPH_BANDS_15=AVS_RANKS.map(x=>x.band||x.color);
+const AVS_TEXT_BANDS_15=AVS_RANKS.map(x=>x.text||x.color);
 let CAMPAIGN=null, BANK=[], state=null, session=null, timerHandle=null, deadline=0, current=null, locked=false;
 let audioCtx=null, soundOn=true, lastTickShown=TIME_LIMIT+1;
 
 const $=id=>document.getElementById(id);
-function applyVisualSystemTokens(){const r=document.documentElement;COLOR_BANDS_15.forEach((c,i)=>r.style.setProperty(`--rank-${i+1}`,c));r.style.setProperty("--reward-gold",COLOR_BANDS_15[14]);r.style.setProperty("--elite-violet",COLOR_BANDS_15[13]);r.style.setProperty("--negative-wine",COLOR_BANDS_15[3]);}
+function applyVisualSystemTokens(){const r=document.documentElement;AVS_RANKS.forEach((x,i)=>{r.style.setProperty(`--rank-${i+1}`,x.color);r.style.setProperty(`--rank-${i+1}-surface`,x.surface||x.color);r.style.setProperty(`--rank-${i+1}-band`,x.band||x.color);r.style.setProperty(`--rank-${i+1}-text`,x.text||x.color);});r.style.setProperty("--reward-gold",COLOR_BANDS_15[14]);r.style.setProperty("--reward-gold-text",AVS_TEXT_BANDS_15[14]);r.style.setProperty("--elite-violet",COLOR_BANDS_15[13]);r.style.setProperty("--negative-wine",COLOR_BANDS_15[3]);}
 function storedGlobalLevel(){try{return Math.max(1,Math.floor(Number(localStorage.getItem(GLOBAL_LEVEL_KEY))||1));}catch(e){return 1;}}
 function syncGlobalLevel(level){const n=Math.max(1,Math.floor(Number(level)||1),storedGlobalLevel());try{localStorage.setItem(GLOBAL_LEVEL_KEY,String(n));}catch(e){}return n;}
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -35,11 +39,8 @@ function ratingBand(r){
   return b;
 }
 function applyRatingTheme(r){
-  const b=ratingBand(r);
-  document.body.dataset.ratingBand=b.key;
-  const meta=document.querySelector('meta[name="theme-color"]');
-  const colors={forest:'#10271d',teal:'#0f3030',blue:'#122b46',indigo:'#242849',amber:'#3a2b13',gold:'#49390d'};
-  if(meta)meta.setAttribute('content',colors[b.key]||colors.forest);
+  const b=ratingBand(r),rank=Math.max(1,Math.min(15,Math.ceil(clamp(Number(r)||0)*15))),color=COLOR_BANDS_15[rank-1];
+  document.body.dataset.ratingBand=b.key;document.body.dataset.avsRatingRank=String(rank);document.documentElement.style.setProperty("--rating-rank-color",color);document.documentElement.style.setProperty("--rating-rank-rgb",colorRgb(color));
 }
 function audioSupported(){return !!(window.AudioContext||window.webkitAudioContext);}
 async function ensureAudio(){
@@ -63,8 +64,8 @@ function playCorrect(){const notes=[440,587.33,783.99,1046.5];notes.forEach((f,i
 function playWrong(){tone(311.13,.050,.020,'triangle');tone(220,.070,.017,'sine',.042);}
 function playComplete(){tone(392,.075,.022,'sine');tone(523.25,.085,.024,'triangle',.070);tone(659.25,.100,.026,'sine',.145);tone(783.99,.155,.028,'sine',.230);}
 function playCountdownStep(n){tone(n===1?1046.5:783.99,.055,.018,'triangle');}
-function playLevelClear(){[523.25,659.25,783.99,1046.5].forEach((f,i)=>{tone(f,i===3?.18:.075,i===3?.029:.021,i%2?'sine':'triangle',i*.075);if(i===3)tone(1318.5,.11,.010,'sine',i*.075+.045);});}
-function playLevelMiss(){tone(246.94,.075,.015,'triangle');tone(196,.095,.012,'sine',.065);}
+function playLevelClear(){const notes=[523.25,659.25,783.99,987.77,1318.5];notes.forEach((f,i)=>{tone(f,i===4?.22:.09,i===4?.032:.022,i%2?'sine':'triangle',i*.085);if(i>=2)tone(f*2,.055,.006,'sine',i*.085+.025);});}
+function playLevelMiss(){[[293.66,.00],[246.94,.10],[220,.20],[174.61,.33]].forEach(([f,d],i)=>tone(f,i===3?.18:.10,i===3?.016:.014,i%2?'sine':'triangle',d));}
 function haptic(ok){
   try{if(navigator.vibrate)navigator.vibrate(ok?18:[24,16,42]);}catch(e){}
 }
@@ -80,7 +81,7 @@ function burstParticles(anchor){
   const layer=$("particles");if(!layer)return;
   const r=anchor&&anchor.getBoundingClientRect?anchor.getBoundingClientRect():null;
   const cx=r?r.left+r.width/2:innerWidth/2,cy=r?r.top+r.height/2:innerHeight*.55;
-  const colors=["#ffffff","#8fd7b0","#f4d35e","#79a9d1","#f3a56b"];
+  const colors=[COLOR_BANDS_15[14],COLOR_BANDS_15[13],COLOR_BANDS_15[12],COLOR_BANDS_15[11],COLOR_BANDS_15[9]];
   for(let i=0;i<6;i++){
     const p=document.createElement("i"),a=(Math.PI*2*i/6)+(Math.random()-.5)*.28,d=26+Math.random()*42;
     p.className="particle";p.style.left=cx+"px";p.style.top=cy+"px";
@@ -191,6 +192,7 @@ function overallStats(){
   const eligible=coverage>=.999&&mastery>=.85&&minSkill>=.70&&keysUnlocked>=25;
   return {coverage,mastery,minSkill,accuracy,auto,avgMs,speed,transfer,fluency,rating,mastered,keysUnlocked,eligible};
 }
+function phraseExposureStats(){const rows=Object.values(state.seen||{}),unique=rows.length,repeatedUnique=rows.filter(x=>(x?.count||1)>1).length,repeatAttempts=rows.reduce((n,x)=>n+Math.max(0,(x?.count||1)-1),0);return {unique,repeatedUnique,repeatAttempts};}
 function campaign2Readiness(){
   const st=overallStats(),metrics=Object.values(state.metrics),learning=learningScoreStats();
   const breadth=metrics.filter(m=>metricMastery(m)>=.55).length/metrics.length;
@@ -428,47 +430,44 @@ function shuffleOptions(q){
 function currentStageText(){const s=stageInfo(overallStats().coverage);return `Stage ${s.index+1}/6 · ${s.name}`;}
 function deltaText(value,goodUp=true,suffix=""){
   if(value==null||Number.isNaN(value))return '<span class="delta neutral">—</span>';
-  const good=goodUp?value>0:value<0,bad=goodUp?value<0:value>0,arrow=value>0?"↑":value<0?"↓":"→";
-  return `<span class="delta ${good?"good":bad?"bad":"neutral"}">${arrow} ${Math.abs(value).toFixed(1)}${suffix}</span>`;
+  const good=goodUp?value>0:value<0,bad=goodUp?value<0:value>0,arrow=value>0?"↑":value<0?"↓":"→",color=semanticDeltaColor(value,goodUp);
+  return `<span class="delta ${good?"good":bad?"bad":"neutral"}" style="color:${color}">${arrow} ${Math.abs(value).toFixed(1)}${suffix}</span>`;
 }
 function sparkline(values,format=v=>String(Math.round(v)),lowerBetter=false,refLine=null,refLabel="Avg"){
   values=Array.isArray(values)?values.filter(Number.isFinite):[];
   if(values.length<2)return '<div class="footerline">Complete a few levels to build this graph.</div>';
   const w=600,h=108,p=10,min=Math.min(...values),max=Math.max(...values),span=Math.max(.01,max-min);
-  const pts=values.map((v,i)=>`${p+i*(w-2*p)/(values.length-1)},${h-p-(v-min)/span*(h-2*p)}`).join(" ");
+  const xy=values.map((v,i)=>({v,x:p+i*(w-2*p)/(values.length-1),y:h-p-(v-min)/span*(h-2*p)}));
   const current=values[values.length-1],best=lowerBetter?min:max;
-  const lineColor=valueTextColor(current/100);
-  const meanSvg=Number.isFinite(refLine)?`<line x1="${p}" y1="${h-p-(refLine-min)/span*(h-2*p)}" x2="${w-p}" y2="${h-p-(refLine-min)/span*(h-2*p)}" stroke="${valueTextColor(refLine/100)}" stroke-opacity=".72" stroke-width="2" stroke-dasharray="8 6" vector-effect="non-scaling-stroke"/>`:"";
+  const shadow=`<polyline points="${xy.map(q=>`${q.x},${q.y}`).join(" ")}" fill="none" stroke="#050806" stroke-opacity=".72" stroke-width="6" vector-effect="non-scaling-stroke"/>`;
+  const segments=xy.slice(1).map((q,i)=>`<line x1="${xy[i].x}" y1="${xy[i].y}" x2="${q.x}" y2="${q.y}" stroke="${valueColor(q.v/100)}" stroke-width="3.2" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join("");
+  const dots=xy.map(q=>`<circle cx="${q.x}" cy="${q.y}" r="2.3" fill="${valueColor(q.v/100)}" stroke="${valueTextColor(q.v/100)}" stroke-width="1.1" vector-effect="non-scaling-stroke"/>`).join("");
+  const meanSvg=Number.isFinite(refLine)?`<line x1="${p}" y1="${h-p-(refLine-min)/span*(h-2*p)}" x2="${w-p}" y2="${h-p-(refLine-min)/span*(h-2*p)}" stroke="${valueColor(refLine/100)}" stroke-opacity=".90" stroke-width="2" stroke-dasharray="8 6" vector-effect="non-scaling-stroke"/>`:"";
   const meanMeta=Number.isFinite(refLine)?`<span style="color:${valueTextColor(refLine/100)}">${refLabel} ${format(refLine)}</span>`:`<span>${values.length} levels</span>`;
-  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line x1="0" y1="${h-p}" x2="${w}" y2="${h-p}" stroke="rgba(255,255,255,.12)"/><line x1="0" y1="${p}" x2="${w}" y2="${p}" stroke="rgba(255,255,255,.07)"/>${meanSvg}<polyline points="${pts}" fill="none" stroke="${lineColor}" stroke-width="3" vector-effect="non-scaling-stroke"/></svg><div class="chartmeta"><span style="color:${lineColor}">Now ${format(current)}</span><span style="color:${valueTextColor(best/100)}">Best ${format(best)}</span>${meanMeta}</div>`;
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line x1="0" y1="${h-p}" x2="${w}" y2="${h-p}" stroke="rgba(255,255,255,.12)"/><line x1="0" y1="${p}" x2="${w}" y2="${p}" stroke="rgba(255,255,255,.07)"/>${meanSvg}${shadow}${segments}${dots}</svg><div class="chartmeta"><span style="color:${valueTextColor(current/100)}">Now ${format(current)}</span><span style="color:${valueTextColor(best/100)}">Best ${format(best)}</span>${meanMeta}</div>`;
 }
-
 function sessionScoreChart(rows,expanded=false){
   rows=(rows||[]).filter(x=>x.mode==="training"&&Number.isFinite(x.correct)&&Number.isFinite(x.ts));
   if(rows.length<2)return '<div class="footerline">Complete a few levels to build this graph.</div>';
-  const colors=COLOR_BANDS_15;
-  const mobile=!expanded&&window.innerWidth<=620;
+  const colors=GRAPH_BANDS_15,mobile=!expanded&&window.innerWidth<=620;
   const w=mobile?360:(expanded?920:720),h=mobile?320:(expanded?520:310),L=mobile?40:58,R=mobile?12:22,T=mobile?24:28,B=mobile?42:44,maxY=15;
   const first=rows[0].ts,last=rows[rows.length-1].ts,span=Math.max(1,last-first);
   const xFor=(ts,i)=>rows.length===1?L+(w-L-R)/2:L+((last===first?i/(rows.length-1):(ts-first)/span)*(w-L-R));
   const yFor=c=>T+((maxY-c)/maxY)*(h-T-B),correct=r=>Math.max(0,Math.min(15,r.correct));
-  const pts=rows.map((r,i)=>`${xFor(r.ts,i).toFixed(1)},${yFor(correct(r)).toFixed(1)}`).join(' ');
-  const bands=colors.map((c,i)=>`<rect x="${L}" y="${yFor(i+1)}" width="${w-L-R}" height="${Math.max(1,yFor(i)-yFor(i+1))}" fill="${c}" fill-opacity=".30"/>`).join('');
-  const grid=[...Array(16).keys()].map(v=>`<line x1="${L}" y1="${yFor(v)}" x2="${w-R}" y2="${yFor(v)}" stroke="rgba(255,255,255,${v===0||v===15?'.38':'.14'})"/><text x="${L-9}" y="${yFor(v)+3.5}" text-anchor="end" fill="#eef6f1" font-size="${expanded?12:(mobile?9:10)}" font-weight="850">${v}</text>`).join('');
-  const shortSpan=(last-first)<=36*3600000,maxLabels=expanded?9:(mobile?5:6);
-  let labels='';
+  const actualXY=rows.map((r,i)=>({r,i,x:xFor(r.ts,i),y:yFor(correct(r)),v:correct(r)}));
+  const bands=colors.map((c,i)=>`<rect x="${L}" y="${yFor(i+1)}" width="${w-L-R}" height="${Math.max(1,yFor(i)-yFor(i+1))}" fill="${c}" fill-opacity=".82"/>`).join('');
+  const grid=[...Array(16).keys()].map(v=>`<line x1="${L}" y1="${yFor(v)}" x2="${w-R}" y2="${yFor(v)}" stroke="rgba(255,255,255,${v===0||v===15?'.38':'.14'})"/><text x="${L-9}" y="${yFor(v)+3.5}" text-anchor="end" fill="${v===0?'#b7c9bf':scoreTextColor(v)}" font-size="${expanded?12:(mobile?9:10)}" font-weight="850">${v}</text>`).join('');
+  const shortSpan=(last-first)<=36*3600000,maxLabels=expanded?9:(mobile?5:6);let labels='';
   if(shortSpan){const count=Math.min(maxLabels,rows.length),idx=[...new Set(Array.from({length:count},(_,k)=>Math.round(k*(rows.length-1)/(count-1))))];labels=idx.map(i=>{const r=rows[i],d=new Date(r.ts),lab=d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});return `<text x="${xFor(r.ts,i)}" y="${h-13}" text-anchor="middle" fill="#c7d8ce" font-size="${mobile?10:12}" font-weight="800">${lab}</text>`;}).join('');}
   else{const dayMap=new Map();for(const r of rows){const d=new Date(r.ts),key=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;if(!dayMap.has(key))dayMap.set(key,{ts:new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),label:d.toLocaleDateString('es-ES',{day:'numeric',month:'short'})});}const days=[...dayMap.values()],step=Math.max(1,Math.ceil(days.length/maxLabels));labels=days.filter((_,i)=>i%step===0||i===days.length-1).map(d=>`<text x="${xFor(d.ts,0)}" y="${h-13}" text-anchor="middle" fill="#c7d8ce" font-size="${mobile?10:12}" font-weight="800">${d.label}</text>`).join('');}
-  const dots=rows.map((r,i)=>{const d=new Date(r.ts),stamp=d.toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}),targetTxt=Number.isFinite(r.target)?` · target ${r.target.toFixed(1)}`:"";return `<circle cx="${xFor(r.ts,i)}" cy="${yFor(correct(r))}" r="${expanded?3.8:2.7}" fill="#fff" stroke="#0a0f0c" stroke-width="1.8"><title>Nivel ${r.level}: ${correct(r)}/15 correctas${targetTxt} · ${stamp}</title></circle>`;}).join('');
-  const targetRows=rows.map((r,i)=>({r,i})).filter(x=>Number.isFinite(x.r.target));
-  const targetPts=targetRows.map(({r,i})=>`${xFor(r.ts,i).toFixed(1)},${yFor(Math.max(0,Math.min(15,r.target))).toFixed(1)}`).join(' ');
-  const targetLine=targetRows.length>1?`<polyline points="${targetPts}" fill="none" stroke="#4dd0e1" stroke-width="${expanded?2.4:2}" stroke-dasharray="6 5" stroke-linejoin="round" stroke-linecap="round" opacity=".92" vector-effect="non-scaling-stroke"/>`:"";
-  const targetDots=targetRows.map(({r,i})=>`<circle cx="${xFor(r.ts,i)}" cy="${yFor(r.target)}" r="${expanded?3.2:2.4}" fill="#4dd0e1" stroke="#0a0f0c" stroke-width="1.2"><title>Nivel ${r.level}: target ${r.target.toFixed(1)}</title></circle>`).join('');
-  const lineShadow=`<polyline points="${pts}" fill="none" stroke="#050806" stroke-opacity=".78" stroke-width="${expanded?7:6}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
-  const line=`<polyline points="${pts}" fill="none" stroke="#ffffff" stroke-width="${expanded?3.6:3}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
-  return `<svg class="score-chart ${expanded?'expanded':''}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet"><rect x="${L}" y="${T}" width="${w-L-R}" height="${h-T-B}" rx="8" fill="#101815"/>${bands}${grid}${targetLine}${targetDots}${lineShadow}${line}${dots}${labels}<text x="${L}" y="15" fill="#dfece5" font-size="${mobile?9:11}" font-weight="900">CORRECT / 15 · WHITE = YOU · CYAN = TARGET</text></svg>`;
+  const lineShadow=`<polyline points="${actualXY.map(q=>`${q.x.toFixed(1)},${q.y.toFixed(1)}`).join(' ')}" fill="none" stroke="#050806" stroke-opacity=".78" stroke-width="${expanded?7:6}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+  const actualSegments=actualXY.slice(1).map((q,i)=>`<line x1="${actualXY[i].x.toFixed(1)}" y1="${actualXY[i].y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke="${scoreColor(q.v)}" stroke-width="${expanded?3.8:3.2}" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join('');
+  const dots=actualXY.map(q=>{const d=new Date(q.r.ts),stamp=d.toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}),targetTxt=Number.isFinite(q.r.target)?` · target ${q.r.target.toFixed(1)}`:"";return `<circle cx="${q.x}" cy="${q.y}" r="${expanded?4.1:3}" fill="${scoreColor(q.v)}" stroke="${scoreTextColor(q.v)}" stroke-width="1.6"><title>Nivel ${q.r.level}: ${q.v}/15 correctas${targetTxt} · ${stamp}</title></circle>`;}).join('');
+  const targetRows=rows.map((r,i)=>({r,i,x:xFor(r.ts,i),y:yFor(Math.max(0,Math.min(15,r.target))),v:Math.max(0,Math.min(15,r.target))})).filter(x=>Number.isFinite(x.r.target));
+  const targetSegments=targetRows.slice(1).map((q,i)=>`<line x1="${targetRows[i].x.toFixed(1)}" y1="${targetRows[i].y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke="${scoreColor(q.v)}" stroke-width="${expanded?2.5:2.1}" stroke-dasharray="6 5" stroke-linecap="round" opacity=".96" vector-effect="non-scaling-stroke"/>`).join('');
+  const targetDots=targetRows.map(q=>`<circle cx="${q.x}" cy="${q.y}" r="${expanded?3.5:2.6}" fill="#101815" stroke="${scoreTextColor(q.v)}" stroke-width="2"><title>Nivel ${q.r.level}: target ${q.v.toFixed(1)}</title></circle>`).join('');
+  return `<svg class="score-chart ${expanded?'expanded':''}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet"><rect x="${L}" y="${T}" width="${w-L-R}" height="${h-T-B}" rx="8" fill="#101815"/>${bands}${grid}${targetSegments}${targetDots}${lineShadow}${actualSegments}${dots}${labels}<text x="${L}" y="15" fill="#dfece5" font-size="${mobile?9:11}" font-weight="900">SOLID = SCORE · DASHED = TARGET · COLOR = AVS RANK</text></svg>`;
 }
-
 function learningCurveBase(x){
   const mastery=x.mastery??0,coverage=x.coverage??0,automatic=x.automatic??0;
   return clamp(.65*mastery+.25*coverage+.10*automatic);
@@ -497,17 +496,23 @@ function aiValorationStats(){
   return {level:valueLevel(score/100),score,confidence,performance:performance*100};
 }
 function applyAiTheme(ai=aiValorationStats()){
-  const def=AI_LEVELS[ai.level-1]||AI_LEVELS[0];document.body.dataset.aiLevel=String(ai.level);
-  document.documentElement.style.setProperty("--ai-color",def.color);document.documentElement.style.setProperty("--ai-rgb",def.rgb);return ai;
+  const def=AI_LEVELS[ai.level-1]||AI_LEVELS[0],rank=AVS_RANKS[ai.level-1]||AVS_RANKS[0],surface=rank.surface||def.color;document.body.dataset.aiLevel=String(ai.level);
+  document.documentElement.style.setProperty("--ai-color",def.color);document.documentElement.style.setProperty("--ai-rgb",def.rgb);document.documentElement.style.setProperty("--ambient-rank-color",def.color);document.documentElement.style.setProperty("--ambient-rank-rgb",def.rgb);document.documentElement.style.setProperty("--ambient-rank-surface",surface);const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',surface);return ai;
 }
-function applyCoverRankTheme(ai=aiValorationStats()){const c=COLOR_BANDS_15[Math.max(0,Math.min(14,(ai.level||1)-1))]||COLOR_BANDS_15[0],el=$("startScreen");if(el){el.style.setProperty("--cover-rank-color",c);el.dataset.avsRank=String(ai.level||1);}return c;}
+function applyCoverRankTheme(ai=aiValorationStats()){const i=Math.max(0,Math.min(14,(ai.level||1)-1)),c=COLOR_BANDS_15[i]||COLOR_BANDS_15[0],surface=SURFACE_BANDS_15[i]||c,el=$("startScreen");if(el){el.style.setProperty("--cover-rank-color",c);el.style.setProperty("--cover-rank-surface",surface);el.dataset.avsRank=String(ai.level||1);}return c;}
 function aiLegendHtml(current){return AI_LEVELS.map(x=>`<div class="ai-legend-item ${x.level===current?"current":""}"><i style="--swatch:${x.color}"></i><b>${x.level}</b></div>`).join("");}
-const AI_TEXT_COLORS=COLOR_BANDS_15.map(c=>mixHex(c,"#ffffff",.38));
+const AI_TEXT_COLORS=AVS_TEXT_BANDS_15;
 function valueLevel(v){return Math.max(1,Math.min(15,Math.ceil(clamp(Number(v)||0)*15)));}
 function valueColor(v){return AI_LEVELS[valueLevel(v)-1].color;}
 function valueTextColor(v){return AI_TEXT_COLORS[valueLevel(v)-1];}
 function paintText(id,v){const el=$(id);if(el)el.style.color=valueTextColor(v);}
 function paintFill(id,v){const el=$(id);if(el)el.style.background=valueColor(v);}
+function scoreValue(score,max=15){return clamp((Number(score)||0)/Math.max(1,Number(max)||15));}
+function scoreColor(score,max=15){return valueColor(scoreValue(score,max));}
+function scoreTextColor(score,max=15){return valueTextColor(scoreValue(score,max));}
+function semanticDeltaColor(value,goodUp=true){const v=Number(value)||0;if(Math.abs(v)<1e-9)return "#b7c9bf";const good=goodUp?v>0:v<0;return good?AI_TEXT_COLORS[9]:AI_TEXT_COLORS[3];}
+function paintScore(id,score,max=15){const el=$(id);if(el)el.style.color=scoreTextColor(score,max);}
+function paintDelta(id,value,goodUp=true){const el=$(id);if(el)el.style.color=semanticDeltaColor(value,goodUp);}
 
 function rankedSkills(){
   return CAMPAIGN.skills.map(s=>({...s,m:state.metrics[s.id],mastery:metricMastery(state.metrics[s.id])})).sort((a,b)=>b.mastery-a.mastery||b.m.attempts-a.m.attempts||a.name.localeCompare(b.name));
@@ -569,12 +574,12 @@ function targetPerformanceStats(){
 function renderStatsScreen(){
   const st=overallStats(),ai=aiValorationStats(),learning=learningScoreStats(),c2=campaign2Readiness(),peer=typicalLearnerStats(),trend=state.sessionHistory.filter(x=>x.mode==="training"),tgt=targetPerformanceStats();applyRatingTheme(st.rating);applyAiTheme(ai);
   $("statsAiLevel").textContent=`${ai.level} / 15`;paintText("statsAiLevel",ai.score/100);$("statsAiConfidence").textContent=`Evidence ${Math.round(ai.confidence*100)}%`;paintText("statsAiConfidence",ai.confidence);
-  $("statsLearningScore").textContent=learning.current==null?"—":learning.current.toFixed(1);if(learning.current!=null)paintText("statsLearningScore",learning.current/100);const ld=$("statsLearningDelta");if(learning.delta==null){ld.className="learning-direction neutral";ld.textContent="→";}else{const up=learning.delta>.05,down=learning.delta<-.05;ld.className=`learning-direction ${up?"good":down?"bad":"neutral"}`;ld.textContent=`${up?"↑":down?"↓":"→"} ${learning.delta>=0?"+":""}${learning.delta.toFixed(1)}`;}$("statsLearningWindow").textContent=`Last ${learning.windowSize} vs previous ${learning.windowSize} levels`;
+  $("statsLearningScore").textContent=learning.current==null?"—":learning.current.toFixed(1);if(learning.current!=null)paintText("statsLearningScore",learning.current/100);const ld=$("statsLearningDelta");if(learning.delta==null){ld.className="learning-direction neutral";ld.textContent="→";ld.style.color="#b7c9bf";}else{const up=learning.delta>.05,down=learning.delta<-.05;ld.className=`learning-direction ${up?"good":down?"bad":"neutral"}`;ld.textContent=`${up?"↑":down?"↓":"→"} ${learning.delta>=0?"+":""}${learning.delta.toFixed(1)}`;ld.style.color=semanticDeltaColor(learning.delta,true);}$("statsLearningWindow").textContent=`Last ${learning.windowSize} vs previous ${learning.windowSize} levels`;
   [["statsCoverage",st.coverage,true],["statsMastery",st.mastery,true],["statsAccuracy",st.accuracy,true],["statsAutomatic",st.auto,true]].forEach(([id,v,pc])=>{$(id).textContent=pc?`${pct(v)}%`:String(v);paintText(id,v);});$("statsAvg").textContent=st.avgMs?fmtSec(st.avgMs):"—";$("statsTotal").textContent=(state.totalAttempts||0).toLocaleString();
   $("statsAccuracyChart").innerHTML=sessionScoreChart(trend,false);$("statsLearningChart").innerHTML=sparkline(learningCurveSeries(),v=>`${v.toFixed(1)}`,false,learning.start,"Start");$("statsSkills").innerHTML=skillRowsHtml(rankedSkills());
-  if(tgt.n){$("targetAvg").textContent=tgt.avgTarget.toFixed(1);$("targetActualAvg").textContent=tgt.avgActual.toFixed(1);$("targetDeltaAvg").textContent=`${tgt.avgDelta>=0?"+":""}${tgt.avgDelta.toFixed(2)}`;$("targetHitRate").textContent=`${Math.round(tgt.hitRate*100)}%`;$("targetDeltaAvg").style.color=tgt.avgDelta>=0?"#82e6a9":"#ff7d8e";$("targetHitRate").style.color=tgt.hitRate>=.5?"#82e6a9":"#ff7d8e";$("targetBreakdown").textContent=`${tgt.n} target levels · Above ${Math.round(tgt.aboveRate*100)}% · Exact ${Math.round(tgt.onRate*100)}% · Below ${Math.round(tgt.belowRate*100)}%`; }else{$("targetBreakdown").textContent="Complete levels with TARGET to build this statistic.";}
-  $("statsPeerYou").textContent=peer.actual==null?"—":peer.actual.toFixed(1);$("statsPeerHealthy").textContent=peer.healthyMin.toFixed(1);$("statsPeerExpected").textContent=peer.typical.toFixed(1);$("statsPeerStrong").textContent=peer.strongPace.toFixed(1);const peerText=peer.delta==null?"—":`${peer.delta>=0?"+":""}${peer.delta.toFixed(1)}`;$("statsPeerDelta").textContent=peerText;$("statsPeerDeltaMini").textContent=peerText;const pd=$("statsPeerDelta");pd.className=`peer-delta ${peer.delta==null||Math.abs(peer.delta)<2?"neutral":peer.delta>0?"good":"bad"}`;$("statsPeerLabel").textContent=`${peer.label} · Typical range ${peer.healthyMin.toFixed(1)}–${peer.strongPace.toFixed(1)} at ${peer.attempts.toLocaleString()} answers. Model-based reference, not measured users.`;
-  $("statsCampaign2").textContent=`Campaign 2 readiness ${pct(c2.score)}% · ${c2.stage}${c2.ready?" · Recommended now":" · "+(c2.blockers[0]||"Keep consolidating")}`;
+  if(tgt.n){$("targetAvg").textContent=tgt.avgTarget.toFixed(1);paintScore("targetAvg",tgt.avgTarget);$("targetActualAvg").textContent=tgt.avgActual.toFixed(1);paintScore("targetActualAvg",tgt.avgActual);$("targetDeltaAvg").textContent=`${tgt.avgDelta>=0?"+":""}${tgt.avgDelta.toFixed(2)}`;paintDelta("targetDeltaAvg",tgt.avgDelta,true);$("targetHitRate").textContent=`${Math.round(tgt.hitRate*100)}%`;paintText("targetHitRate",tgt.hitRate);$("targetBreakdown").textContent=`${tgt.n} target levels · Above ${Math.round(tgt.aboveRate*100)}% · Exact ${Math.round(tgt.onRate*100)}% · Below ${Math.round(tgt.belowRate*100)}%`; }else{$("targetBreakdown").textContent="Complete levels with TARGET to build this statistic.";}
+  $("statsPeerYou").textContent=peer.actual==null?"—":peer.actual.toFixed(1);if(peer.actual!=null)paintText("statsPeerYou",peer.actual/100);$("statsPeerHealthy").textContent=peer.healthyMin.toFixed(1);paintText("statsPeerHealthy",peer.healthyMin/100);$("statsPeerExpected").textContent=peer.typical.toFixed(1);paintText("statsPeerExpected",peer.typical/100);$("statsPeerStrong").textContent=peer.strongPace.toFixed(1);paintText("statsPeerStrong",peer.strongPace/100);const peerText=peer.delta==null?"—":`${peer.delta>=0?"+":""}${peer.delta.toFixed(1)}`;$("statsPeerDelta").textContent=peerText;$("statsPeerDeltaMini").textContent=peerText;if(peer.delta!=null){paintDelta("statsPeerDelta",peer.delta,true);paintDelta("statsPeerDeltaMini",peer.delta,true);}const pd=$("statsPeerDelta");pd.className=`peer-delta ${peer.delta==null||Math.abs(peer.delta)<2?"neutral":peer.delta>0?"good":"bad"}`;$("statsPeerLabel").textContent=`${peer.label} · Typical range ${peer.healthyMin.toFixed(1)}–${peer.strongPace.toFixed(1)} at ${peer.attempts.toLocaleString()} answers. Model-based reference, not measured users.`;
+  $("statsCampaign2").textContent=`Campaign 2 readiness ${pct(c2.score)}% · ${c2.stage}${c2.ready?" · Recommended now":" · "+(c2.blockers[0]||"Keep consolidating")}`;$("statsCampaign2").style.color=valueTextColor(c2.score);
 }
 function renderCoachScreen(){
   const focus=coachSkillStats(),top=focus.slice(0,5),mistakes=commonMistakeGroups(8),worst=[...rankedSkills()].reverse();applyRatingTheme(overallStats().rating);applyAiTheme(aiValorationStats());
@@ -641,10 +646,10 @@ function renderDailyKey(){
   const unlocked=[...state.keyring].sort((a,b)=>(a.number||0)-(b.number||0)),lockedN=Math.min(25,unlocked.length+1);
   const marks=Array.from({length:25},(_,i)=>`<i class="${i<unlocked.length?"on":""}"></i>`).join("");
   const locked=unlocked.length<25?`<article class="key-slide key-slide-locked" data-key-number="${lockedN}"><div class="key-slide-meta"><span>KEY ${lockedN} / 25</span><small>LOCKED</small></div><div class="daily-key-card locked-card"><div class="daily-key-face"><small>NEXT SECRET</small><strong>◇</strong><b>KEY ${lockedN}</b><span>SE DESBLOQUEA CON EL PRÓXIMO DÍA</span></div></div></article>`:"";
-  host.innerHTML=`<div class="daily-key-head"><div><span>KEY JOURNEY</span><b>${unlocked.length} / 25 UNLOCKED</b></div><em>${unlocked.length}/25</em></div><div class="key-marks" aria-label="${unlocked.length} of 25 Keys unlocked">${marks}</div><div id="keyCarousel" class="key-carousel">${unlocked.map(keySlideHtml).join("")}${locked}</div><div class="key-carousel-hint">DESLIZA ↔ · 1 TOQUE REVELA · 2º TOQUE AVANZA</div>`;
+  host.innerHTML=`<div class="daily-key-head"><div><span>KEY JOURNEY</span><b>${unlocked.length} / 25 UNLOCKED</b></div><em>${unlocked.length}/25</em></div><div class="key-marks" aria-label="${unlocked.length} of 25 Keys unlocked">${marks}</div><div id="keyCarousel" class="key-carousel">${unlocked.map(keySlideHtml).join("")}${locked}</div><div class="key-carousel-hint">TOCA PARA GIRAR · DESLIZA ↔</div>`;
   const carousel=$("keyCarousel"),slides=[...carousel.querySelectorAll(".key-slide")],cards=[...carousel.querySelectorAll("button.daily-key-card")];
   const centerSlide=(slide,behavior="smooth")=>{if(!slide)return;const left=Math.max(0,slide.offsetLeft-(carousel.clientWidth-slide.clientWidth)/2);carousel.scrollTo({left,behavior});};
-  cards.forEach((card,i)=>card.addEventListener("click",()=>{if(!card.classList.contains("revealed")){card.classList.add("revealed");card.setAttribute("aria-expanded","true");return;}centerSlide(slides[i+1]);}));
+  cards.forEach(card=>card.addEventListener("click",()=>{const revealed=card.classList.toggle("revealed");card.setAttribute("aria-expanded",revealed?"true":"false");}));
   requestAnimationFrame(()=>{const current=slides.find(x=>Number(x.dataset.keyNumber)===journey.number);centerSlide(current,"auto");});
 }
 function treeRand(seed=129){let t=seed>>>0;return()=>{t+=0x6D2B79F5;let x=t;x=Math.imul(x^x>>>15,x|1);x^=x+Math.imul(x^x>>>7,x|61);return((x^x>>>14)>>>0)/4294967296;};}
@@ -691,7 +696,7 @@ function renderStart(){
   $("startAvg").textContent=st.avgMs?fmtSec(st.avgMs):"—";
   $("startAuto").textContent=st.auto?pct(st.auto)+"%":"—";paintText("startAuto",st.auto);
   $("startMastered").textContent=`${st.mastered}/${CAMPAIGN.skills.length}`;paintText("startMastered",st.mastered/CAMPAIGN.skills.length);
-  $("startTotal").textContent=(state.totalAttempts||0).toLocaleString();
+  $("startTotal").textContent=(state.totalAttempts||0).toLocaleString();const phraseStats=phraseExposureStats();$("startPhrasesDone").textContent=phraseStats.unique.toLocaleString();$("startRepeatedPhrases").textContent=phraseStats.repeatedUnique.toLocaleString();
   const peer=typicalLearnerStats(),spd=$("startPeerDelta");spd.textContent=peer.delta==null?"—":`${peer.delta>=0?"+":""}${peer.delta.toFixed(1)}`;spd.className=`peer-delta ${peer.delta==null||Math.abs(peer.delta)<2?"neutral":peer.delta>0?"good":"bad"}`;$("startPeerStatus").textContent=`${peer.label} · typical ${peer.typical.toFixed(1)} · range ${peer.healthyMin.toFixed(1)}–${peer.strongPace.toFixed(1)}`;
   let status=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Math.max(0,sg.to-sg.seen)} new exercises until the next stage.`;
   if(st.coverage>=.999&&!st.eligible){const knowledgeReady=st.mastery>=.85&&st.minSkill>=.70;status=knowledgeReady&&st.keysUnlocked<25?`Knowledge gates achieved. KEY JOURNEY ${st.keysUnlocked}/25 · Campaign remains locked until all 25 Keys are collected.`:`All 3,000 exercises explored. Consolidation continues until mastery ≥85%, every Key ≥70%, and KEY JOURNEY reaches 25/25.`;}
@@ -822,7 +827,7 @@ function renderEnd(s,before){
   renderCampaign2Readiness();
   $("endKicker").textContent=s.mode==="final"?"FINAL CHALLENGE":`LEVEL ${s.level} COMPLETE`;
   const targetHit=s.target==null?null:s.correct>=s.target,targetDelta=s.target==null?null:s.correct-s.target;
-  $("endScore").textContent=`${s.correct}/${s.total} · ${pct(s.accuracy)}%`;$("endScore").style.color=targetHit==null?valueTextColor(s.accuracy):(targetHit?"#82e6a9":"#ff7d8e");
+  $("endScore").textContent=`${s.correct}/${s.total} · ${pct(s.accuracy)}%`;$("endScore").style.color=valueTextColor(s.accuracy);
   const targetEl=$("endTarget");if(targetEl){targetEl.className=`target-result ${targetHit==null?"hidden":targetHit?"hit":"miss"}`;targetEl.innerHTML=targetHit==null?"":`<span>TARGET ${s.target.toFixed(1)}</span><b>${targetDelta>=0?"+":""}${targetDelta.toFixed(1)}</b><small>${targetHit?"TARGET BEATEN":"TARGET MISSED"}</small>`;}
   $("endSub").textContent=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Object.keys(state.seen).length.toLocaleString()}/${BANK.length.toLocaleString()} explored`;
   $("eAvg").textContent=fmtSec(s.avgMs);$("eAuto").textContent=pct(s.automatic)+"%";paintText("eAuto",s.automatic);$("eFluency").textContent=pct(st.rating);paintText("eFluency",st.rating);
@@ -833,17 +838,16 @@ function renderEnd(s,before){
   const learning=learningScoreStats();
   $("learningScore").textContent=learning.current==null?"—":learning.current.toFixed(1);if(learning.current!=null){$("learningScore").style.color=valueTextColor(learning.current/100);$("learningScore").closest(".learning-score-box").style.borderColor=valueColor(learning.current/100);}
   const ld=$("learningScoreDelta");
-  if(learning.delta==null){ld.className="learning-direction neutral";ld.textContent="→ Primera media";}
-  else {const up=learning.delta>.05,down=learning.delta<-.05;ld.className=`learning-direction ${up?"good":down?"bad":"neutral"}`;ld.textContent=`${up?"↑":down?"↓":"→"} ${learning.delta>=0?"+":""}${learning.delta.toFixed(1)}`;}
+  if(learning.delta==null){ld.className="learning-direction neutral";ld.textContent="→ Primera media";ld.style.color="#b7c9bf";}
+  else {const up=learning.delta>.05,down=learning.delta<-.05;ld.className=`learning-direction ${up?"good":down?"bad":"neutral"}`;ld.textContent=`${up?"↑":down?"↓":"→"} ${learning.delta>=0?"+":""}${learning.delta.toFixed(1)}`;ld.style.color=semanticDeltaColor(learning.delta,true);}
   $("learningScoreWindow").textContent=`Curva longitudinal · ${learning.windowSize} vs ${learning.windowSize} niveles`;
   renderLevelLesson(session.records);
   const trend=state.sessionHistory.filter(x=>x.mode==="training");
   $("accuracyChart").innerHTML=sessionScoreChart(trend,false);
   $("learningTrendChart").innerHTML=sparkline(learningCurveSeries(),v=>`${v.toFixed(1)}`,false,learning.start,"Start");
-  const uniqueDone=Object.keys(state.seen).length;
-  const repeated=Object.values(state.seen).reduce((n,x)=>n+Math.max(0,(x.count||1)-1),0);
-  $("ePhrasesDone").textContent=uniqueDone.toLocaleString();paintText("ePhrasesDone",st.coverage);
-  $("eRepeats").textContent=repeated.toLocaleString();
+  const phraseStats=phraseExposureStats();
+  $("ePhrasesDone").textContent=phraseStats.unique.toLocaleString();paintText("ePhrasesDone",st.coverage);
+  $("eRepeats").textContent=phraseStats.repeatedUnique.toLocaleString();
   $("eBankTotal").textContent=BANK.length.toLocaleString();
   $("weakSkills").innerHTML=rankedSkills().map(x=>`<div class="skillrow"><div class="name">${escapeHtml(x.name)}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%;background:${valueColor(x.mastery)}"></div></div><div class="pct" style="color:${valueTextColor(x.mastery)}">${pct(x.mastery)}%</div></div>`).join("");
   const wrong=session.records.filter(r=>!r.correct);

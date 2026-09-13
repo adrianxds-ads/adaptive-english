@@ -1,24 +1,32 @@
-# Adrián Visual System · AVS 1.0
+# Adrián Visual System · AVS 2.0
 
-This is the canonical reusable visual language for Adrián's apps, agents and games.
-The 15-rank colour order is locked: dark earth/red → copper/amber → green → teal/blue → indigo → violet → gold.
+Canonical reusable colour language for Adrián’s apps, agents and games. Rank is encoded by **hue + perceptual lightness + intensity**, not hue alone. Accent, surface, band and text variants all rise monotonically from rank 1 to 15.
 
-| Rank | Name | Hex | Meaning |
-|---:|---|---|---|
-| 1 | Umber | `#2B1B18` | Critical |
-| 2 | Mahogany | `#3A211D` | Very low |
-| 3 | Oxblood | `#52231F` | Low |
-| 4 | Wine | `#6B2926` | Weak |
-| 5 | Rust | `#84352C` | Building |
-| 6 | Copper | `#A34B2A` | Transition |
-| 7 | Amber | `#B96B25` | Developing |
-| 8 | Olive | `#9A8128` | Midpoint |
-| 9 | Moss | `#6E8735` | Competent |
-| 10 | Emerald | `#3F8F4B` | Good |
-| 11 | Teal | `#278C70` | Very good |
-| 12 | Blue | `#2D7FA3` | Strong |
-| 13 | Indigo | `#3F63B2` | Advanced |
-| 14 | Violet | `#6B4AB8` | Elite |
-| 15 | Gold | `#E2B84B` | Maximum / reward |
+| Rank | Name | Accent | Surface | Band | Text | OKLCH L | Rel. luminance |
+|---:|---|---|---|---|---|---:|---:|
+| 1 | Umber | `#422522` | `#1A1714` | `#291F1B` | `#91817F` | 0.300 | 0.0260 |
+| 2 | Mahogany | `#512927` | `#1F1915` | `#30211D` | `#9A8382` | 0.335 | 0.0348 |
+| 3 | Oxblood | `#632D2A` | `#241A16` | `#3A231F` | `#A58583` | 0.370 | 0.0470 |
+| 4 | Wine | `#762F32` | `#2B1B19` | `#442423` | `#B08688` | 0.405 | 0.0611 |
+| 5 | Rust | `#843729` | `#2F1D16` | `#4B281E` | `#B88B83` | 0.440 | 0.0780 |
+| 6 | Copper | `#904311` | `#33210E` | `#512E12` | `#BF9275` | 0.475 | 0.0998 |
+| 7 | Amber | `#90570C` | `#33270D` | `#51390F` | `#BF9E72` | 0.510 | 0.1277 |
+| 8 | Olive | `#8B6B05` | `#312E0A` | `#4F430C` | `#BCA96E` | 0.545 | 0.1602 |
+| 9 | Moss | `#798136` | `#2B351A` | `#454F25` | `#B1B68A` | 0.580 | 0.2003 |
+| 10 | Emerald | `#57965A` | `#213C26` | `#335A38` | `#9EC29F` | 0.615 | 0.2458 |
+| 11 | Teal | `#32A48F` | `#154037` | `#206153` | `#88CABE` | 0.650 | 0.2921 |
+| 12 | Azure | `#4AA7C8` | `#1C4149` | `#2D6271` | `#96CCDF` | 0.685 | 0.3326 |
+| 13 | Indigo | `#7AA5EC` | `#2C4054` | `#466184` | `#B2CBF4` | 0.720 | 0.3710 |
+| 14 | Violet | `#BB9EF0` | `#413E56` | `#675E86` | `#D8C7F6` | 0.755 | 0.4131 |
+| 15 | Gold | `#E7BF57` | `#4F4925` | `#7E6F36` | `#F1DA9E` | 0.820 | 0.5494 |
 
-Numeric metrics map linearly from 0–100% to ranks 1–15. Gold is reserved for maximum/reward states; violet means elite but not maximum. Dark earth, oxblood and wine communicate negative states. Typography remains the existing Adaptive English display language unless a future product explicitly needs a different type system.
+## Canonical rules
+1. Absolute scalar values map to their own 1–15 rank.
+2. Higher rank must always be perceptually lighter than the lower rank.
+3. Use `accent` for points, lines, borders and highlights; `surface` for large backgrounds; `band` for chart zones; `text` for readable coloured typography.
+4. Actual chart series = solid/filled; TARGET = dashed/hollow. Colour always means value, never series identity.
+5. Improvement delta = rank 10 Emerald; deterioration = rank 4 Wine; zero/unknown = neutral.
+6. Gold (rank 15) is maximum/reward only. Violet (rank 14) means elite, not maximum.
+7. Ambient/global surfaces use the current global AI rank **surface** variant, not the raw accent.
+8. Raw quantities with no calibrated quality scale remain neutral.
+9. Correct = rank 10 Emerald; incorrect = rank 4 Wine.
