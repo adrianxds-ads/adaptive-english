@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="2.5">
-<title>Adaptive English - Campaign 1 - v2.5</title>
+<meta name="ae-version" content="2.5.1">
+<title>Adaptive English - Campaign 1 - v2.5.1</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -259,7 +259,13 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 @media(max-width:520px){.memory-echo{top:calc(6px + env(safe-area-inset-top));padding:8px 10px}.memory-echo b{font-size:12px}.end-quick-actions{gap:7px;margin-bottom:11px}.end-quick-actions .primary,.end-quick-actions .secondary{font-size:11px;min-height:43px}.key-memory-echo{margin-top:9px;padding-top:8px}}
 @media(prefers-reduced-motion:reduce){.memory-echo{transition:none!important}}
 </style>
-</head>
+<style id="v251-style">
+.memory-echo{top:30dvh;width:min(92vw,620px);padding:15px 18px 16px;border-radius:15px;transform:translate(-50%,-50%) scale(.975);box-shadow:0 18px 46px rgba(0,0,0,.40),0 0 28px rgba(255,213,102,.16)}
+.memory-echo.show{transform:translate(-50%,-50%) scale(1)}.memory-echo small{font-size:11px;letter-spacing:.18em}.memory-echo b{margin-top:4px;font-size:clamp(21px,5.6vw,30px);line-height:1.08}.memory-echo span{margin-top:5px;font-size:12px;letter-spacing:.10em}
+.key-slide .daily-key-card,.key-slide .daily-key-face{min-height:236px}.daily-key-face{padding:24px 22px}.daily-key-face small{font-size:12px}.daily-key-face strong{font-size:clamp(28px,6.6vw,40px);line-height:1.10}.daily-key-back b{font-size:17px;line-height:1.22;padding:9px 12px}.daily-key-back>span{font-size:14px;line-height:1.4;letter-spacing:.035em}
+.key-memory-echo{width:min(100%,360px);margin-top:14px;padding-top:12px}.key-memory-echo small{font-size:10px!important}.key-memory-echo span{font-size:14px!important;line-height:1.22!important}.key-memory-echo b{font-size:11px!important;line-height:1.25!important}
+@media(max-width:520px){.memory-echo{top:28dvh;width:min(94vw,560px);padding:14px}.memory-echo b{font-size:clamp(20px,5.8vw,26px)}.memory-echo span{font-size:11px}.key-slide .daily-key-card,.key-slide .daily-key-face{min-height:225px}.daily-key-face{padding:21px 17px}.daily-key-face strong{font-size:clamp(27px,7.4vw,35px)}.daily-key-back b{font-size:16px}.daily-key-back>span{font-size:14px}.key-memory-echo span{font-size:13px!important}.key-memory-echo b{font-size:10.5px!important}}
+</style></head>
 <body>
 <div class="app">
 <section id="startScreen" class="screen start">
@@ -268,7 +274,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 15</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.5</div>
+    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.5.1</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -311,7 +317,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 
 <section id="statsScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.5</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
+    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.5.1</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 15</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
@@ -326,7 +332,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">MY COACH · v2.5</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div class="resulttitle"><div class="kicker">MY COACH · v2.5.1</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
     <div id="coachIntro" class="statusbox"></div>
     <div class="section"><h3>Focus now</h3><div id="coachFocus" class="coach-grid"></div></div>
     <div class="section"><h3>Common mistakes</h3><div id="coachMistakes"></div></div>
@@ -392,12 +398,12 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
     </div>
-    <div class="footerline">Adaptive English v2.5 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
+    <div class="footerline">Adaptive English v2.5.1 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v2.5</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v2.5.1</div><h1>Errors</h1><p id="errorsCount"></p></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>

@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v2.5
+# Adaptive English · Campaign 1 v2.5.1
 
 Local adaptive grammar trainer.
 
@@ -296,3 +296,8 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Wrong answers now trigger a brief top-of-screen memory echo tied to the grammar skill; it is visual only and does not delay question advance.
 - Added duplicate quick actions at the top of the level-results screen for Next Level, Dashboard, Review Errors and Final Challenge.
 - Preserved the fixed 10-second timer, 15-question level size, scheduler, mastery model, 3,000-question bank and existing localStorage progress key.
+
+## v2.5.1 · Readability polish
+
+- Enlarged Key typography.
+- Centered and enlarged in-game Memory Echo above the correct-answer reveal.
