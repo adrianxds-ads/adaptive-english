@@ -1,17 +1,19 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "1.31";
+const APP_VERSION = "2.0";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
 const TIME_LIMIT = 10;
 const HISTORY_LIMIT = 6000;
 const SESSION_HISTORY_LIMIT = 1000;
-const COLOR_BANDS_15=["#6b3f2b","#7b4030","#8d432f","#9f4a2d","#b15a2c","#bb742d","#ad9132","#879b38","#5c9846","#368f5d","#248a78","#267f97","#376fb0","#535fb8","#7048a8"];
+const VISUAL_SYSTEM=window.ADRIAN_VISUAL_SYSTEM||null;
+const COLOR_BANDS_15=(VISUAL_SYSTEM?.ranks||["#2B1B18","#3A211D","#52231F","#6B2926","#84352C","#A34B2A","#B96B25","#9A8128","#6E8735","#3F8F4B","#278C70","#2D7FA3","#3F63B2","#6B4AB8","#E2B84B"]).map(x=>typeof x==="string"?x:x.color);
 let CAMPAIGN=null, BANK=[], state=null, session=null, timerHandle=null, deadline=0, current=null, locked=false;
 let audioCtx=null, soundOn=true, lastTickShown=TIME_LIMIT+1;
 
 const $=id=>document.getElementById(id);
+function applyVisualSystemTokens(){const r=document.documentElement;COLOR_BANDS_15.forEach((c,i)=>r.style.setProperty(`--rank-${i+1}`,c));r.style.setProperty("--reward-gold",COLOR_BANDS_15[14]);r.style.setProperty("--elite-violet",COLOR_BANDS_15[13]);r.style.setProperty("--negative-wine",COLOR_BANDS_15[3]);}
 function storedGlobalLevel(){try{return Math.max(1,Math.floor(Number(localStorage.getItem(GLOBAL_LEVEL_KEY))||1));}catch(e){return 1;}}
 function syncGlobalLevel(level){const n=Math.max(1,Math.floor(Number(level)||1),storedGlobalLevel());try{localStorage.setItem(GLOBAL_LEVEL_KEY,String(n));}catch(e){}return n;}
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -60,6 +62,9 @@ function playTick(strong=false,step=0){const f=strong?(step%2?1540:1260):(step%2
 function playCorrect(){const notes=[440,587.33,783.99,1046.5];notes.forEach((f,i)=>{tone(f,i===3?.11:.052,i===3?.024:.020,i%2?'sine':'triangle',i*.047);if(i>0)tone(f*2,.032,.007,'sine',i*.047+.012);});}
 function playWrong(){tone(311.13,.050,.020,'triangle');tone(220,.070,.017,'sine',.042);}
 function playComplete(){tone(392,.075,.022,'sine');tone(523.25,.085,.024,'triangle',.070);tone(659.25,.100,.026,'sine',.145);tone(783.99,.155,.028,'sine',.230);}
+function playCountdownStep(n){tone(n===1?1046.5:783.99,.055,.018,'triangle');}
+function playLevelClear(){[523.25,659.25,783.99,1046.5].forEach((f,i)=>{tone(f,i===3?.18:.075,i===3?.029:.021,i%2?'sine':'triangle',i*.075);if(i===3)tone(1318.5,.11,.010,'sine',i*.075+.045);});}
+function playLevelMiss(){tone(246.94,.075,.015,'triangle');tone(196,.095,.012,'sine',.065);}
 function haptic(ok){
   try{if(navigator.vibrate)navigator.vibrate(ok?18:[24,16,42]);}catch(e){}
 }
@@ -696,7 +701,24 @@ function renderStart(){
   renderDailyKey();
   renderGrowthTree();
 }
-function showScreen(id){["startScreen","statsScreen","coachScreen","gameScreen","endScreen","errorsScreen"].forEach(x=>$(x).classList.add("hidden"));$(id).classList.remove("hidden");}
+function showScreen(id){["startScreen","statsScreen","coachScreen","gameScreen","endScreen","errorsScreen"].forEach(x=>$(x).classList.toggle("hidden",x!==id));window.scrollTo(0,0);}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function missionOverlay(show=true){const el=$("missionOverlay");if(!el)return null;el.classList.toggle("hidden",!show);el.setAttribute("aria-hidden",show?"false":"true");return el;}
+async function showLevelIntro(finalMode,target){
+  const el=missionOverlay(true),last=state.sessionHistory.filter(x=>x.mode==="training").slice(-1)[0];if(!el)return;
+  el.className="mission-overlay intro";const rank=finalMode?14:valueLevel((target||0)/15);el.style.setProperty("--mission-accent",valueColor(rank/15));
+  const lastDelta=last&&Number.isFinite(last.target)?last.correct-last.target:null,lastLine=last?`LAST ${last.correct}/15${lastDelta==null?"":` · ${lastDelta>=0?"+":""}${lastDelta.toFixed(1)} VS TARGET`}`:"FIRST LEVEL";
+  $("missionBody").innerHTML=`<div class="mission-eyebrow">${finalMode?"FINAL CHALLENGE":`LEVEL ${state.level}`}</div><div class="mission-title">${finalMode?"FINAL RUN":"TARGET"}</div><div class="mission-score" style="color:${finalMode?valueTextColor(13/15):valueTextColor((target||0)/15)}">${finalMode?"READY":`${target.toFixed(1)}<small>/15</small>`}</div><div class="mission-meta">${lastLine}</div><div class="mission-rules">15 QUESTIONS · 10s</div>`;
+  for(const n of [3,2,1]){$("missionCount").textContent=String(n);$("missionCount").classList.remove("pop");void $("missionCount").offsetWidth;$("missionCount").classList.add("pop");playCountdownStep(n);await wait(820);}
+  $("missionCount").textContent="GO";tone(1318.5,.09,.022,"sine");await wait(320);missionOverlay(false);
+}
+async function showLevelResolution(s,before){
+  const el=missionOverlay(true);if(!el)return;const finalClear=s.mode==="final"&&s.accuracy>=.85&&s.avgMs<=6000,hit=s.mode==="final"?finalClear:s.target!=null&&s.correct>=s.target;
+  el.className=`mission-overlay resolution ${hit?"hit":"miss"}`;el.style.setProperty("--mission-accent",hit?COLOR_BANDS_15[14]:COLOR_BANDS_15[3]);
+  const d=s.target==null?null:s.correct-s.target,aiChange=before&&Number.isFinite(before.aiLevel)&&before.aiLevel!==s.aiLevel?`<div class="mission-change" style="color:${valueTextColor(s.aiLevel/15)}">AI RANK ${before.aiLevel} → ${s.aiLevel}</div>`:"";
+  $("missionBody").innerHTML=`<div class="mission-eyebrow">${s.mode==="final"?(hit?"FINAL CLEARED":"FINAL NOT CLEARED"):(hit?"TARGET CLEARED":"TARGET MISSED")}</div><div class="mission-score">${s.correct}<small>/${s.total}</small></div>${s.target==null?"":`<div class="mission-targetline">TARGET ${s.target.toFixed(1)} · <b>${d>=0?"+":""}${d.toFixed(1)}</b></div>`}<div class="mission-meta">${s.mode==="training"?`LEVEL ${s.level} → ${state.level}`:`${Math.round(s.accuracy*100)}% · ${fmtSec(s.avgMs)}`}</div>${aiChange}`;
+  $("missionCount").textContent=hit?"CLEAR":"REVIEW";hit?playLevelClear():playLevelMiss();await wait(2850);missionOverlay(false);
+}
 function adaptiveLevelTarget(plan){
   if(!Array.isArray(plan)||!plan.length)return null;
   const training=state.sessionHistory.filter(x=>x.mode==="training"&&Number.isFinite(x.correct)&&Number.isFinite(x.total)).slice(-8),recentExpected=training.length?mean(training.map(x=>15*x.correct/x.total)):15*(state.history.length?overallStats().accuracy:.50),globalAcc=state.history.length?overallStats().accuracy:.50;
@@ -704,13 +726,13 @@ function adaptiveLevelTarget(plan){
   const planExpected=15*expected/plan.length,baseline=.58*planExpected+.42*recentExpected,stretch=training.length>=4?.55:.35;
   return clamp(Math.round((baseline+stretch)*2)/2,3.5,14.5);
 }
-function startSession(finalMode=false){
+async function startSession(finalMode=false){
   applyRatingTheme(overallStats().rating);
   const raw=finalMode?buildFinalPlan():buildTrainingPlan();
   const target=finalMode?null:adaptiveLevelTarget(raw);
   session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),target,plan:raw.map(shuffleOptions)};
   $("sessionLevel").innerHTML=finalMode?"FINAL":`L${state.level}<small class="level-target">TARGET ${target.toFixed(1)}</small>`;
-  showScreen("gameScreen");nextQuestion();
+  await showLevelIntro(finalMode,target);showScreen("gameScreen");nextQuestion();
 }
 function renderSegments(left){
   const n=Math.ceil(left);
@@ -766,7 +788,7 @@ function answer(pos,timeout=false){
   const answeredIndex=session.index,delay=ok?1100:(type==="fast-wrong"?1650:type==="timeout"?1500:1450);setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
   try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance);}catch(e){console.error("Feedback failed",e);}
 }
-function finishSession(){
+async function finishSession(){
   clearInterval(timerHandle);
   const completedLevel=state.level,n=session.records.length,accuracy=session.correct/n,avgMs=Math.round(mean(session.records.map(r=>r.ms))),auto=session.automatic/n;
   const before=state.sessionHistory.length?state.sessionHistory[state.sessionHistory.length-1]:null;
@@ -780,7 +802,7 @@ function finishSession(){
     state.finalAttempts=(state.finalAttempts||0)+1;
     if(accuracy>=.85&&avgMs<=6000)state.completed=true;
   }
-  save();playComplete();renderEnd(snap,before);showScreen("endScreen");
+  save();renderEnd(snap,before);await showLevelResolution(snap,before);showScreen("endScreen");
 }
 function renderEnd(s,before){
   const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating),ai=aiValorationStats();
@@ -845,13 +867,14 @@ function validQuestion(q){
 }
 
 async function boot(){
+  applyVisualSystemTokens();
   CAMPAIGN=await loadCampaign();
   const before=CAMPAIGN.questions.length;
   CAMPAIGN.questions=CAMPAIGN.questions.filter(validQuestion);
   if(CAMPAIGN.questions.length!==before)console.warn(`Adaptive English skipped ${before-CAMPAIGN.questions.length} invalid question(s) with duplicate/broken options.`);
   BANK=CAMPAIGN.questions;state=loadState();save();
   const seg=$("segments");for(let i=0;i<10;i++){const d=document.createElement("div");d.className="seg";seg.appendChild(d);}
-  $("startBtn").onclick=async()=>{await ensureAudio();startSession(false);};
+  $("startBtn").onclick=async()=>{await ensureAudio();await startSession(false);};
   $("statsBtn").onclick=()=>{renderStatsScreen();showScreen("statsScreen");};
   $("scoreExpandBtn").onclick=()=>{const rows=state.sessionHistory.filter(x=>x.mode==="training");$("scoreExpandedChart").innerHTML=sessionScoreChart(rows,true);$("scoreModal").classList.remove("hidden");};
   $("scoreCloseBtn").onclick=()=>$("scoreModal").classList.add("hidden");
@@ -859,8 +882,8 @@ async function boot(){
   $("coachBtn").onclick=()=>{renderCoachScreen();showScreen("coachScreen");};
   $("statsBackBtn").onclick=()=>{renderStart();showScreen("startScreen");};
   $("coachGenerateBtn").onclick=generateCoachPrompt;$("coachPromptCopy").onclick=copyCoachPrompt;$("coachBackBtn").onclick=()=>{renderStart();showScreen("startScreen");};
-  $("continueBtn").onclick=async()=>{await ensureAudio();if(state.completed){renderStart();showScreen("startScreen");}else startSession(false);};
-  $("finalBtn").onclick=async()=>{await ensureAudio();startSession(true);};
+  $("continueBtn").onclick=async()=>{await ensureAudio();if(state.completed){renderStart();showScreen("startScreen");}else await startSession(false);};
+  $("finalBtn").onclick=async()=>{await ensureAudio();await startSession(true);};
   $("soundBtn").onclick=async()=>{soundOn=!soundOn;if(soundOn){await ensureAudio();tone(760,.06,.025,'sine');}refreshSoundButton();};
   refreshSoundButton();
   $("exportBtn").onclick=exportProgress;$("importBtn").onclick=()=>$("importFile").click();

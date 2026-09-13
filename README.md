@@ -242,3 +242,13 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Unified the app around the same 15-colour performance scale used by the /15 score chart.
 - AI Valoration now uses levels 1–15; metric fills and text hues map 0–100% into the same 15 bands.
 - Each colour band spans about 6.67 percentage points; band 15 is the existing purple maximum.
+
+
+## v2.0
+- Introduces Adrián Visual System (AVS 1.0), a locked reusable 15-rank colour language for future apps, agents and games.
+- Rank 15 is now luminous Gold (maximum/reward); rank 14 is Violet (elite). Low ranks run through dark earth, oxblood and wine before copper/amber, green, teal, blue and indigo.
+- The score graph, AI Valoration and metric colours now share the same canonical palette source.
+- Added a pre-level 3-2-1 mission screen with LEVEL, adaptive TARGET, previous result vs target, and the fixed 15-question / 10-second rules.
+- Added a ~3-second post-level resolution flash before full statistics: Gold for target cleared, dark Wine for target missed, plus score, target delta, level transition and AI rank change when one occurred.
+- Clear/miss transition sounds are original Adaptive English cues and do not copy game audio.
+- Canonical palette tokens live in `adrian-visual-system.js`; human-readable reference lives in `ADRIAN_VISUAL_SYSTEM.md`.
