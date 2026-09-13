@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v2.4
+# Adaptive English · Campaign 1 v2.5
 
 Local adaptive grammar trainer.
 
@@ -288,3 +288,11 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Reading-load conclusions remain observational: the app requires evidence in both short and long bands before labelling a possible load effect.
 - Adds skill-specific length-sensitivity analysis to the ChatGPT coach snapshot, so long-sentence effects can be separated from grammar-specific difficulty.
 - The coach prompt explicitly treats the 10-second clock as a fixed game rule and avoids recommending timer changes from weak evidence.
+
+## v2.5 · Memory echoes and faster result navigation
+
+- Added subtle synthesized turn sounds to the 25 Key flashcards; reveal rises, close falls, and the global sound toggle still controls them.
+- Added a compact `MUSIC ECHO` anchor to every unlocked Key, including dynamic anchors for `so/such` and `too/enough`.
+- Wrong answers now trigger a brief top-of-screen memory echo tied to the grammar skill; it is visual only and does not delay question advance.
+- Added duplicate quick actions at the top of the level-results screen for Next Level, Dashboard, Review Errors and Final Challenge.
+- Preserved the fixed 10-second timer, 15-question level size, scheduler, mastery model, 3,000-question bank and existing localStorage progress key.

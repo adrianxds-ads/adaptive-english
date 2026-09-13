@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="2.4">
-<title>Adaptive English - Campaign 1 - v2.4</title>
+<meta name="ae-version" content="2.5">
+<title>Adaptive English - Campaign 1 - v2.5</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -250,6 +250,15 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 @media(prefers-reduced-motion:reduce){.daily-key-card.revealed,.daily-key-card:not(.revealed){animation:none!important}}
 </style>
 
+<style id="v250-style">
+/* v2.5 · memory echoes, card-turn micro-sound and zero-scroll result actions */
+.memory-echo{position:fixed;z-index:32;top:calc(8px + env(safe-area-inset-top));left:50%;width:min(92vw,520px);padding:9px 13px 10px;border:1px solid rgba(255,213,102,.42);border-radius:12px;background:rgba(16,19,14,.94);box-shadow:0 12px 34px rgba(0,0,0,.36),0 0 22px rgba(255,213,102,.10);text-align:center;pointer-events:none;opacity:0;transform:translate(-50%,-12px) scale(.985);transition:opacity .12s ease,transform .16s cubic-bezier(.2,.8,.25,1)}
+.memory-echo.show{opacity:1;transform:translate(-50%,0) scale(1)}.memory-echo small{display:block;color:#d8b95a;font-size:8px;font-weight:950;letter-spacing:.16em}.memory-echo b{display:block;margin-top:2px;color:#fff0bd;font-size:13px;line-height:1.15}.memory-echo span{display:block;margin-top:2px;color:#bfae83;font-size:8px;font-weight:900;letter-spacing:.09em}
+.key-memory-echo{display:flex;flex-direction:column;align-items:center;width:min(100%,310px);margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,213,102,.16);font-style:normal}.key-memory-echo small{font-size:8px!important;color:#d7b95d!important;letter-spacing:.15em}.key-memory-echo span{margin-top:3px;color:#f4e7ba!important;font-size:10px!important;font-weight:900;letter-spacing:.02em!important}.key-memory-echo b{margin:4px 0 0!important;padding:0!important;background:none!important;color:#bfae83!important;font-size:8px!important;letter-spacing:.08em}
+.end-quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 14px}.end-quick-actions .primary,.end-quick-actions .secondary{min-width:0;width:100%;min-height:46px;padding:11px 10px;font-size:12px}
+@media(max-width:520px){.memory-echo{top:calc(6px + env(safe-area-inset-top));padding:8px 10px}.memory-echo b{font-size:12px}.end-quick-actions{gap:7px;margin-bottom:11px}.end-quick-actions .primary,.end-quick-actions .secondary{font-size:11px;min-height:43px}.key-memory-echo{margin-top:9px;padding-top:8px}}
+@media(prefers-reduced-motion:reduce){.memory-echo{transition:none!important}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -259,7 +268,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 15</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.4</div>
+    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.5</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -302,7 +311,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 
 <section id="statsScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.4</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
+    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.5</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 15</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
@@ -317,7 +326,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">MY COACH · v2.4</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div class="resulttitle"><div class="kicker">MY COACH · v2.5</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
     <div id="coachIntro" class="statusbox"></div>
     <div class="section"><h3>Focus now</h3><div id="coachFocus" class="coach-grid"></div></div>
     <div class="section"><h3>Common mistakes</h3><div id="coachMistakes"></div></div>
@@ -328,6 +337,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 </section>
 
 <section id="gameScreen" class="screen game hidden">
+  <div id="memoryEcho" class="memory-echo" aria-live="polite" aria-atomic="true"></div>
   <div class="top">
     <div class="toprow">
       <div id="timer" class="timer"><strong id="timerText">10.0</strong></div>
@@ -352,6 +362,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
       <h1 id="endScore">0/15</h1>
       <p id="endSub"></p><div id="endTarget" class="target-result hidden"></div>
     </div>
+    <div class="end-quick-actions" aria-label="Quick result actions"><button id="topContinueBtn" class="primary">NEXT LEVEL</button><button id="topHomeBtn" class="secondary">DASHBOARD · PORTADA</button><button id="topErrorsBtn" class="secondary hidden">REVIEW ERRORS</button><button id="topFinalBtn" class="secondary hidden">FINAL CHALLENGE</button></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="endAiLevel">— / 15</b><small id="endAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
     <div class="grid">
       <div class="card"><b id="eAvg">0.0s</b><span>Avg time</span><div id="dTime"></div></div>
@@ -381,12 +392,12 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
     </div>
-    <div class="footerline">Adaptive English v2.4 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
+    <div class="footerline">Adaptive English v2.5 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v2.4</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v2.5</div><h1>Errors</h1><p id="errorsCount"></p></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>

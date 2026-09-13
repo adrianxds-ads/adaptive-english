@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "2.4";
+const APP_VERSION = "2.5";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -66,6 +66,50 @@ function playComplete(){tone(392,.075,.022,'sine');tone(523.25,.085,.024,'triang
 function playCountdownStep(n){tone(n===1?1046.5:783.99,.055,.018,'triangle');}
 function playLevelClear(){const notes=[523.25,659.25,783.99,987.77,1318.5];notes.forEach((f,i)=>{tone(f,i===4?.22:.09,i===4?.032:.022,i%2?'sine':'triangle',i*.085);if(i>=2)tone(f*2,.055,.006,'sine',i*.085+.025);});}
 function playLevelMiss(){[[293.66,.00],[246.94,.10],[220,.20],[174.61,.33]].forEach(([f,d],i)=>tone(f,i===3?.18:.10,i===3?.016:.014,i%2?'sine':'triangle',d));}
+const MEMORY_ECHOES={
+  would_rather:{title:"Rather Be",artist:"Clean Bandit",cue:"WOULD RATHER"},
+  inversion:{title:"Never Ever",artist:"All Saints",cue:"NEGATIVE FIRST → INVERSION"},
+  third_conditional:{title:"If I Could Turn Back Time",artist:"Cher",cue:"PAST IMPOSSIBLE"},
+  allow_to:{title:"Permission to Dance",artist:"BTS",cue:"ALLOW + OBJECT + TO"},
+  neednt_have:{title:"No Need to Argue",artist:"The Cranberries",cue:"DID IT · NOT NECESSARY"},
+  should_have:{title:"Should've Said No",artist:"Taylor Swift",cue:"PAST ADVICE / REGRET"},
+  modal_deduction:{title:"It Must Have Been Love",artist:"Roxette",cue:"MODAL + HAVE + PARTICIPLE"},
+  wish_past:{title:"Back to December",artist:"Taylor Swift",cue:"WISH + HAD + PARTICIPLE"},
+  wish_present:{title:"Wish You Were Here",artist:"Pink Floyd",cue:"WISH + PAST SIMPLE"},
+  mixed_conditional:{title:"The Scientist",artist:"Coldplay",cue:"PAST CAUSE → NOW RESULT"},
+  causative:{title:"Fix You",artist:"Coldplay",cue:"HAVE + OBJECT + PARTICIPLE"},
+  passive:{title:"Written in the Stars",artist:"Tinie Tempah",cue:"BE + PARTICIPLE"},
+  backshift:{title:"She Said She Said",artist:"The Beatles",cue:"SAID → BACKSHIFT"},
+  past_perfect:{title:"Already Gone",artist:"Kelly Clarkson",cue:"EARLIER PAST → HAD"},
+  unless:{title:"If I Ain't Got You",artist:"Alicia Keys",cue:"UNLESS = IF NOT"},
+  despite:{title:"I'm Still Standing",artist:"Elton John",cue:"DESPITE + NOUN / -ING"},
+  look_forward:{title:"I Can't Wait",artist:"Nu Shooz",cue:"LOOK FORWARD TO + -ING"},
+  get_used_to:{title:"Getting Used to You",artist:"Selena",cue:"GET USED TO + -ING"},
+  used_to:{title:"Somebody That I Used to Know",artist:"Gotye",cue:"USED TO + BASE VERB"},
+  make_bare:{title:"Make Me...",artist:"Britney Spears",cue:"MAKE + OBJECT + BARE VERB"},
+  whose:{title:"Whose Bed Have Your Boots Been Under?",artist:"Shania Twain",cue:"WHOSE + NOUN"},
+  second_conditional:{title:"If I Were a Boy",artist:"Beyoncé",cue:"IF + PAST → WOULD"},
+  had_better:{title:"You Better Run",artist:"Pat Benatar",cue:"HAD BETTER + BASE VERB"}
+};
+function memoryEchoFor(cat,correctAnswer=""){
+  if(cat==="so_such")return /\bsuch\b/i.test(correctAnswer)?{title:"Such Great Heights",artist:"The Postal Service",cue:"SUCH + NOUN"}:{title:"So What",artist:"P!nk",cue:"SO + ADJECTIVE"};
+  if(cat==="too_enough")return /\benough\b/i.test(correctAnswer)?{title:"Never Enough",artist:"Loren Allred",cue:"ADJECTIVE + ENOUGH"}:{title:"Too Much",artist:"Spice Girls",cue:"TOO + ADJECTIVE"};
+  return MEMORY_ECHOES[cat]||null;
+}
+function keyMemoryEchoHtml(cat){
+  const x=memoryEchoFor(cat,cat==="so_such"?"such":cat==="too_enough"?"enough":"");if(!x)return "";
+  return `<em class="key-memory-echo"><small>MUSIC ECHO</small><span>${escapeHtml(x.artist)} · ${escapeHtml(x.title)}</span><b>${escapeHtml(x.cue)}</b></em>`;
+}
+function showMemoryEcho(cat,correctAnswer=""){
+  const el=$("memoryEcho"),x=memoryEchoFor(cat,correctAnswer);if(!el||!x)return;
+  el.innerHTML=`<small>MEMORY ECHO</small><b>${escapeHtml(x.artist)} · ${escapeHtml(x.title)}</b><span>${escapeHtml(x.cue)}</span>`;
+  el.classList.remove("show");void el.offsetWidth;el.classList.add("show");
+  clearTimeout(showMemoryEcho._timer);showMemoryEcho._timer=setTimeout(()=>el.classList.remove("show"),1050);
+}
+function playKeyFlip(revealed=true){
+  const notes=revealed?[[659.25,0],[987.77,.045],[1318.5,.095]]:[[987.77,0],[783.99,.045],[587.33,.09]];
+  notes.forEach(([f,d],i)=>tone(f,i===2?.085:.055,i===2?.011:.009,i===1?'triangle':'sine',d));
+}
 function haptic(ok){
   try{if(navigator.vibrate)navigator.vibrate(ok?18:[24,16,42]);}catch(e){}
 }
@@ -661,7 +705,7 @@ function ensureDailyKey(){
 }
 function keySlideHtml(x){
   const key=(window.AE_KEYS||{})[x.cat],skill=CAMPAIGN.skills.find(s=>s.id===x.cat),m=state.metrics[x.cat],mastery=m?metricMastery(m):0,n=x.number||1;
-  return `<article class="key-slide" data-key-number="${n}"><div class="key-slide-meta"><span>KEY ${n} / 25</span><small>${pct(mastery)}% MASTERY</small></div><button class="daily-key-card" type="button" aria-expanded="false"><div class="daily-key-face daily-key-front"><small>ESPAÑOL → INGLÉS</small><strong>${escapeHtml(key.front)}</strong><span>TOCA PARA REVELAR</span></div><div class="daily-key-face daily-key-back"><small>KEY ${n} UNLOCKED</small><strong>${escapeHtml(key.back)}</strong><b>${escapeHtml(key.formula)}</b><span>${escapeHtml(key.cue)}</span></div></button></article>`;
+  return `<article class="key-slide" data-key-number="${n}"><div class="key-slide-meta"><span>KEY ${n} / 25</span><small>${pct(mastery)}% MASTERY</small></div><button class="daily-key-card" type="button" aria-expanded="false"><div class="daily-key-face daily-key-front"><small>ESPAÑOL → INGLÉS</small><strong>${escapeHtml(key.front)}</strong><span>TOCA PARA REVELAR</span></div><div class="daily-key-face daily-key-back"><small>KEY ${n} UNLOCKED</small><strong>${escapeHtml(key.back)}</strong><b>${escapeHtml(key.formula)}</b><span>${escapeHtml(key.cue)}</span>${keyMemoryEchoHtml(x.cat)}</div></button></article>`;
 }
 function renderDailyKey(){
   const host=$("dailyKeyHost"),journey=ensureDailyKey();if(!host||!journey)return;
@@ -671,7 +715,7 @@ function renderDailyKey(){
   host.innerHTML=`<div class="daily-key-head"><div><span>KEY JOURNEY</span><b>${unlocked.length} / 25 UNLOCKED</b></div><em>${unlocked.length}/25</em></div><div class="key-marks" aria-label="${unlocked.length} of 25 Keys unlocked">${marks}</div><div id="keyCarousel" class="key-carousel">${unlocked.map(keySlideHtml).join("")}${locked}</div><div class="key-carousel-hint">TOCA PARA GIRAR · DESLIZA ↔</div>`;
   const carousel=$("keyCarousel"),slides=[...carousel.querySelectorAll(".key-slide")],cards=[...carousel.querySelectorAll("button.daily-key-card")];
   const centerSlide=(slide,behavior="smooth")=>{if(!slide)return;const left=Math.max(0,slide.offsetLeft-(carousel.clientWidth-slide.clientWidth)/2);carousel.scrollTo({left,behavior});};
-  cards.forEach(card=>card.addEventListener("click",()=>{const revealed=card.classList.toggle("revealed");card.setAttribute("aria-expanded",revealed?"true":"false");}));
+  cards.forEach(card=>card.addEventListener("click",async()=>{const revealed=card.classList.toggle("revealed");card.setAttribute("aria-expanded",revealed?"true":"false");try{await ensureAudio();playKeyFlip(revealed);}catch(e){console.error("Key flip audio failed",e);}}));
   requestAnimationFrame(()=>{const current=slides.find(x=>Number(x.dataset.keyNumber)===journey.number);centerSlide(current,"auto");});
 }
 function treeRand(seed=129){let t=seed>>>0;return()=>{t+=0x6D2B79F5;let x=t;x=Math.imul(x^x>>>15,x|1);x^=x+Math.imul(x^x>>>7,x|61);return((x^x>>>14)>>>0)/4294967296;};}
@@ -818,7 +862,7 @@ function answer(pos,timeout=false){
   state.seen[current.fingerprint]={count:appearance,lastLevel:state.level,lastTs:now,lastCorrect:ok,lapses,intervalDays,nextDueTs:now+intervalDays*86400000};state.templateLast[current.templateId]=state.level;state.templateSeen[current.templateId]={count:patternAppearance,lastLevel:state.level,lastTs:now};
   const shownQuestion=current.visibleQuestion||current.q,shownOptions=current.visibleOptions||current.display,load=promptLoadMeta(shownQuestion);
   const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,occurrence:appearance,patternOccurrence:patternAppearance,review:!!previousSeen,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:shownQuestion,originalQuestion:current.q,userAnswer:pos>=0?shownOptions[pos]:"No answer",correctAnswer:shownOptions[current.correctPos],rule:current.rule,promptWords:load.words,promptChars:load.chars,readingLoad:load.band,targetTimeSec:current.targetTime||3.6,timeLimitSec:TIME_LIMIT,sessionMode:session.mode};
-  if(!ok)showCorrectReveal(rec.correctAnswer,current.correctPos);else hideCorrectReveal();
+  if(!ok){showCorrectReveal(rec.correctAnswer,current.correctPos);showMemoryEcho(current.cat,rec.correctAnswer);}else hideCorrectReveal();
   try{flashGrammarFocus(shownQuestion,rec.correctAnswer,current.visibleFocus||current.focus||[]);}catch(e){console.error("Grammar focus flash failed",e);}
   state.history.push(rec);state.history=state.history.slice(-12000);state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
   const answeredIndex=session.index,delay=ok?1100:(type==="fast-wrong"?1650:type==="timeout"?1500:1450);setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
@@ -873,12 +917,12 @@ function renderEnd(s,before){
   $("eBankTotal").textContent=BANK.length.toLocaleString();
   $("weakSkills").innerHTML=rankedSkills().map(x=>`<div class="skillrow"><div class="name">${escapeHtml(x.name)}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%;background:${valueColor(x.mastery)}"></div></div><div class="pct" style="color:${valueTextColor(x.mastery)}">${pct(x.mastery)}%</div></div>`).join("");
   const wrong=session.records.filter(r=>!r.correct);
-  $("errorsBtn").textContent=`REVIEW ERRORS - ${wrong.length}`;
-  $("errorsBtn").classList.toggle("hidden",wrong.length===0);
+  const errorsLabel=`REVIEW ERRORS - ${wrong.length}`;$("errorsBtn").textContent=errorsLabel;$("topErrorsBtn").textContent=errorsLabel;
+  $("errorsBtn").classList.toggle("hidden",wrong.length===0);$("topErrorsBtn").classList.toggle("hidden",wrong.length===0);
   $("errorsCount").textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} in Level ${s.level}`:`No errors in Level ${s.level}`;
   $("errorsFull").innerHTML=wrong.length?wrong.map((r,i)=>`<details open><summary>${i+1}. ${escapeHtml(r.question)} - ${(r.ms/1000).toFixed(1)}s</summary><p><b>You:</b> ${escapeHtml(r.userAnswer)}<br><b>Correct:</b> ${escapeHtml(r.correctAnswer)}<br>${escapeHtml(r.rule)}</p></details>`).join(""):'<p class="meta">No errors in this level.</p>';
-  $("continueBtn").textContent=state.completed?"KEEP TRAINING":`NEXT LEVEL · ${state.level}`;
-  $("finalBtn").classList.toggle("hidden",!(st.eligible&&!state.completed));
+  const nextLabel=state.completed?"KEEP TRAINING":`NEXT LEVEL · ${state.level}`;$("continueBtn").textContent=nextLabel;$("topContinueBtn").textContent=nextLabel;
+  const finalHidden=!(st.eligible&&!state.completed);$("finalBtn").classList.toggle("hidden",finalHidden);$("topFinalBtn").classList.toggle("hidden",finalHidden);
   if(s.mode==="final"&&!state.completed)$("endSub").textContent=`Final challenge not passed yet · ${pct(s.accuracy)}% · ${fmtSec(s.avgMs)}`;
   if(state.completed)$("endSub").textContent="CAMPAIGN 1 COMPLETE";
 }
@@ -917,15 +961,16 @@ async function boot(){
   $("coachBtn").onclick=()=>{renderCoachScreen();showScreen("coachScreen");};
   $("statsBackBtn").onclick=()=>{renderStart();showScreen("startScreen");};
   $("coachGenerateBtn").onclick=generateCoachPrompt;$("coachPromptCopy").onclick=copyCoachPrompt;$("coachBackBtn").onclick=()=>{renderStart();showScreen("startScreen");};
-  $("continueBtn").onclick=async()=>{await ensureAudio();if(state.completed){renderStart();showScreen("startScreen");}else await startSession(false);};
-  $("finalBtn").onclick=async()=>{await ensureAudio();await startSession(true);};
+  const continueFromEnd=async()=>{await ensureAudio();if(state.completed){renderStart();showScreen("startScreen");}else await startSession(false);};$("continueBtn").onclick=continueFromEnd;$("topContinueBtn").onclick=continueFromEnd;
+  const finalFromEnd=async()=>{await ensureAudio();await startSession(true);};$("finalBtn").onclick=finalFromEnd;$("topFinalBtn").onclick=finalFromEnd;
   $("soundBtn").onclick=async()=>{soundOn=!soundOn;if(soundOn){await ensureAudio();tone(760,.06,.025,'sine');}refreshSoundButton();};
   $("abortSessionBtn").onclick=abortSession;
   refreshSoundButton();
   $("exportBtn").onclick=exportProgress;$("importBtn").onclick=()=>$("importFile").click();
   $("importFile").onchange=e=>e.target.files[0]&&importProgress(e.target.files[0]);
-  $("resetBtn").onclick=resetProgress;$("campaign2Copy").onclick=copyCampaign2Brief;$("homeBtn").onclick=()=>{renderStart();showScreen("startScreen");};
-  $("errorsBtn").onclick=()=>showScreen("errorsScreen");
+  const goDashboard=()=>{renderStart();showScreen("startScreen");};const reviewErrors=()=>showScreen("errorsScreen");
+  $("resetBtn").onclick=resetProgress;$("campaign2Copy").onclick=copyCampaign2Brief;$("homeBtn").onclick=goDashboard;$("topHomeBtn").onclick=goDashboard;
+  $("errorsBtn").onclick=reviewErrors;$("topErrorsBtn").onclick=reviewErrors;
   $("errorsBackBtn").onclick=()=>showScreen("endScreen");
   renderStart();showScreen("startScreen");
 }
