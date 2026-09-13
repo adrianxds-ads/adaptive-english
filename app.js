@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "2.0";
+const APP_VERSION = "2.1";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -500,6 +500,7 @@ function applyAiTheme(ai=aiValorationStats()){
   const def=AI_LEVELS[ai.level-1]||AI_LEVELS[0];document.body.dataset.aiLevel=String(ai.level);
   document.documentElement.style.setProperty("--ai-color",def.color);document.documentElement.style.setProperty("--ai-rgb",def.rgb);return ai;
 }
+function applyCoverRankTheme(ai=aiValorationStats()){const c=COLOR_BANDS_15[Math.max(0,Math.min(14,(ai.level||1)-1))]||COLOR_BANDS_15[0],el=$("startScreen");if(el){el.style.setProperty("--cover-rank-color",c);el.dataset.avsRank=String(ai.level||1);}return c;}
 function aiLegendHtml(current){return AI_LEVELS.map(x=>`<div class="ai-legend-item ${x.level===current?"current":""}"><i style="--swatch:${x.color}"></i><b>${x.level}</b></div>`).join("");}
 const AI_TEXT_COLORS=COLOR_BANDS_15.map(c=>mixHex(c,"#ffffff",.38));
 function valueLevel(v){return Math.max(1,Math.min(15,Math.ceil(clamp(Number(v)||0)*15)));}
@@ -676,7 +677,7 @@ function renderGrowthTree(){
 function renderStart(){
   ensureDailyKey();
   const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating),ai=aiValorationStats();
-  applyRatingTheme(st.rating);applyAiTheme(ai);
+  applyRatingTheme(st.rating);applyAiTheme(ai);applyCoverRankTheme(ai);
   $("startAiLevel").textContent=`${ai.level} / 15`;paintText("startAiLevel",ai.score/100);
   $("startAiConfidence").textContent=`AI Valoration · evidencia ${Math.round(ai.confidence*100)}%`;paintText("startAiConfidence",ai.confidence);
   $("startKicker").textContent=`CAMPAIGN 1 · ${currentStageText()}`;
@@ -729,10 +730,18 @@ function adaptiveLevelTarget(plan){
 async function startSession(finalMode=false){
   applyRatingTheme(overallStats().rating);
   const raw=finalMode?buildFinalPlan():buildTrainingPlan();
-  const target=finalMode?null:adaptiveLevelTarget(raw);
-  session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),target,plan:raw.map(shuffleOptions)};
+  const target=finalMode?null:adaptiveLevelTarget(raw),abortSnapshot=JSON.stringify(state);
+  session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),target,plan:raw.map(shuffleOptions),abortSnapshot};
   $("sessionLevel").innerHTML=finalMode?"FINAL":`L${state.level}<small class="level-target">TARGET ${target.toFixed(1)}</small>`;
   await showLevelIntro(finalMode,target);showScreen("gameScreen");nextQuestion();
+}
+function abortSession(){
+  if(!session)return;
+  clearInterval(timerHandle);deadline=0;locked=true;missionOverlay(false);
+  const snapshot=session.abortSnapshot;session=null;current=null;
+  const f=$("feedback");if(f)f.classList.remove("show");hideCorrectReveal();document.body.classList.remove("feedback-correct","feedback-wrong");
+  if(snapshot){try{const restored=JSON.parse(snapshot);state=validProgressState(restored)?normaliseProgressState(restored):restored;localStorage.setItem(STORAGE_KEY,snapshot);}catch(e){console.error("Emergency exit rollback failed",e);}}
+  locked=false;renderStart();showScreen("startScreen");
 }
 function renderSegments(left){
   const n=Math.ceil(left);
@@ -885,6 +894,7 @@ async function boot(){
   $("continueBtn").onclick=async()=>{await ensureAudio();if(state.completed){renderStart();showScreen("startScreen");}else await startSession(false);};
   $("finalBtn").onclick=async()=>{await ensureAudio();await startSession(true);};
   $("soundBtn").onclick=async()=>{soundOn=!soundOn;if(soundOn){await ensureAudio();tone(760,.06,.025,'sine');}refreshSoundButton();};
+  $("abortSessionBtn").onclick=abortSession;
   refreshSoundButton();
   $("exportBtn").onclick=exportProgress;$("importBtn").onclick=()=>$("importFile").click();
   $("importFile").onchange=e=>e.target.files[0]&&importProgress(e.target.files[0]);

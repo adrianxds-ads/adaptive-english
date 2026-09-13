@@ -252,3 +252,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Added a ~3-second post-level resolution flash before full statistics: Gold for target cleared, dark Wine for target missed, plus score, target delta, level transition and AI rank change when one occurred.
 - Clear/miss transition sounds are original Adaptive English cues and do not copy game audio.
 - Canonical palette tokens live in `adrian-visual-system.js`; human-readable reference lives in `ADRIAN_VISUAL_SYSTEM.md`.
+
+
+## v2.1
+- Adds a small in-game emergency exit (`↩ EXIT`) in the lower-right corner.
+- Emergency exit is transactional: it restores the exact pre-level Campaign state, so abandoned questions do not count toward attempts, history, seen/review counts, mastery, tree growth, sessions, or LEVEL completion.
+- The dashboard outer background now uses the current Adrián Visual System rank colour (1–15), while the inner panel stays dark for readability.
+- The persisted AI/AVS rank therefore becomes the ambient colour seen whenever the app opens.
