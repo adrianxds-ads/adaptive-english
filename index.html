@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="2.3">
-<title>Adaptive English - Campaign 1 - v2.3</title>
+<meta name="ae-version" content="2.4">
+<title>Adaptive English - Campaign 1 - v2.4</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -213,7 +213,7 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
 
 
 <style id="v200-style">
-/* v2.3 · Adrián Visual System + level mission transitions */
+/* v2.4 · Adrián Visual System + level mission transitions */
 .mission-overlay{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--mission-accent,#E7BF57) 24%,transparent),transparent 42%),linear-gradient(180deg,#101814 0%,#09100d 100%);color:#fff;pointer-events:auto}.mission-overlay.hidden{display:none!important}.mission-overlay.resolution.hit{background:radial-gradient(circle at 50% 34%,color-mix(in srgb,var(--rank-15,#E7BF57) 34%,transparent),transparent 38%),linear-gradient(180deg,#30250c,#0e0d08 78%)}.mission-overlay.resolution.miss{background:radial-gradient(circle at 50% 34%,color-mix(in srgb,var(--rank-4,#762F32) 38%,transparent),transparent 40%),linear-gradient(180deg,#2b1718,#0d0b0b 78%)}
 .mission-card{width:min(92vw,520px);padding:30px 22px 26px;border:1px solid color-mix(in srgb,var(--mission-accent,#E7BF57) 58%,white 8%);border-radius:20px;background:rgba(8,14,11,.80);box-shadow:0 0 0 1px rgba(255,255,255,.04) inset,0 28px 80px rgba(0,0,0,.45),0 0 42px color-mix(in srgb,var(--mission-accent,#E7BF57) 18%,transparent);text-align:center}.mission-eyebrow{font-size:12px;font-weight:950;letter-spacing:.16em;color:var(--mission-accent,#E7BF57)}.mission-title{margin-top:13px;font-size:clamp(28px,8vw,44px);font-weight:950;letter-spacing:-.035em}.mission-score{margin:8px 0 5px;font-size:clamp(58px,17vw,94px);line-height:.9;font-weight:950;color:#fff;text-shadow:0 0 20px color-mix(in srgb,var(--mission-accent,#E7BF57) 40%,transparent)}.mission-score small{font-size:.32em;opacity:.74;margin-left:4px}.mission-targetline{font-size:18px;font-weight:900;color:#efe8d7}.mission-targetline b{color:var(--mission-accent,#E7BF57)}.mission-meta{margin-top:13px;font-size:15px;font-weight:900;color:#dbe6df}.mission-rules{margin-top:6px;font-size:10px;letter-spacing:.14em;color:#91a39a;font-weight:900}.mission-change{margin-top:9px;font-size:15px;font-weight:950;letter-spacing:.06em}
 .mission-count{margin-top:22px;font-size:clamp(72px,22vw,124px);line-height:.8;font-weight:950;color:var(--mission-accent,#E7BF57);text-shadow:0 0 30px color-mix(in srgb,var(--mission-accent,#E7BF57) 54%,transparent)}.mission-count.pop{animation:missionPop .32s cubic-bezier(.2,.9,.25,1.28)}.resolution .mission-count{font-size:clamp(31px,9vw,48px);letter-spacing:.10em;margin-top:20px}.resolution.hit .mission-card{border-color:color-mix(in srgb,var(--rank-15,#E7BF57) 72%,transparent)}.resolution.miss .mission-card{border-color:color-mix(in srgb,var(--rank-4,#762F32) 78%,transparent)}.resolution.miss .mission-eyebrow,.resolution.miss .mission-count,.resolution.miss .mission-targetline b{color:color-mix(in srgb,var(--mission-accent) 68%,white 32%)}@keyframes missionPop{0%{transform:scale(.72);opacity:.35}70%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
@@ -222,7 +222,7 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
 
 
 <style id="v210-style">
-/* v2.3 · AVS cover rank + transactional emergency exit */
+/* v2.4 · AVS cover rank + transactional emergency exit */
 #startScreen{background:var(--cover-rank-surface,#2B1B19)!important;transition:none!important}
 #startScreen .panel{box-shadow:0 22px 60px rgba(0,0,0,.24),0 0 0 1px color-mix(in srgb,var(--cover-rank-color,#762F32) 34%,transparent)!important}
 .emergency-exit{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:24;min-width:54px;height:34px;padding:0 9px;border:1px solid color-mix(in srgb,var(--negative-wine,#762F32) 72%,white 10%);border-radius:9px;background:rgba(8,13,11,.76);color:#d8c8c4;font-size:10px;font-weight:950;letter-spacing:.08em;box-shadow:0 6px 18px rgba(0,0,0,.28);opacity:.72;cursor:pointer;backdrop-filter:blur(6px)}
@@ -233,7 +233,7 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
 
 
 <style id="v220-style">
-/* v2.3 · canonical AVS semantics: scalar value = rank colour, event state = AVS semantic colour */
+/* v2.4 · canonical AVS semantics: scalar value = rank colour, event state = AVS semantic colour */
 body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,87,150,90),.24),transparent 55%),radial-gradient(80% 60% at -10% 95%,rgba(var(--ambient-rank-rgb,87,150,90),.14),transparent 58%),linear-gradient(180deg,var(--ambient-rank-surface,#213C26),#0d1712 58%,#09110d)!important}
 .delta.good,.learning-direction.good,.peer-delta.good{color:color-mix(in srgb,var(--rank-10,#57965A) 62%,white 38%)!important}.delta.bad,.learning-direction.bad,.peer-delta.bad{color:color-mix(in srgb,var(--rank-4,#762F32) 62%,white 38%)!important}.delta.neutral,.learning-direction.neutral,.peer-delta.neutral{color:#b7c9bf!important}
 .target-result.hit{background:color-mix(in srgb,var(--rank-15,#E7BF57) 18%,transparent)!important;border-color:color-mix(in srgb,var(--rank-15,#E7BF57) 68%,white 10%)!important;color:color-mix(in srgb,var(--rank-15,#E7BF57) 66%,white 34%)!important}.target-result.miss{background:color-mix(in srgb,var(--rank-4,#762F32) 22%,transparent)!important;border-color:color-mix(in srgb,var(--rank-4,#762F32) 72%,white 10%)!important;color:color-mix(in srgb,var(--rank-4,#762F32) 62%,white 38%)!important}
@@ -243,7 +243,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 
 
 <style id="v230-style">
-/* v2.3 · AVS 2.0 perceptual lightness + phrase exposure summary */
+/* v2.4 · AVS 2.0 perceptual lightness + phrase exposure summary */
 .start-phrase-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:8px 0 14px}.start-phrase-grid .card{border-color:color-mix(in srgb,var(--ambient-rank-color,#57965A) 22%,rgba(255,255,255,.06))}.start-phrase-grid .card b{font-variant-numeric:tabular-nums}
 .ai-legend-item i{box-shadow:0 0 0 1px rgba(255,255,255,.12) inset}.score-chart{background:#0b120f!important}
 .daily-key-card.revealed{animation:keyTurnPulse .18s ease}.daily-key-card:not(.revealed){animation:keyTurnBack .18s ease}@keyframes keyTurnPulse{0%{transform:scaleX(1)}48%{transform:scaleX(.96)}100%{transform:scaleX(1)}}@keyframes keyTurnBack{0%{transform:scaleX(.96)}100%{transform:scaleX(1)}}
@@ -259,7 +259,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 15</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.3</div>
+    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.4</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -302,13 +302,14 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 
 <section id="statsScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.3</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
+    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.4</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 15</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
     <div class="grid"><div class="card"><b id="statsCoverage">0%</b><span>Coverage</span></div><div class="card"><b id="statsMastery">0%</b><span>Mastery</span></div><div class="card"><b id="statsAccuracy">0%</b><span>Recent accuracy</span></div><div class="card"><b id="statsAutomatic">0%</b><span>Automatic</span></div><div class="card"><b id="statsAvg">0.0s</b><span>Avg response</span></div><div class="card"><b id="statsTotal">0</b><span>Total answers</span></div></div>
     <div class="charts stats-charts"><div class="section score-section"><div class="chart-title-row"><h3>Correct answers · /15</h3><button id="scoreExpandBtn" class="ghost small">EXPAND</button></div><div id="statsAccuracyChart"></div></div><div class="section learning-trend"><h3>Learning Curve · long-term</h3><div id="statsLearningChart"></div></div></div>
     <div class="section target-stats-section"><h3>Target performance</h3><div class="grid target-grid"><div class="card"><b id="targetAvg">—</b><span>Avg target /15</span></div><div class="card"><b id="targetActualAvg">—</b><span>Avg actual /15</span></div><div class="card"><b id="targetDeltaAvg">—</b><span>Avg vs target</span></div><div class="card"><b id="targetHitRate">—</b><span>Targets met</span></div></div><div id="targetBreakdown" class="statusbox"></div></div>
+    <div class="section reading-load-section"><h3>Reading load · fixed 10s</h3><p class="meta">Observational only · the timer and adaptive engine do not change from these measurements.</p><div class="grid"><div class="card"><b id="readingShort">—</b><span>Short · ≤12 words</span><small id="readingShortMeta">No evidence yet</small></div><div class="card"><b id="readingMedium">—</b><span>Medium · 13–17 words</span><small id="readingMediumMeta">No evidence yet</small></div><div class="card"><b id="readingLong">—</b><span>Long · ≥18 words</span><small id="readingLongMeta">No evidence yet</small></div></div><div id="readingLoadInsight" class="statusbox">Building evidence.</div></div>
     <div id="statsCampaign2" class="statusbox"></div>
     <div class="section"><h3>Keys · highest → lowest</h3><div id="statsSkills"></div></div>
     <div class="screen-nav"><button id="statsBackBtn" class="primary">BACK TO DASHBOARD</button></div>
@@ -316,7 +317,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">MY COACH · v2.3</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div class="resulttitle"><div class="kicker">MY COACH · v2.4</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
     <div id="coachIntro" class="statusbox"></div>
     <div class="section"><h3>Focus now</h3><div id="coachFocus" class="coach-grid"></div></div>
     <div class="section"><h3>Common mistakes</h3><div id="coachMistakes"></div></div>
@@ -380,12 +381,12 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
     </div>
-    <div class="footerline">Adaptive English v2.3 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
+    <div class="footerline">Adaptive English v2.4 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v2.3</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v2.4</div><h1>Errors</h1><p id="errorsCount"></p></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>

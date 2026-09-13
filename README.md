@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v1.20
+# Adaptive English · Campaign 1 v2.4
 
 Local adaptive grammar trainer.
 
@@ -278,3 +278,13 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Restores visible Unique phrases and Repeated phrases counts on the dashboard; repeated means distinct phrases seen at least twice.
 - Daily Keys can now flip front/back repeatedly; horizontal swipe remains the navigation mechanism.
 - TARGET CLEARED and TARGET MISSED now use longer, clearly distinct original musical stingers.
+
+
+## v2.4 · Cognitive load telemetry
+- Keeps the fixed 10-second clock, 15-question level, adaptive TARGET, scheduler, mastery model and 3,000-question bank unchanged.
+- Adds non-adaptive reading-load telemetry to each new answer: visible prompt word/character count, load band, intrinsic target time and fixed time limit.
+- Existing history is analysed retroactively from stored question text, so the new Statistics panel can use prior answers immediately.
+- Adds a compact Reading load panel comparing short (≤12 words), medium (13–17) and long (≥18) prompts by accuracy, average response time, timeout rate and evidence count.
+- Reading-load conclusions remain observational: the app requires evidence in both short and long bands before labelling a possible load effect.
+- Adds skill-specific length-sensitivity analysis to the ChatGPT coach snapshot, so long-sentence effects can be separated from grammar-specific difficulty.
+- The coach prompt explicitly treats the 10-second clock as a fixed game rule and avoids recommending timer changes from weak evidence.
