@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "2.5.1";
+const APP_VERSION = "2.6";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -106,9 +106,9 @@ function showMemoryEcho(cat,correctAnswer=""){
   el.classList.remove("show");void el.offsetWidth;el.classList.add("show");
   clearTimeout(showMemoryEcho._timer);showMemoryEcho._timer=setTimeout(()=>el.classList.remove("show"),1050);
 }
-function playKeyFlip(revealed=true){
-  const notes=revealed?[[659.25,0],[987.77,.045],[1318.5,.095]]:[[987.77,0],[783.99,.045],[587.33,.09]];
-  notes.forEach(([f,d],i)=>tone(f,i===2?.085:.055,i===2?.011:.009,i===1?'triangle':'sine',d));
+function playKeyFlip(revealed=true,soft=false){
+  const notes=revealed?[[659.25,0],[987.77,.045],[1318.5,.095]]:[[987.77,0],[783.99,.045],[587.33,.09]],gain=soft?.006:.011;
+  notes.forEach(([f,d],i)=>tone(f,i===2?.085:.055,i===2?gain:gain*.82,i===1?'triangle':'sine',d));
 }
 function haptic(ok){
   try{if(navigator.vibrate)navigator.vibrate(ok?18:[24,16,42]);}catch(e){}
@@ -561,6 +561,9 @@ function paintDelta(id,value,goodUp=true){const el=$(id);if(el)el.style.color=se
 function rankedSkills(){
   return CAMPAIGN.skills.map(s=>({...s,m:state.metrics[s.id],mastery:metricMastery(state.metrics[s.id])})).sort((a,b)=>b.mastery-a.mastery||b.m.attempts-a.m.attempts||a.name.localeCompare(b.name));
 }
+function skillRankPositions(){const out={};rankedSkills().forEach((x,i)=>out[x.id]=i+1);return out;}
+function latestRankMoves(){const s=[...state.sessionHistory].reverse().find(x=>x&&x.rankMoves);return s?.rankMoves||{};}
+function leagueEvents(before,after){const out=[];for(const s of CAMPAIGN.skills){const a=before?.[s.id],b=after?.[s.id];if(!a||!b)continue;if(a>3&&b<=3)out.push(`▲ NEW TOP 3 · ${s.name}`);else if(a>=23&&b<23)out.push(`▲ ESCAPED BOTTOM 3 · ${s.name}`);}return out;}
 function skillLabel(cat){const s=CAMPAIGN.skills.find(x=>x.id===cat);return s?.name||cat;}
 function coachPriority(cat){
   const m=state.metrics[cat],mastery=metricMastery(m),rows=state.history.filter(r=>r.cat===cat).slice(-30);
@@ -607,7 +610,7 @@ function commonMistakeGroups(limit=8){
   const groups={};for(const r of state.history.filter(x=>!x.correct).slice(-500)){const key=`${r.cat}|${r.templateId||r.qid||r.originalQuestion}`;const g=groups[key]||(groups[key]={cat:r.cat,templateId:r.templateId,count:0,record:r,lastTs:0});g.count++;if((r.ts||0)>=g.lastTs){g.record=r;g.lastTs=r.ts||0;}}
   return Object.values(groups).sort((a,b)=>b.count-a.count||b.lastTs-a.lastTs).slice(0,limit);
 }
-function skillRowsHtml(rows,ascending=false){const list=ascending?[...rows].reverse():rows;return list.map(x=>`<div class="skillrow"><div class="name">${escapeHtml(x.name)}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%;background:${valueColor(x.mastery)}"></div></div><div class="pct" style="color:${valueTextColor(x.mastery)}">${pct(x.mastery)}%</div></div>`).join("");}
+function skillRowsHtml(rows,ascending=false){const list=ascending?[...rows].reverse():rows,ranks=skillRankPositions(),moves=latestRankMoves();return list.map(x=>{const rank=ranks[x.id]||25,move=Number(moves[x.id]||0),zone=rank<=3?" podium":rank>=23?" bottom3":"",moveText=move>0?`▲${move}`:move<0?`▼${Math.abs(move)}`:"—";return `<div class="skillrow${zone}"><div class="name"><i class="skill-rank">${String(rank).padStart(2,"0")}</i><span class="skill-name-text">${escapeHtml(x.name)}</span><em class="rank-move ${move>0?"up":move<0?"down":"flat"}">${moveText}</em></div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%;background:${valueColor(x.mastery)}"></div></div><div class="pct" style="color:${valueTextColor(x.mastery)}">${pct(x.mastery)}%</div></div>`;}).join("");}
 function targetPerformanceStats(){
   const rows=state.sessionHistory.filter(x=>x.mode==="training"&&Number.isFinite(x.target)&&Number.isFinite(x.correct));
   if(!rows.length)return {n:0,avgTarget:null,avgActual:null,avgDelta:null,hitRate:null,aboveRate:null,onRate:null,belowRate:null};
@@ -715,7 +718,7 @@ function renderDailyKey(){
   host.innerHTML=`<div class="daily-key-head"><div><span>KEY JOURNEY</span><b>${unlocked.length} / 25 UNLOCKED</b></div><em>${unlocked.length}/25</em></div><div class="key-marks" aria-label="${unlocked.length} of 25 Keys unlocked">${marks}</div><div id="keyCarousel" class="key-carousel">${unlocked.map(keySlideHtml).join("")}${locked}</div><div class="key-carousel-hint">TOCA PARA GIRAR · DESLIZA ↔</div>`;
   const carousel=$("keyCarousel"),slides=[...carousel.querySelectorAll(".key-slide")],cards=[...carousel.querySelectorAll("button.daily-key-card")];
   const centerSlide=(slide,behavior="smooth")=>{if(!slide)return;const left=Math.max(0,slide.offsetLeft-(carousel.clientWidth-slide.clientWidth)/2);carousel.scrollTo({left,behavior});};
-  cards.forEach(card=>card.addEventListener("click",async()=>{const revealed=card.classList.toggle("revealed");card.setAttribute("aria-expanded",revealed?"true":"false");try{await ensureAudio();playKeyFlip(revealed);}catch(e){console.error("Key flip audio failed",e);}}));
+  cards.forEach(card=>card.addEventListener("click",async()=>{clearTimeout(card._autoTurnTimer);const revealed=card.classList.toggle("revealed");card.setAttribute("aria-expanded",revealed?"true":"false");try{await ensureAudio();playKeyFlip(revealed);}catch(e){console.error("Key flip audio failed",e);}if(revealed)card._autoTurnTimer=setTimeout(()=>{if(!card.classList.contains("revealed"))return;card.classList.remove("revealed");card.setAttribute("aria-expanded","false");try{playKeyFlip(false,true);}catch(e){}},10000);}));
   requestAnimationFrame(()=>{const current=slides.find(x=>Number(x.dataset.keyNumber)===journey.number);centerSlide(current,"auto");});
 }
 function treeRand(seed=129){let t=seed>>>0;return()=>{t+=0x6D2B79F5;let x=t;x=Math.imul(x^x>>>15,x|1);x^=x+Math.imul(x^x>>>7,x|61);return((x^x>>>14)>>>0)/4294967296;};}
@@ -787,8 +790,8 @@ async function showLevelIntro(finalMode,target){
 async function showLevelResolution(s,before){
   const el=missionOverlay(true);if(!el)return;const finalClear=s.mode==="final"&&s.accuracy>=.85&&s.avgMs<=6000,hit=s.mode==="final"?finalClear:s.target!=null&&s.correct>=s.target;
   el.className=`mission-overlay resolution ${hit?"hit":"miss"}`;el.style.setProperty("--mission-accent",hit?COLOR_BANDS_15[14]:COLOR_BANDS_15[3]);
-  const d=s.target==null?null:s.correct-s.target,aiChange=before&&Number.isFinite(before.aiLevel)&&before.aiLevel!==s.aiLevel?`<div class="mission-change" style="color:${valueTextColor(s.aiLevel/15)}">AI RANK ${before.aiLevel} → ${s.aiLevel}</div>`:"";
-  $("missionBody").innerHTML=`<div class="mission-eyebrow">${s.mode==="final"?(hit?"FINAL CLEARED":"FINAL NOT CLEARED"):(hit?"TARGET CLEARED":"TARGET MISSED")}</div><div class="mission-score">${s.correct}<small>/${s.total}</small></div>${s.target==null?"":`<div class="mission-targetline">TARGET ${s.target.toFixed(1)} · <b>${d>=0?"+":""}${d.toFixed(1)}</b></div>`}<div class="mission-meta">${s.mode==="training"?`LEVEL ${s.level} → ${state.level}`:`${Math.round(s.accuracy*100)}% · ${fmtSec(s.avgMs)}`}</div>${aiChange}`;
+  const d=s.target==null?null:s.correct-s.target,aiChange=before&&Number.isFinite(before.aiLevel)&&before.aiLevel!==s.aiLevel?`<div class="mission-change" style="color:${valueTextColor(s.aiLevel/15)}">AI RANK ${before.aiLevel} → ${s.aiLevel}</div>`:"",leagueChange=(s.leagueEvents||[]).slice(0,2).map(x=>`<div class="mission-change league-change">${escapeHtml(x)}</div>`).join("");
+  $("missionBody").innerHTML=`<div class="mission-eyebrow">${s.mode==="final"?(hit?"FINAL CLEARED":"FINAL NOT CLEARED"):(hit?"TARGET CLEARED":"TARGET MISSED")}</div><div class="mission-score">${s.correct}<small>/${s.total}</small></div>${s.target==null?"":`<div class="mission-targetline">TARGET ${s.target.toFixed(1)} · <b>${d>=0?"+":""}${d.toFixed(1)}</b></div>`}<div class="mission-meta">${s.mode==="training"?`LEVEL ${s.level} → ${state.level}`:`${Math.round(s.accuracy*100)}% · ${fmtSec(s.avgMs)}`}</div>${aiChange}${leagueChange}`;
   $("missionCount").textContent=hit?"CLEAR":"REVIEW";hit?playLevelClear():playLevelMiss();await wait(2850);missionOverlay(false);
 }
 function adaptiveLevelTarget(plan){
@@ -802,7 +805,7 @@ async function startSession(finalMode=false){
   applyRatingTheme(overallStats().rating);
   const raw=finalMode?buildFinalPlan():buildTrainingPlan();
   const target=finalMode?null:adaptiveLevelTarget(raw),abortSnapshot=JSON.stringify(state);
-  session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),target,plan:raw.map(shuffleOptions),abortSnapshot};
+  session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),target,plan:raw.map(shuffleOptions),abortSnapshot,rankBefore:skillRankPositions()};
   $("sessionLevel").innerHTML=finalMode?"FINAL":`L${state.level}<small class="level-target">TARGET ${target.toFixed(1)}</small>`;
   await showLevelIntro(finalMode,target);showScreen("gameScreen");nextQuestion();
 }
@@ -845,7 +848,7 @@ function feedback(ok,type,sec,correct,appearance,patternAppearance){
   const f=$("feedback");f.className="feedback "+(ok?"ok":"no");
   const label=ok?(type==="automatic"?"AUTOMATIC":type==="secure"?"CORRECT":"CORRECT · SLOW"):(type==="timeout"?"TIME":"INCORRECT");
   const exposure=appearance===1?"NEW":appearance+"\u00aa VEZ";
-  f.innerHTML=`<div class="feedback-question">${exposure}</div><div class="feedback-label">${label}<small>${sec.toFixed(2)}s${ok?"":` · Correct: ${escapeHtml(correct)}`}</small></div><div class="appearance"><small class="pattern-appearance">PATTERN ${patternAppearance}ª VEZ</small></div>`;
+  f.innerHTML=`<div class="feedback-question">${exposure}</div><div class="feedback-label">${label}<small>${sec.toFixed(2)}s</small></div>${ok?"":`<div class="feedback-correct-line">CORRECT · ${escapeHtml(correct)}</div>`}<div class="appearance"><small class="pattern-appearance">PATTERN ${patternAppearance}ª VEZ</small></div>`;
   requestAnimationFrame(()=>f.classList.add("show"));
   const hold=ok?980:(type==="fast-wrong"?1540:type==="timeout"?1390:1340);setTimeout(()=>f.classList.remove("show"),hold);
 }
@@ -874,7 +877,8 @@ async function finishSession(){
   const before=state.sessionHistory.length?state.sessionHistory[state.sessionHistory.length-1]:null;
   state.sessions++;if(session.mode==="training"){state.level++;syncGlobalLevel(state.level);}
   let st=overallStats();
-  const snap={level:completedLevel,ts:Date.now(),mode:session.mode,correct:session.correct,total:n,accuracy,avgMs,automatic:auto,mastery:st.mastery,coverage:st.coverage,fluency:st.fluency,rating:st.rating,target:session.target,targetDelta:session.target==null?null:session.correct-session.target,targetHit:session.target==null?null:session.correct>=session.target};
+  const rankAfter=skillRankPositions(),rankMoves={};for(const s of CAMPAIGN.skills){const beforeRank=session.rankBefore?.[s.id]||rankAfter[s.id],afterRank=rankAfter[s.id],delta=beforeRank-afterRank;if(delta)rankMoves[s.id]=delta;}
+  const snap={level:completedLevel,ts:Date.now(),mode:session.mode,correct:session.correct,total:n,accuracy,avgMs,automatic:auto,mastery:st.mastery,coverage:st.coverage,fluency:st.fluency,rating:st.rating,target:session.target,targetDelta:session.target==null?null:session.correct-session.target,targetHit:session.target==null?null:session.correct>=session.target,rankMoves,leagueEvents:leagueEvents(session.rankBefore,rankAfter)};
   state.sessionHistory.push(snap);
   const aiNow=aiValorationStats();snap.aiScore=aiNow.score;snap.aiLevel=aiNow.level;snap.aiConfidence=aiNow.confidence;
   state.personalBestFluency=Math.max(state.personalBestFluency||0,st.rating);
@@ -915,7 +919,7 @@ function renderEnd(s,before){
   $("ePhrasesDone").textContent=phraseStats.unique.toLocaleString();paintText("ePhrasesDone",st.coverage);
   $("eRepeats").textContent=phraseStats.repeatedUnique.toLocaleString();
   $("eBankTotal").textContent=BANK.length.toLocaleString();
-  $("weakSkills").innerHTML=rankedSkills().map(x=>`<div class="skillrow"><div class="name">${escapeHtml(x.name)}</div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%;background:${valueColor(x.mastery)}"></div></div><div class="pct" style="color:${valueTextColor(x.mastery)}">${pct(x.mastery)}%</div></div>`).join("");
+  $("weakSkills").innerHTML=skillRowsHtml(rankedSkills());
   const wrong=session.records.filter(r=>!r.correct);
   const errorsLabel=`REVIEW ERRORS - ${wrong.length}`;$("errorsBtn").textContent=errorsLabel;$("topErrorsBtn").textContent=errorsLabel;
   $("errorsBtn").classList.toggle("hidden",wrong.length===0);$("topErrorsBtn").classList.toggle("hidden",wrong.length===0);

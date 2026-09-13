@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v2.5.1
+# Adaptive English · Campaign 1 v2.6
 
 Local adaptive grammar trainer.
 
@@ -301,3 +301,11 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 
 - Enlarged Key typography.
 - Centered and enlarged in-game Memory Echo above the correct-answer reveal.
+
+## v2.6 · Skill League
+
+- Added dynamic #1–#25 skill ranking based on the existing mastery metric, with subtle gold podium and wine bottom-three markers.
+- Added per-level rank movement (▲/▼) and rare league events for entering the Top 3 or escaping the Bottom 3.
+- Moved answer-result feedback below the answer grid so it no longer covers the gold correction or Memory Echo.
+- Revealed Keys now return automatically to the Spanish front after 10 seconds, with a softer closing sound.
+- Training engine, fixed 10-second timer, 15-question level size, scheduler, mastery model and progress key remain unchanged.
