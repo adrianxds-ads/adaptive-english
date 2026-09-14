@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "2.8";
+const APP_VERSION = "2.8.1";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -14,7 +14,7 @@ const SURFACE_BANDS_15=AVS_RANKS.map(x=>x.surface||x.color);
 const GRAPH_BANDS_15=AVS_RANKS.map(x=>x.band||x.color);
 const AVS_TEXT_BANDS_15=AVS_RANKS.map(x=>x.text||x.color);
 let CAMPAIGN=null, BANK=[], state=null, session=null, timerHandle=null, deadline=0, current=null, locked=false;
-let audioCtx=null, soundOn=true, lastTickShown=TIME_LIMIT+1;
+let audioCtx=null, soundOn=true, lastTickShown=TIME_LIMIT+1, lastUrgentBeat=-1;
 
 const $=id=>document.getElementById(id);
 function applyVisualSystemTokens(){const r=document.documentElement;AVS_RANKS.forEach((x,i)=>{r.style.setProperty(`--rank-${i+1}`,x.color);r.style.setProperty(`--rank-${i+1}-surface`,x.surface||x.color);r.style.setProperty(`--rank-${i+1}-band`,x.band||x.color);r.style.setProperty(`--rank-${i+1}-text`,x.text||x.color);});r.style.setProperty("--reward-gold",COLOR_BANDS_15[14]);r.style.setProperty("--reward-gold-text",AVS_TEXT_BANDS_15[14]);r.style.setProperty("--elite-violet",COLOR_BANDS_15[13]);r.style.setProperty("--negative-wine",COLOR_BANDS_15[3]);}
@@ -60,6 +60,7 @@ function tone(freq,dur=.035,gain=.018,type='sine',delay=0){
   o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+dur+.01);
 }
 function playTick(strong=false,step=0){const f=strong?(step%2?1540:1260):(step%2?1280:980);tone(f,strong?.034:.026,strong?.026:.016,'square');}
+function playUrgentTimerPulse(left,beat=0){const final=left<=2,f=final?(beat%2?1660:1450):(beat%2?1360:1160);tone(f,final?.034:.028,final?.016:.012,final?'square':'triangle');if(left<=.55)tone(1960,.042,.010,'sine',.014);}
 function playCorrect(){const notes=[440,587.33,783.99,1046.5];notes.forEach((f,i)=>{tone(f,i===3?.11:.052,i===3?.024:.020,i%2?'sine':'triangle',i*.047);if(i>0)tone(f*2,.032,.007,'sine',i*.047+.012);});}
 function playWrong(){tone(311.13,.050,.020,'triangle');tone(220,.070,.017,'sine',.042);}
 function playComplete(){tone(392,.075,.022,'sine');tone(523.25,.085,.024,'triangle',.070);tone(659.25,.100,.026,'sine',.145);tone(783.99,.155,.028,'sine',.230);}
@@ -846,13 +847,14 @@ function renderSegments(left){
   [...$("segments").children].forEach((e,i)=>e.classList.toggle("on",i<n));
 }
 function startTimer(){
-  clearInterval(timerHandle);deadline=performance.now()+TIME_LIMIT*1000;lastTickShown=TIME_LIMIT+1;
+  clearInterval(timerHandle);deadline=performance.now()+TIME_LIMIT*1000;lastTickShown=TIME_LIMIT+1;lastUrgentBeat=-1;
   timerHandle=setInterval(()=>{
     const left=Math.max(0,(deadline-performance.now())/1000),shown=Math.ceil(left);
     $("timerText").textContent=left.toFixed(1);
     $("timer").style.setProperty("--timer-cut",`${100-left/TIME_LIMIT*100}%`);$("timer").classList.toggle("urgent",left<=3);
     renderSegments(left);
-    if(shown<lastTickShown&&shown>0&&shown<TIME_LIMIT){playTick(shown<=3,shown);lastTickShown=shown;}
+    if(left>3&&shown<lastTickShown&&shown>0&&shown<TIME_LIMIT){playTick(false,shown);lastTickShown=shown;}
+    if(left<=3&&left>0){const beat=left>2?Math.floor((3-left)*2):100+Math.floor((2-left)*4);if(beat!==lastUrgentBeat){lastUrgentBeat=beat;playUrgentTimerPulse(left,beat);}}
     if(left<=0){clearInterval(timerHandle);answer(-1,true);}
   },50);
 }
@@ -943,9 +945,10 @@ function renderEnd(s,before){
   $("eRepeats").textContent=phraseStats.repeatedUnique.toLocaleString();
   $("eBankTotal").textContent=BANK.length.toLocaleString();
   $("weakSkills").innerHTML=skillRowsHtml(rankedSkills());
-  const wrong=session.records.filter(r=>!r.correct),errorGroups=renderErrorLab(wrong,"endErrorCards"),lab=$("endErrorLab");
-  if(lab){lab.classList.toggle("hidden",wrong.length===0);const labMeta=$("endErrorMeta");if(labMeta)labMeta.textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"} to consolidate`:"";}
-  const errorsLabel=`REVIEW ERRORS - ${wrong.length}`;$("errorsBtn").textContent=errorsLabel;$("topErrorsBtn").textContent=errorsLabel;
+  const wrong=session.records.filter(r=>!r.correct),errorGroups=renderErrorLab(wrong,"endErrorCards"),lab=$("endErrorLab"),labToggle=$("endErrorLabToggle");
+  if(lab){lab.classList.add("hidden");const labMeta=$("endErrorMeta");if(labMeta)labMeta.textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"} to consolidate`:"";}
+  if(labToggle){labToggle.classList.toggle("hidden",wrong.length===0);labToggle.classList.remove("open");labToggle.setAttribute("aria-expanded","false");const m=$("endErrorLabToggleMeta");if(m)m.textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"}`:"No errors";}
+  const errorsLabel=`ERROR LAB · ${wrong.length}`;$("errorsBtn").textContent=errorsLabel;$("topErrorsBtn").textContent=errorsLabel;
   $("errorsBtn").classList.toggle("hidden",wrong.length===0);$("topErrorsBtn").classList.toggle("hidden",wrong.length===0);
   $("errorsCount").textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} in Level ${s.level} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"}`:`No errors in Level ${s.level}`;
   if(wrong.length)renderErrorLab(wrong,"errorsFull");else $("errorsFull").innerHTML='<p class="meta">No errors in this level.</p>';
@@ -996,9 +999,10 @@ async function boot(){
   refreshSoundButton();
   $("exportBtn").onclick=exportProgress;$("importBtn").onclick=()=>$("importFile").click();
   $("importFile").onchange=e=>e.target.files[0]&&importProgress(e.target.files[0]);
-  const goDashboard=()=>{renderStart();showScreen("startScreen");};const reviewErrors=()=>showScreen("errorsScreen");
+  const goDashboard=()=>{renderStart();showScreen("startScreen");};
+  const toggleErrorLab=(forceOpen=null)=>{const lab=$("endErrorLab"),toggle=$("endErrorLabToggle");if(!lab||!toggle||toggle.classList.contains("hidden"))return;const open=forceOpen==null?lab.classList.contains("hidden"):!!forceOpen;lab.classList.toggle("hidden",!open);toggle.classList.toggle("open",open);toggle.setAttribute("aria-expanded",open?"true":"false");const em=toggle.querySelector("em");if(em)em.textContent=open?"CLOSE −":"OPEN +";if(open)setTimeout(()=>lab.scrollIntoView({behavior:"smooth",block:"start"}),40);};
   $("resetBtn").onclick=resetProgress;$("campaign2Copy").onclick=copyCampaign2Brief;$("homeBtn").onclick=goDashboard;$("topHomeBtn").onclick=goDashboard;
-  $("errorsBtn").onclick=reviewErrors;$("topErrorsBtn").onclick=reviewErrors;
+  $("errorsBtn").onclick=()=>toggleErrorLab(true);$("topErrorsBtn").onclick=()=>toggleErrorLab(true);$("endErrorLabToggle").onclick=()=>toggleErrorLab();
   $("errorsBackBtn").onclick=()=>showScreen("endScreen");
   renderStart();showScreen("startScreen");
 }

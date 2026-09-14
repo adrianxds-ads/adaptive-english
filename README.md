@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v2.8
+# Adaptive English · Campaign 1 v2.8.1
 
 Local adaptive grammar trainer.
 
@@ -334,3 +334,8 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Every error skill gets its existing song / memory anchor, including non-dominant errors.
 - Song content is kept to short memory anchors/titles rather than long lyric passages.
 - Adaptive engine, mastery, scheduler, fixed 10-second timer, 15-question levels and storage keys remain unchanged.
+
+## v2.8.1
+- Error Lab is collapsed by default and opens in place using only the just-completed level errors.
+- Error review typography is larger.
+- Timer audio accelerates: 1 Hz early, 2 Hz from 3–2s, 4 Hz in the final 2s.
