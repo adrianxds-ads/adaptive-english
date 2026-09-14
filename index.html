@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="2.9">
-<title>Adaptive English - Campaign 1 - v2.9</title>
+<meta name="ae-version" content="2.10">
+<title>Adaptive English - Campaign 1 - v2.10</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -221,7 +221,7 @@ body.feedback-correct .game{animation:none!important}body.feedback-wrong .game{a
 </style>
 
 
-<style id="v210-style">
+<style id="v240-cover-style">
 /* v2.4 · AVS cover rank + transactional emergency exit */
 #startScreen{background:var(--cover-rank-surface,#2B1B19)!important;transition:none!important}
 #startScreen .panel{box-shadow:0 22px 60px rgba(0,0,0,.24),0 0 0 1px color-mix(in srgb,var(--cover-rank-color,#762F32) 34%,transparent)!important}
@@ -320,6 +320,10 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 .spotify-open,.key-spotify-open{display:inline-flex;align-items:center;justify-content:center;margin-top:10px;padding:10px 13px;border-radius:999px;background:#1ed760;color:#07170d!important;text-decoration:none;font-size:11px;font-weight:950;letter-spacing:.07em}.spotify-open:active,.key-spotify-open:active{transform:scale(.98)}.key-spotify-open{display:flex;width:max-content;max-width:100%;margin:10px auto 0}.key-slide .key-spotify-open{font-size:10px;padding:9px 12px}
 @media(max-width:520px){#errorsScreen{padding-left:8px;padding-right:8px}#errorsScreen .panel{padding:18px 12px}#errorsScreen .error-coach-card{padding:15px 12px}#errorsScreen .mistake-choice{grid-template-columns:1fr!important;gap:7px}}
 </style>
+
+<style id="v210-style">
+#errorsScreen .error-coach-card{background:linear-gradient(135deg,color-mix(in srgb,var(--error-surface) 72%,#07120c),rgba(5,12,8,.94));border-color:color-mix(in srgb,var(--error-accent) 52%,rgba(255,255,255,.12));box-shadow:inset 4px 0 0 var(--error-accent),0 10px 28px rgba(0,0,0,.12)}#errorsScreen .error-coach-head small,#errorsScreen .error-example-q>b{color:var(--error-text)!important}#errorsScreen .error-formula{border:2px solid color-mix(in srgb,var(--error-accent) 58%,transparent)}#errorsScreen .error-solved{border-left-color:var(--error-accent);background:color-mix(in srgb,var(--error-surface) 52%,rgba(0,0,0,.18))}.study-time-card{grid-column:1/-1;background:linear-gradient(135deg,rgba(231,191,87,.10),rgba(122,165,236,.08))!important;border-color:rgba(231,191,87,.18)!important}.study-time-card b{font-variant-numeric:tabular-nums;font-size:clamp(23px,6vw,34px)!important;color:#f1da9e}
+</style>
 </head>
 <body>
 <div class="app">
@@ -329,7 +333,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 15</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.9</div>
+    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.10</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -345,6 +349,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
       <div class="card"><b id="startAuto">—</b><span>Automatic</span></div>
       <div class="card"><b id="startMastered">0/25</b><span>Keys mastered</span></div>
       <div class="card"><b id="startTotal">0</b><span>Total answers</span></div>
+      <div class="card study-time-card"><b id="startStudyTime">0s</b><span>Active training time</span></div>
     </div>
     <div class="start-phrase-grid">
       <div class="card"><b id="startPhrasesDone">0</b><span>Unique phrases</span></div>
@@ -372,11 +377,11 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 
 <section id="statsScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.9</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
+    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.10</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 15</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
-    <div class="grid"><div class="card"><b id="statsCoverage">0%</b><span>Coverage</span></div><div class="card"><b id="statsMastery">0%</b><span>Mastery</span></div><div class="card"><b id="statsAccuracy">0%</b><span>Recent accuracy</span></div><div class="card"><b id="statsAutomatic">0%</b><span>Automatic</span></div><div class="card"><b id="statsAvg">0.0s</b><span>Avg response</span></div><div class="card"><b id="statsTotal">0</b><span>Total answers</span></div></div>
+    <div class="grid"><div class="card"><b id="statsCoverage">0%</b><span>Coverage</span></div><div class="card"><b id="statsMastery">0%</b><span>Mastery</span></div><div class="card"><b id="statsAccuracy">0%</b><span>Recent accuracy</span></div><div class="card"><b id="statsAutomatic">0%</b><span>Automatic</span></div><div class="card"><b id="statsAvg">0.0s</b><span>Avg response</span></div><div class="card"><b id="statsTotal">0</b><span>Total answers</span></div><div class="card study-time-card"><b id="statsStudyTime">0s</b><span>Active training time</span></div></div>
     <div class="charts stats-charts"><div class="section score-section"><div class="chart-title-row"><h3>Correct answers · /15</h3><button id="scoreExpandBtn" class="ghost small">EXPAND</button></div><div id="statsAccuracyChart"></div></div><div class="section learning-trend"><h3>Learning Curve · long-term</h3><div id="statsLearningChart"></div></div></div>
     <div class="section target-stats-section"><h3>Target performance</h3><div class="grid target-grid"><div class="card"><b id="targetAvg">—</b><span>Avg target /15</span></div><div class="card"><b id="targetActualAvg">—</b><span>Avg actual /15</span></div><div class="card"><b id="targetDeltaAvg">—</b><span>Avg vs target</span></div><div class="card"><b id="targetHitRate">—</b><span>Targets met</span></div></div><div id="targetBreakdown" class="statusbox"></div></div>
     <div class="section reading-load-section"><h3>Reading load · fixed 10s</h3><p class="meta">Observational only · the timer and adaptive engine do not change from these measurements.</p><div class="grid"><div class="card"><b id="readingShort">—</b><span>Short · ≤12 words</span><small id="readingShortMeta">No evidence yet</small></div><div class="card"><b id="readingMedium">—</b><span>Medium · 13–17 words</span><small id="readingMediumMeta">No evidence yet</small></div><div class="card"><b id="readingLong">—</b><span>Long · ≥18 words</span><small id="readingLongMeta">No evidence yet</small></div></div><div id="readingLoadInsight" class="statusbox">Building evidence.</div></div>
@@ -387,7 +392,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">MY COACH · v2.9</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div class="resulttitle"><div class="kicker">MY COACH · v2.10</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
     <div id="coachIntro" class="statusbox"></div>
     <div class="section"><h3>Focus now</h3><div id="coachFocus" class="coach-grid"></div></div>
     <div class="section"><h3>Common mistakes</h3><div id="coachMistakes"></div></div>
@@ -454,12 +459,12 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
     </div>
-    <div class="footerline">Adaptive English v2.9 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
+    <div class="footerline">Adaptive English v2.10 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle error-lab-hero"><div class="kicker">ERROR LAB · v2.9</div><h1>Latest mistakes</h1><p id="errorsCount"></p><small>Solo contiene los errores del nivel que acabas de terminar.</small></div>
+    <div class="resulttitle error-lab-hero"><div class="kicker">ERROR LAB · v2.10</div><h1>Latest mistakes</h1><p id="errorsCount"></p><small>Solo contiene los errores del nivel que acabas de terminar.</small></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>

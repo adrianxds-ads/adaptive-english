@@ -346,3 +346,8 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Persistent music anchors in Error Lab and daily Keys include an Open in Spotify action.
 - The one-second in-game Memory Echo stays non-clickable to avoid accidental navigation.
 - Adaptive engine, 10-second clock, 15-question levels, scheduler, mastery and storage keys remain unchanged.
+
+## v2.10
+- Error Lab cards use the AVS 15-colour scale from Gold downward, based on their position in the just-completed level.
+- Added ACTIVE TRAINING TIME, reconstructed from stored per-answer response milliseconds and accumulated exactly for future answers.
+- No change to adaptive timing weights, mastery, scheduler or the 10-second limit.
