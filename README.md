@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v2.7.1
+# Adaptive English · Campaign 1 v2.8
 
 Local adaptive grammar trainer.
 
@@ -324,3 +324,13 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Expanded the mobile HUD allocation for sound, level and TARGET instead of forcing them into a 74px column.
 - Replaced rigid feedback minima with flexible minmax(0, …) columns and added narrow-screen fallbacks.
 - Preserved the 10-second timer, 15-question levels, scheduler, mastery model and progress storage key.
+
+## v2.8 · Error Lab / Secret Keys
+
+- Reviews every error from the completed level, grouped by skill so repeated mistakes do not duplicate theory.
+- Keeps the basic correction compact, then adds two collapsible layers: WHY? and SECRET KEY · MEMORY ECHO.
+- Uses Spanish-first explanations with concise English reinforcement for all 25 Campaign 1 skills.
+- Adds a separate 25-skill `error-coach.js` mnemonic layer aimed at Spanish speakers; it is independent from the daily Key Journey.
+- Every error skill gets its existing song / memory anchor, including non-dominant errors.
+- Song content is kept to short memory anchors/titles rather than long lyric passages.
+- Adaptive engine, mastery, scheduler, fixed 10-second timer, 15-question levels and storage keys remain unchanged.

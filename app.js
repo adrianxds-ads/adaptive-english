@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "2.7.1";
+const APP_VERSION = "2.8";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -657,6 +657,28 @@ function renderCoachScreen(){
   $("coachMistakes").innerHTML=mistakes.map(g=>{const r=g.record,l=(window.AE_LESSONS||{})[g.cat]||{};return `<div class="mistake-card"><b>${escapeHtml(skillLabel(g.cat))} · ${g.count} recent miss${g.count===1?"":"es"}</b><p>${escapeHtml(r.question||r.originalQuestion||"")}</p><div class="mistake-choice"><div><b>You</b><br>${escapeHtml(r.userAnswer)}</div><div class="correct"><b>Correct</b><br>${escapeHtml(r.correctAnswer)}</div></div><p><b>Rule:</b> ${escapeHtml(r.rule||l.es||"Review the structure and contrast it with the correct form.")}${l.cue?`<br><b>Coach:</b> ${escapeHtml(l.cue)}`:""}</p></div>`;}).join("")||'<p class="meta">No recurring mistakes yet.</p>';
   $("coachSkills").innerHTML=skillRowsHtml(worst);
 }
+function levelErrorGroups(records){
+  const groups={},order=[];
+  for(const r of (records||[]).filter(x=>!x.correct)){
+    if(!groups[r.cat]){groups[r.cat]={cat:r.cat,records:[],firstTs:r.ts||0};order.push(r.cat);}
+    groups[r.cat].records.push(r);
+  }
+  return order.map(cat=>groups[cat]).sort((a,b)=>b.records.length-a.records.length||a.firstTs-b.firstTs);
+}
+function solvedErrorSentence(r){const q=String(r.question||r.originalQuestion||"");return q.includes("___")?q.replace("___",r.correctAnswer||"___"):q;}
+function errorCoachCardHtml(group,index){
+  const records=group.records||[],r=records[records.length-1]||{},lesson=(window.AE_LESSONS||{})[group.cat]||{},coach=(window.AE_ERROR_COACH||{})[group.cat]||{},title=skillLabel(group.cat),echoes=[];
+  for(const row of records){const e=memoryEchoFor(group.cat,row.correctAnswer||"");if(e&&!echoes.some(x=>x.artist===e.artist&&x.title===e.title))echoes.push(e);}
+  const examples=records.map((row,i)=>`<div class="error-example"><div class="error-example-q"><b>${i+1}.</b> ${escapeHtml(row.question||row.originalQuestion||"")}</div><div class="mistake-choice"><div class="wrong"><b>You</b><br>${escapeHtml(row.userAnswer||"No answer")}</div><div class="correct"><b>Correct</b><br>${escapeHtml(row.correctAnswer||"")}</div></div><div class="error-solved">${escapeHtml(solvedErrorSentence(row))}</div></div>`).join("");
+  const whyEs=coach.must||lesson.es||r.rule||"Fíjate en la estructura de la respuesta correcta.",whyEn=lesson.en||"Notice the pattern in the correct answer and reuse it.",formula=lesson.formula||r.rule||r.correctAnswer||"",quick=lesson.cue||coach.must||"Identifica primero el patrón.",secret=coach.secret||quick,trap=coach.trap||"Contrasta tu respuesta con la forma correcta hasta que la estructura salga automáticamente.";
+  const music=echoes.length?`<div class="error-music">${echoes.map(e=>`<div><small>MUSIC ECHO</small><b>♪ ${escapeHtml(e.artist)} · ${escapeHtml(e.title)}</b><span>${escapeHtml(e.cue)}</span></div>`).join("")}</div>`:`<div class="error-music"><div><small>MEMORY ECHO</small><b>${escapeHtml(lesson.example||r.correctAnswer||title)}</b></div></div>`;
+  return `<article class="error-coach-card"><div class="error-coach-head"><div><small>ERROR KEY ${String(index+1).padStart(2,"0")}</small><h3>${escapeHtml(title)}</h3></div><span>${records.length} ${records.length===1?"MISS":"MISSES"}</span></div>${examples}<div class="error-formula">${escapeHtml(formula)}</div><div class="error-quick"><b>QUICK RULE</b><span>${escapeHtml(quick)}</span></div><details class="error-detail"><summary>WHY? · ENTIÉNDELO</summary><div class="error-detail-body"><p><b>ES ·</b> ${escapeHtml(whyEs)}</p><p><b>EN ·</b> ${escapeHtml(whyEn)}</p></div></details><details class="error-detail secret-detail"><summary>🗝 SECRET KEY · MEMORY ECHO</summary><div class="error-detail-body"><div class="secret-key-copy">${escapeHtml(secret)}</div><p class="secret-trap">${escapeHtml(trap)}</p>${music}</div></details></article>`;
+}
+function renderErrorLab(records,targetId){
+  const host=$(targetId),groups=levelErrorGroups(records);if(!host)return groups;
+  host.innerHTML=groups.map(errorCoachCardHtml).join("");return groups;
+}
+
 function selectLevelLesson(records){
   const wrong=records.filter(r=>!r.correct);
   if(wrong.length){
@@ -669,7 +691,9 @@ function selectLevelLesson(records){
   return record?{kind:"reinforce",count:0,record}:null;
 }
 function renderLevelLesson(records){
-  const box=$("levelLesson"),pick=selectLevelLesson(records||[]);if(!box)return;
+  const box=$("levelLesson"),wrong=(records||[]).filter(r=>!r.correct);if(!box)return;
+  if(wrong.length){box.classList.add("hidden");box.innerHTML="";return;}
+  const pick=selectLevelLesson(records||[]);
   if(!pick){box.classList.add("hidden");box.innerHTML="";return;}
   const r=pick.record,lesson=(window.AE_LESSONS||{})[r.cat]||{es:`La regla clave de este patr\u00f3n es: ${r.rule||"f\u00edjate en la estructura de la respuesta correcta."}`,en:r.rule||"Focus on the structure of the correct answer.",formula:r.correctAnswer||"",example:String(r.question||"").replace("___",r.correctAnswer||"___"),translation:"",cue:"Identifica primero el patr\u00f3n y despu\u00e9s completa la forma verbal."};
   const skill=CAMPAIGN.skills.find(s=>s.id===r.cat),title=skill?.name||r.skill||r.cat;
@@ -919,11 +943,12 @@ function renderEnd(s,before){
   $("eRepeats").textContent=phraseStats.repeatedUnique.toLocaleString();
   $("eBankTotal").textContent=BANK.length.toLocaleString();
   $("weakSkills").innerHTML=skillRowsHtml(rankedSkills());
-  const wrong=session.records.filter(r=>!r.correct);
+  const wrong=session.records.filter(r=>!r.correct),errorGroups=renderErrorLab(wrong,"endErrorCards"),lab=$("endErrorLab");
+  if(lab){lab.classList.toggle("hidden",wrong.length===0);const labMeta=$("endErrorMeta");if(labMeta)labMeta.textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"} to consolidate`:"";}
   const errorsLabel=`REVIEW ERRORS - ${wrong.length}`;$("errorsBtn").textContent=errorsLabel;$("topErrorsBtn").textContent=errorsLabel;
   $("errorsBtn").classList.toggle("hidden",wrong.length===0);$("topErrorsBtn").classList.toggle("hidden",wrong.length===0);
-  $("errorsCount").textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} in Level ${s.level}`:`No errors in Level ${s.level}`;
-  $("errorsFull").innerHTML=wrong.length?wrong.map((r,i)=>`<details open><summary>${i+1}. ${escapeHtml(r.question)} - ${(r.ms/1000).toFixed(1)}s</summary><p><b>You:</b> ${escapeHtml(r.userAnswer)}<br><b>Correct:</b> ${escapeHtml(r.correctAnswer)}<br>${escapeHtml(r.rule)}</p></details>`).join(""):'<p class="meta">No errors in this level.</p>';
+  $("errorsCount").textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} in Level ${s.level} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"}`:`No errors in Level ${s.level}`;
+  if(wrong.length)renderErrorLab(wrong,"errorsFull");else $("errorsFull").innerHTML='<p class="meta">No errors in this level.</p>';
   const nextLabel=state.completed?"KEEP TRAINING":`NEXT LEVEL · ${state.level}`;$("continueBtn").textContent=nextLabel;$("topContinueBtn").textContent=nextLabel;
   const finalHidden=!(st.eligible&&!state.completed);$("finalBtn").classList.toggle("hidden",finalHidden);$("topFinalBtn").classList.toggle("hidden",finalHidden);
   if(s.mode==="final"&&!state.completed)$("endSub").textContent=`Final challenge not passed yet · ${pct(s.accuracy)}% · ${fmtSec(s.avgMs)}`;
