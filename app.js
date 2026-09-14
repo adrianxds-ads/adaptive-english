@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "2.8.1";
+const APP_VERSION = "2.9";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -97,6 +97,8 @@ function memoryEchoFor(cat,correctAnswer=""){
   if(cat==="too_enough")return /\benough\b/i.test(correctAnswer)?{title:"Never Enough",artist:"Loren Allred",cue:"ADJECTIVE + ENOUGH"}:{title:"Too Much",artist:"Spice Girls",cue:"TOO + ADJECTIVE"};
   return MEMORY_ECHOES[cat]||null;
 }
+function spotifySearchUrl(e){return e?`https://open.spotify.com/search/${encodeURIComponent(`${e.artist} ${e.title}`)}`:"";}
+function spotifyOpenHtml(e,cls="spotify-open"){if(!e)return "";return `<a class="${cls}" href="${escapeHtml(spotifySearchUrl(e))}" target="_blank" rel="noopener noreferrer">▶ OPEN IN SPOTIFY</a>`;}
 function keyMemoryEchoHtml(cat){
   const x=memoryEchoFor(cat,cat==="so_such"?"such":cat==="too_enough"?"enough":"");if(!x)return "";
   return `<em class="key-memory-echo"><small>MUSIC ECHO</small><span>${escapeHtml(x.artist)} · ${escapeHtml(x.title)}</span><b>${escapeHtml(x.cue)}</b></em>`;
@@ -672,7 +674,7 @@ function errorCoachCardHtml(group,index){
   for(const row of records){const e=memoryEchoFor(group.cat,row.correctAnswer||"");if(e&&!echoes.some(x=>x.artist===e.artist&&x.title===e.title))echoes.push(e);}
   const examples=records.map((row,i)=>`<div class="error-example"><div class="error-example-q"><b>${i+1}.</b> ${escapeHtml(row.question||row.originalQuestion||"")}</div><div class="mistake-choice"><div class="wrong"><b>You</b><br>${escapeHtml(row.userAnswer||"No answer")}</div><div class="correct"><b>Correct</b><br>${escapeHtml(row.correctAnswer||"")}</div></div><div class="error-solved">${escapeHtml(solvedErrorSentence(row))}</div></div>`).join("");
   const whyEs=coach.must||lesson.es||r.rule||"Fíjate en la estructura de la respuesta correcta.",whyEn=lesson.en||"Notice the pattern in the correct answer and reuse it.",formula=lesson.formula||r.rule||r.correctAnswer||"",quick=lesson.cue||coach.must||"Identifica primero el patrón.",secret=coach.secret||quick,trap=coach.trap||"Contrasta tu respuesta con la forma correcta hasta que la estructura salga automáticamente.";
-  const music=echoes.length?`<div class="error-music">${echoes.map(e=>`<div><small>MUSIC ECHO</small><b>♪ ${escapeHtml(e.artist)} · ${escapeHtml(e.title)}</b><span>${escapeHtml(e.cue)}</span></div>`).join("")}</div>`:`<div class="error-music"><div><small>MEMORY ECHO</small><b>${escapeHtml(lesson.example||r.correctAnswer||title)}</b></div></div>`;
+  const music=echoes.length?`<div class="error-music">${echoes.map(e=>`<div><small>MUSIC ECHO</small><b>♪ ${escapeHtml(e.artist)} · ${escapeHtml(e.title)}</b><span>${escapeHtml(e.cue)}</span>${spotifyOpenHtml(e)}</div>`).join("")}</div>`:`<div class="error-music"><div><small>MEMORY ECHO</small><b>${escapeHtml(lesson.example||r.correctAnswer||title)}</b></div></div>`;
   return `<article class="error-coach-card"><div class="error-coach-head"><div><small>ERROR KEY ${String(index+1).padStart(2,"0")}</small><h3>${escapeHtml(title)}</h3></div><span>${records.length} ${records.length===1?"MISS":"MISSES"}</span></div>${examples}<div class="error-formula">${escapeHtml(formula)}</div><div class="error-quick"><b>QUICK RULE</b><span>${escapeHtml(quick)}</span></div><details class="error-detail"><summary>WHY? · ENTIÉNDELO</summary><div class="error-detail-body"><p><b>ES ·</b> ${escapeHtml(whyEs)}</p><p><b>EN ·</b> ${escapeHtml(whyEn)}</p></div></details><details class="error-detail secret-detail"><summary>🗝 SECRET KEY · MEMORY ECHO</summary><div class="error-detail-body"><div class="secret-key-copy">${escapeHtml(secret)}</div><p class="secret-trap">${escapeHtml(trap)}</p>${music}</div></details></article>`;
 }
 function renderErrorLab(records,targetId){
@@ -732,8 +734,8 @@ function ensureDailyKey(){
   if(changed)save();return {...state.dailyKey,number:active.number||state.keyring.indexOf(active)+1,unlocked:state.keyring.length,start:state.keyJourneyStart};
 }
 function keySlideHtml(x){
-  const key=(window.AE_KEYS||{})[x.cat],skill=CAMPAIGN.skills.find(s=>s.id===x.cat),m=state.metrics[x.cat],mastery=m?metricMastery(m):0,n=x.number||1;
-  return `<article class="key-slide" data-key-number="${n}"><div class="key-slide-meta"><span>KEY ${n} / 25</span><small>${pct(mastery)}% MASTERY</small></div><button class="daily-key-card" type="button" aria-expanded="false"><div class="daily-key-face daily-key-front"><small>ESPAÑOL → INGLÉS</small><strong>${escapeHtml(key.front)}</strong><span>TOCA PARA REVELAR</span></div><div class="daily-key-face daily-key-back"><small>KEY ${n} UNLOCKED</small><strong>${escapeHtml(key.back)}</strong><b>${escapeHtml(key.formula)}</b><span>${escapeHtml(key.cue)}</span>${keyMemoryEchoHtml(x.cat)}</div></button></article>`;
+  const key=(window.AE_KEYS||{})[x.cat],skill=CAMPAIGN.skills.find(s=>s.id===x.cat),m=state.metrics[x.cat],mastery=m?metricMastery(m):0,n=x.number||1,echo=memoryEchoFor(x.cat,x.cat==="so_such"?"such":x.cat==="too_enough"?"enough":"");
+  return `<article class="key-slide" data-key-number="${n}"><div class="key-slide-meta"><span>KEY ${n} / 25</span><small>${pct(mastery)}% MASTERY</small></div><button class="daily-key-card" type="button" aria-expanded="false"><div class="daily-key-face daily-key-front"><small>ESPAÑOL → INGLÉS</small><strong>${escapeHtml(key.front)}</strong><span>TOCA PARA REVELAR</span></div><div class="daily-key-face daily-key-back"><small>KEY ${n} UNLOCKED</small><strong>${escapeHtml(key.back)}</strong><b>${escapeHtml(key.formula)}</b><span>${escapeHtml(key.cue)}</span>${keyMemoryEchoHtml(x.cat)}</div></button>${spotifyOpenHtml(echo,"key-spotify-open")}</article>`;
 }
 function renderDailyKey(){
   const host=$("dailyKeyHost"),journey=ensureDailyKey();if(!host||!journey)return;
@@ -945,9 +947,8 @@ function renderEnd(s,before){
   $("eRepeats").textContent=phraseStats.repeatedUnique.toLocaleString();
   $("eBankTotal").textContent=BANK.length.toLocaleString();
   $("weakSkills").innerHTML=skillRowsHtml(rankedSkills());
-  const wrong=session.records.filter(r=>!r.correct),errorGroups=renderErrorLab(wrong,"endErrorCards"),lab=$("endErrorLab"),labToggle=$("endErrorLabToggle");
-  if(lab){lab.classList.add("hidden");const labMeta=$("endErrorMeta");if(labMeta)labMeta.textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"} to consolidate`:"";}
-  if(labToggle){labToggle.classList.toggle("hidden",wrong.length===0);labToggle.classList.remove("open");labToggle.setAttribute("aria-expanded","false");const m=$("endErrorLabToggleMeta");if(m)m.textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"}`:"No errors";}
+  const wrong=session.records.filter(r=>!r.correct),errorGroups=levelErrorGroups(wrong),labToggle=$("endErrorLabToggle");
+  if(labToggle){labToggle.classList.toggle("hidden",wrong.length===0);const m=$("endErrorLabToggleMeta");if(m)m.textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"}`:"No errors";}
   const errorsLabel=`ERROR LAB · ${wrong.length}`;$("errorsBtn").textContent=errorsLabel;$("topErrorsBtn").textContent=errorsLabel;
   $("errorsBtn").classList.toggle("hidden",wrong.length===0);$("topErrorsBtn").classList.toggle("hidden",wrong.length===0);
   $("errorsCount").textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} in Level ${s.level} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"}`:`No errors in Level ${s.level}`;
@@ -1000,9 +1001,9 @@ async function boot(){
   $("exportBtn").onclick=exportProgress;$("importBtn").onclick=()=>$("importFile").click();
   $("importFile").onchange=e=>e.target.files[0]&&importProgress(e.target.files[0]);
   const goDashboard=()=>{renderStart();showScreen("startScreen");};
-  const toggleErrorLab=(forceOpen=null)=>{const lab=$("endErrorLab"),toggle=$("endErrorLabToggle");if(!lab||!toggle||toggle.classList.contains("hidden"))return;const open=forceOpen==null?lab.classList.contains("hidden"):!!forceOpen;lab.classList.toggle("hidden",!open);toggle.classList.toggle("open",open);toggle.setAttribute("aria-expanded",open?"true":"false");const em=toggle.querySelector("em");if(em)em.textContent=open?"CLOSE −":"OPEN +";if(open)setTimeout(()=>lab.scrollIntoView({behavior:"smooth",block:"start"}),40);};
+  const openErrorLab=()=>showScreen("errorsScreen");
   $("resetBtn").onclick=resetProgress;$("campaign2Copy").onclick=copyCampaign2Brief;$("homeBtn").onclick=goDashboard;$("topHomeBtn").onclick=goDashboard;
-  $("errorsBtn").onclick=()=>toggleErrorLab(true);$("topErrorsBtn").onclick=()=>toggleErrorLab(true);$("endErrorLabToggle").onclick=()=>toggleErrorLab();
+  $("errorsBtn").onclick=openErrorLab;$("topErrorsBtn").onclick=openErrorLab;$("endErrorLabToggle").onclick=openErrorLab;
   $("errorsBackBtn").onclick=()=>showScreen("endScreen");
   renderStart();showScreen("startScreen");
 }

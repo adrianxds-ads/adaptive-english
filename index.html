@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="2.8.1">
-<title>Adaptive English - Campaign 1 - v2.8.1</title>
+<meta name="ae-version" content="2.9">
+<title>Adaptive English - Campaign 1 - v2.9</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -312,6 +312,14 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 .error-lab{margin-top:8px!important}.error-example-q{font-size:16px!important}.error-coach-card .mistake-choice div{font-size:15px!important;line-height:1.35}.error-solved{font-size:15px!important;line-height:1.45}.error-formula{font-size:16px!important}.error-quick span{font-size:15px!important;line-height:1.45}.error-detail summary{font-size:12px!important;padding:12px 13px!important}.error-detail-body p{font-size:15px!important;line-height:1.58}.secret-key-copy{font-size:16px!important;line-height:1.5}.error-music b{font-size:16px!important}.error-music span{font-size:11px!important}
 @media(max-width:520px){.error-lab-toggle{padding:13px 12px;grid-template-columns:auto 1fr auto}.error-lab-toggle b{font-size:12px}.error-coach-card{padding:14px}.error-example-q{font-size:15px!important}.error-coach-card .mistake-choice div{font-size:14px!important}.error-solved,.error-quick span,.error-detail-body p{font-size:14px!important}.secret-key-copy{font-size:15px!important}.error-formula{font-size:15px!important}}
 </style>
+
+<style id="v290-style">
+/* v2.9 · dedicated Error Lab screen + Spotify links */
+#errorsScreen .panel{padding:clamp(20px,5vw,34px)}#errorsScreen .error-lab-hero{margin-bottom:18px}#errorsScreen .error-lab-hero h1{font-size:clamp(42px,10vw,72px)}#errorsScreen .error-lab-hero p{font-size:18px;font-weight:850;margin-bottom:5px}#errorsScreen .error-lab-hero small{font-size:14px;line-height:1.45;color:#b7c9bf;font-weight:750}
+#errorsScreen .error-coach-card{padding:clamp(16px,4vw,24px);border-radius:16px;margin-top:18px}#errorsScreen .error-coach-head h3{font-size:clamp(27px,7vw,38px)!important}#errorsScreen .error-example-q{font-size:clamp(18px,4.5vw,23px)!important;line-height:1.42}#errorsScreen .mistake-choice div{font-size:clamp(17px,4vw,21px)!important;padding:12px!important}#errorsScreen .error-solved{font-size:clamp(18px,4.5vw,23px)!important;padding:12px 14px;line-height:1.45}#errorsScreen .error-formula{font-size:clamp(18px,4.5vw,24px)!important;padding:14px}#errorsScreen .error-quick span{font-size:clamp(17px,4vw,21px)!important}#errorsScreen .error-detail summary{font-size:14px!important;padding:15px!important}#errorsScreen .error-detail-body p{font-size:clamp(17px,4vw,21px)!important;line-height:1.65}#errorsScreen .secret-key-copy{font-size:clamp(18px,4.4vw,23px)!important;line-height:1.55}#errorsScreen .error-music b{font-size:clamp(18px,4.4vw,23px)!important}#errorsScreen .error-music span{font-size:13px!important}
+.spotify-open,.key-spotify-open{display:inline-flex;align-items:center;justify-content:center;margin-top:10px;padding:10px 13px;border-radius:999px;background:#1ed760;color:#07170d!important;text-decoration:none;font-size:11px;font-weight:950;letter-spacing:.07em}.spotify-open:active,.key-spotify-open:active{transform:scale(.98)}.key-spotify-open{display:flex;width:max-content;max-width:100%;margin:10px auto 0}.key-slide .key-spotify-open{font-size:10px;padding:9px 12px}
+@media(max-width:520px){#errorsScreen{padding-left:8px;padding-right:8px}#errorsScreen .panel{padding:18px 12px}#errorsScreen .error-coach-card{padding:15px 12px}#errorsScreen .mistake-choice{grid-template-columns:1fr!important;gap:7px}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -321,7 +329,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 15</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.8.1</div>
+    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.9</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -364,7 +372,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 
 <section id="statsScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.8.1</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
+    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.9</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 15</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
@@ -379,7 +387,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">MY COACH · v2.8.1</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div class="resulttitle"><div class="kicker">MY COACH · v2.9</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
     <div id="coachIntro" class="statusbox"></div>
     <div class="section"><h3>Focus now</h3><div id="coachFocus" class="coach-grid"></div></div>
     <div class="section"><h3>Common mistakes</h3><div id="coachMistakes"></div></div>
@@ -428,8 +436,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="learningScore">—</b><small id="learningScoreWindow">Media móvil</small></div><div id="learningScoreDelta" class="learning-direction neutral">→</div></div>
     <div id="campaign2End" class="statusbox next-campaign-end hidden"></div>
     <section id="levelLesson" class="level-lesson hidden"></section>
-    <button id="endErrorLabToggle" class="error-lab-toggle hidden" type="button" aria-expanded="false"><span>ERROR LAB</span><b id="endErrorLabToggleMeta">Errores del último nivel</b><em>OPEN +</em></button>
-    <section id="endErrorLab" class="section error-lab hidden"><div class="error-lab-title"><div><span>ERROR LAB</span><h3>Review every miss</h3></div><small id="endErrorMeta"></small></div><div id="endErrorCards" class="error-lab-list"></div></section>
+    <button id="endErrorLabToggle" class="error-lab-toggle hidden" type="button"><span>ERROR LAB</span><b id="endErrorLabToggleMeta">Errores del último nivel</b><em>OPEN →</em></button>
     <div class="charts">
       <div class="section"><h3>Accuracy · all levels</h3><div id="accuracyChart"></div></div>
       <div class="section learning-trend"><h3>Learning Curve · long-term</h3><div id="learningTrendChart"></div></div>
@@ -447,12 +454,12 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
     </div>
-    <div class="footerline">Adaptive English v2.8.1 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
+    <div class="footerline">Adaptive English v2.9 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v2.8.1</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div class="resulttitle error-lab-hero"><div class="kicker">ERROR LAB · v2.9</div><h1>Latest mistakes</h1><p id="errorsCount"></p><small>Solo contiene los errores del nivel que acabas de terminar.</small></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>

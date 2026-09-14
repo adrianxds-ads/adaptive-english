@@ -339,3 +339,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Error Lab is collapsed by default and opens in place using only the just-completed level errors.
 - Error review typography is larger.
 - Timer audio accelerates: 1 Hz early, 2 Hz from 3–2s, 4 Hz in the final 2s.
+
+## v2.9 · Error Lab Screen
+- Error Lab opens as its own full review screen and only shows the just-completed level errors.
+- Error-review typography is substantially larger and no longer constrained by the results dashboard.
+- Persistent music anchors in Error Lab and daily Keys include an Open in Spotify action.
+- The one-second in-game Memory Echo stays non-clickable to avoid accidental navigation.
+- Adaptive engine, 10-second clock, 15-question levels, scheduler, mastery and storage keys remain unchanged.
