@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
 <meta name="ae-version" content="2.6">
-<title>Adaptive English - Campaign 1 - v2.7</title>
+<title>Adaptive English - Campaign 1 - v2.7.1</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -267,13 +267,13 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 @media(max-width:520px){.memory-echo{top:28dvh;width:min(94vw,560px);padding:14px}.memory-echo b{font-size:clamp(20px,5.8vw,26px)}.memory-echo span{font-size:11px}.key-slide .daily-key-card,.key-slide .daily-key-face{min-height:225px}.daily-key-face{padding:21px 17px}.daily-key-face strong{font-size:clamp(27px,7.4vw,35px)}.daily-key-back b{font-size:16px}.daily-key-back>span{font-size:14px}.key-memory-echo span{font-size:13px!important}.key-memory-echo b{font-size:10.5px!important}}
 </style>
 <style id="v260-style">
-/* v2.7 · Skill League + non-overlapping feedback */
+/* v2.7.1 · Skill League + non-overlapping feedback */
 #gameScreen .feedback{position:relative!important;inset:auto!important;left:auto!important;top:auto!important;width:100%!important;min-height:0!important;margin:8px 0 0!important;padding:8px 11px!important;display:none!important;grid-template-columns:auto 1fr auto;align-items:center;gap:7px!important;border-radius:10px!important;transform:none!important;box-shadow:0 8px 18px rgba(0,0,0,.22)!important}#gameScreen .feedback.show{display:grid!important;opacity:1;transform:none!important}#gameScreen .feedback .feedback-question{font-size:14px!important;line-height:1!important;letter-spacing:.03em!important}#gameScreen .feedback .feedback-label{font-size:18px!important;line-height:1.05!important}#gameScreen .feedback .feedback-label small{font-size:10px!important;margin-top:2px!important}#gameScreen .feedback .appearance{font-size:9px!important}.feedback-correct-line{grid-column:1/-1;font-size:clamp(15px,4vw,20px);font-weight:950;letter-spacing:.02em;color:#fff7df;text-align:center;padding-top:2px}
 .skillrow{border-left:3px solid transparent;padding-left:7px;border-radius:6px}.skillrow.podium{border-left-color:var(--reward-gold,#E7BF57);background:linear-gradient(90deg,rgba(231,191,87,.08),transparent 42%)}.skillrow.bottom3{border-left-color:var(--negative-wine,#762F32);background:linear-gradient(90deg,rgba(118,47,50,.09),transparent 42%)}.skillrow .name{display:flex;align-items:center;gap:6px;min-width:0}.skill-rank{flex:0 0 22px;font-style:normal;font-size:10px;font-weight:950;letter-spacing:.04em;color:#8f9d95}.podium .skill-rank{color:#e7bf57}.bottom3 .skill-rank{color:#b06f72}.skill-name-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rank-move{flex:0 0 auto;font-style:normal;font-size:9px;font-weight:950}.rank-move.up{color:#88cabe}.rank-move.down{color:#b08688}.rank-move.flat{color:#697a70}.league-change{color:var(--mission-accent,#E7BF57)!important;font-size:13px!important}
 @media(max-width:520px){#gameScreen .feedback{margin-top:6px!important;padding:7px 8px!important;gap:5px!important}#gameScreen .feedback .feedback-question{font-size:12px!important}#gameScreen .feedback .feedback-label{font-size:16px!important}.feedback-correct-line{font-size:15px}.skillrow{padding-left:5px}.skill-rank{flex-basis:20px;font-size:9px}.rank-move{font-size:8px}}
 </style>
 <style id="v270-style">
-/* v2.7 · cognitive feedback hierarchy */
+/* v2.7.1 · cognitive feedback hierarchy */
 #gameScreen .feedback{position:relative!important;inset:auto!important;left:auto!important;top:auto!important;width:100%!important;margin:9px 0 0!important;padding:10px 12px!important;display:none!important;grid-template-columns:minmax(128px,1.45fr) minmax(100px,1fr) minmax(68px,.58fr);align-items:center;gap:8px!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:13px!important;transform:none!important;box-shadow:0 10px 26px rgba(0,0,0,.25)!important;overflow:hidden}
 #gameScreen .feedback.ok{background:linear-gradient(100deg,rgba(29,112,70,.97),rgba(18,64,45,.96))!important;border-left:7px solid #66d69b!important}#gameScreen .feedback.no{background:linear-gradient(100deg,rgba(151,45,59,.98),rgba(79,29,37,.97))!important;border-left:7px solid #ef8290!important}#gameScreen .feedback.show{display:grid!important;opacity:1!important;transform:none!important}
 .feedback-exposure{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;align-items:end;column-gap:5px;text-align:left}.feedback-exposure strong{grid-row:1/3;font-size:clamp(48px,13vw,72px);line-height:.78;font-weight:980;letter-spacing:-.065em;color:#fff9e8;text-shadow:0 3px 14px rgba(0,0,0,.25)}.feedback-exposure span{font-size:clamp(20px,5vw,28px);line-height:.95;font-weight:950;color:#fff}.feedback-exposure small{font-size:10px!important;line-height:1.1!important;margin:3px 0 0!important;letter-spacing:.11em;color:rgba(255,255,255,.75)}
@@ -281,6 +281,23 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 #gameScreen .feedback .appearance{display:flex!important;flex-direction:column;align-items:center;justify-content:center;min-width:0;background:rgba(0,0,0,.10)!important;border-radius:9px!important;padding:8px 5px!important}#gameScreen .feedback .appearance small{font-size:9px!important;margin:0!important;letter-spacing:.10em;color:rgba(255,255,255,.68)!important}#gameScreen .feedback .appearance b{font-size:clamp(20px,5vw,28px);line-height:1.05;margin-top:3px;color:#fff0bd}
 .correct-reveal{margin-bottom:8px;padding:9px 12px 10px}.correct-reveal-kicker{font-size:10px}.correct-reveal strong{font-size:clamp(25px,6.8vw,39px)}#questionText.focus-active .grammar-cue,#questionText.focus-active .grammar-answer{animation-duration:1.00s!important}#questionText.focus-active .grammar-answer{font-weight:980!important}
 @media(max-width:520px){#gameScreen .feedback{grid-template-columns:minmax(118px,1.5fr) minmax(92px,1fr) 62px;padding:9px 9px!important;gap:6px!important;margin-top:7px!important}.feedback-exposure strong{font-size:clamp(46px,14vw,62px)}.feedback-exposure span{font-size:20px}.feedback-exposure small{font-size:8.5px!important}#gameScreen .feedback .feedback-label{padding:8px 5px!important}#gameScreen .feedback .feedback-label b{font-size:clamp(18px,5.2vw,23px)}#gameScreen .feedback .feedback-label small{font-size:10.5px!important}#gameScreen .feedback .appearance{padding:7px 3px!important}#gameScreen .feedback .appearance b{font-size:20px}.correct-reveal strong{font-size:clamp(23px,7vw,31px)}}
+</style>
+
+<style id="v271-style">
+/* v2.7.1.1 · mobile framing / overflow hardening */
+html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,.feedback,.correct-reveal{max-width:100%;min-width:0}
+.toprow{grid-template-columns:76px minmax(0,1fr) minmax(102px,auto)}.qnum,.hudright,.leveltag{min-width:0}.hudright{width:100%;justify-content:flex-end}.leveltag{max-width:64px;overflow:visible}.leveltag .level-target{max-width:100%;white-space:nowrap;font-size:9px;padding:3px 5px}
+.answers{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.answer{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:normal;white-space:normal}
+#gameScreen .feedback{box-sizing:border-box!important;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr) minmax(52px,.58fr)!important;max-width:100%!important}.feedback-exposure,#gameScreen .feedback .feedback-label,#gameScreen .feedback .appearance{min-width:0;max-width:100%}.feedback-exposure span,#gameScreen .feedback .feedback-label b,#gameScreen .feedback .appearance b{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:normal}.feedback-exposure strong{font-size:clamp(42px,12vw,68px)}#gameScreen .feedback .feedback-label b{font-size:clamp(16px,4.6vw,27px);text-align:center}
+.correct-reveal strong,.memory-echo b,.memory-echo span,#questionText{max-width:100%;overflow-wrap:anywhere;word-break:normal}
+@media(max-width:520px){.toprow{grid-template-columns:68px minmax(0,1fr) 104px;gap:6px}.timer{width:62px;height:62px}.soundbtn{width:36px;height:36px;font-size:17px}.hudright{gap:5px}.leveltag{font-size:11px;max-width:63px}.leveltag .level-target{font-size:8px;padding:3px 4px}#gameScreen .feedback{grid-template-columns:minmax(0,1.38fr) minmax(0,.95fr) minmax(48px,.52fr)!important;padding:9px 8px!important;gap:5px!important}.feedback-exposure strong{font-size:clamp(42px,13vw,58px)}.feedback-exposure span{font-size:clamp(16px,4.7vw,20px)}#gameScreen .feedback .feedback-label b{font-size:clamp(15px,4.3vw,21px)}#gameScreen .feedback .appearance b{font-size:18px}}
+@media(max-width:360px){.screen{padding-left:8px;padding-right:8px}.toprow{grid-template-columns:64px minmax(0,1fr) 96px;gap:4px}.timer{width:58px;height:58px}.qnum b{font-size:38px}.soundbtn{width:32px;height:32px;font-size:15px}.hudright{gap:3px}.leveltag{font-size:10px;max-width:61px}.leveltag .level-target{font-size:7.5px;padding:2px 3px}#gameScreen .feedback{grid-template-columns:minmax(0,1.4fr) minmax(0,.9fr) 44px!important;padding:8px 6px!important;gap:4px!important}.feedback-exposure strong{font-size:44px}.feedback-exposure span{font-size:16px}.feedback-exposure small{font-size:7.5px!important}#gameScreen .feedback .feedback-label{padding:7px 3px!important}#gameScreen .feedback .feedback-label b{font-size:15px}#gameScreen .feedback .feedback-label small{font-size:9px!important}#gameScreen .feedback .appearance{padding:6px 2px!important}#gameScreen .feedback .appearance small{font-size:7px!important}#gameScreen .feedback .appearance b{font-size:16px}.answer{font-size:clamp(18px,5.3vw,24px);padding-left:7px;padding-right:7px}}
+</style>
+
+<style id="v271-polish">
+.panel,.section,.card,.actions,.charts,.skillrow,.daily-key-card,.daily-key-face{min-width:0;max-width:100%}
+@media(max-width:520px){#gameScreen .feedback{grid-template-columns:minmax(0,1.5fr) minmax(104px,.95fr)!important;grid-template-areas:"exposure result" "exposure pattern";align-items:stretch!important}.feedback-exposure{grid-area:exposure;align-self:center}.feedback-label{grid-area:result}.appearance{grid-area:pattern}#gameScreen .feedback .feedback-label b{white-space:nowrap!important;overflow-wrap:normal!important;font-size:clamp(15px,4.5vw,20px)!important}#gameScreen .feedback .appearance{flex-direction:row!important;gap:5px!important}#gameScreen .feedback .appearance b{margin-top:0!important;font-size:18px!important}.skillrow{grid-template-columns:minmax(0,1.15fr) minmax(54px,1fr) 38px}}
+@media(max-width:360px){#gameScreen .feedback{grid-template-columns:minmax(0,1.45fr) minmax(96px,.95fr)!important}#gameScreen .feedback .feedback-label b{font-size:14px!important}.skillrow{grid-template-columns:minmax(0,1fr) minmax(48px,.8fr) 36px;gap:6px}}
 </style>
 </head>
 <body>
@@ -291,7 +308,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 15</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.7</div>
+    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.7.1</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -334,7 +351,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 
 <section id="statsScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.7</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
+    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.7.1</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 15</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
@@ -349,7 +366,7 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">MY COACH · v2.7</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div class="resulttitle"><div class="kicker">MY COACH · v2.7.1</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
     <div id="coachIntro" class="statusbox"></div>
     <div class="section"><h3>Focus now</h3><div id="coachFocus" class="coach-grid"></div></div>
     <div class="section"><h3>Common mistakes</h3><div id="coachMistakes"></div></div>
@@ -415,12 +432,12 @@ body{background:radial-gradient(90% 70% at 110% 5%,rgba(var(--ambient-rank-rgb,8
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
     </div>
-    <div class="footerline">Adaptive English v2.7 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
+    <div class="footerline">Adaptive English v2.7.1 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v2.7</div><h1>Errors</h1><p id="errorsCount"></p></div>
+    <div class="resulttitle"><div class="kicker">LEVEL REVIEW · v2.7.1</div><h1>Errors</h1><p id="errorsCount"></p></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>

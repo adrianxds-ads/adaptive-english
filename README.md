@@ -1,4 +1,4 @@
-# Adaptive English · Campaign 1 v2.7
+# Adaptive English · Campaign 1 v2.7.1
 
 Local adaptive grammar trainer.
 
@@ -317,3 +317,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Correct/incorrect colour remains strong but secondary; pattern count and response time remain supporting data.
 - Wrong-answer correction stays above the question; the full sentence keeps its gold grammar-focus flash; music echo remains independent.
 - Adaptive engine, fixed 10-second timer, 15-question levels, scheduler, mastery model and storage key are unchanged.
+
+## v2.7.1 · Mobile framing audit
+
+- Hardened HUD, answer grid, correction, Memory Echo and cognitive feedback against horizontal overflow.
+- Expanded the mobile HUD allocation for sound, level and TARGET instead of forcing them into a 74px column.
+- Replaced rigid feedback minima with flexible minmax(0, …) columns and added narrow-screen fallbacks.
+- Preserved the 10-second timer, 15-question levels, scheduler, mastery model and progress storage key.
