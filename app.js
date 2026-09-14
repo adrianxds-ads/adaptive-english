@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "2.10";
+const APP_VERSION = "2.11";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -15,6 +15,7 @@ const GRAPH_BANDS_15=AVS_RANKS.map(x=>x.band||x.color);
 const AVS_TEXT_BANDS_15=AVS_RANKS.map(x=>x.text||x.color);
 let CAMPAIGN=null, BANK=[], state=null, session=null, timerHandle=null, deadline=0, current=null, locked=false;
 let audioCtx=null, soundOn=true, lastTickShown=TIME_LIMIT+1, lastUrgentBeat=-1;
+let focusLastActivityTs=Date.now(),focusLastTickTs=Date.now(),focusSaveMs=0,focusTimerHandle=null;
 
 const $=id=>document.getElementById(id);
 function applyVisualSystemTokens(){const r=document.documentElement;AVS_RANKS.forEach((x,i)=>{r.style.setProperty(`--rank-${i+1}`,x.color);r.style.setProperty(`--rank-${i+1}-surface`,x.surface||x.color);r.style.setProperty(`--rank-${i+1}-band`,x.band||x.color);r.style.setProperty(`--rank-${i+1}-text`,x.text||x.color);});r.style.setProperty("--reward-gold",COLOR_BANDS_15[14]);r.style.setProperty("--reward-gold-text",AVS_TEXT_BANDS_15[14]);r.style.setProperty("--elite-violet",COLOR_BANDS_15[13]);r.style.setProperty("--negative-wine",COLOR_BANDS_15[3]);}
@@ -156,7 +157,7 @@ function newState(){
   return {
     schemaVersion:1,campaignId:CAMPAIGN.campaignId,level:Math.max(CAMPAIGN.startingLevel||1,storedGlobalLevel()),sessions:0,totalAttempts:0,
     metrics,seen:{},templateLast:{},templateSeen:{},history:[],sessionHistory:[],finalAttempts:0,completed:false,contentRevision:3,
-    dailyKey:{date:"",cat:""},keyring:[],keyJourneyStart:"",personalBestFluency:0,activeTrainingMs:0,createdAt:Date.now(),updatedAt:Date.now()
+    dailyKey:{date:"",cat:""},keyring:[],keyJourneyStart:"",personalBestFluency:0,activeTrainingMs:0,focusTimeByDate:{},focusTargetsByDate:{},focusTrackingStartedAt:Date.now(),createdAt:Date.now(),updatedAt:Date.now()
   };
 }
 function validProgressState(s){
@@ -170,6 +171,7 @@ function normaliseProgressState(s){
   for(const skill of CAMPAIGN.skills)if(!s.metrics[skill.id])s.metrics[skill.id]=seedMetric(skill.id);
   s.history=Array.isArray(s.history)?s.history.slice(-HISTORY_LIMIT):[];
   if(!Number.isFinite(s.activeTrainingMs))s.activeTrainingMs=s.history.reduce((sum,r)=>sum+(Number.isFinite(r?.ms)?r.ms:0),0);
+  s.focusTimeByDate=s.focusTimeByDate&&typeof s.focusTimeByDate==="object"?s.focusTimeByDate:{};s.focusTargetsByDate=s.focusTargetsByDate&&typeof s.focusTargetsByDate==="object"?s.focusTargetsByDate:{};if(!Number.isFinite(s.focusTrackingStartedAt))s.focusTrackingStartedAt=Date.now();
   s.sessionHistory=Array.isArray(s.sessionHistory)?s.sessionHistory.slice(-SESSION_HISTORY_LIMIT):[];
   s.seen=s.seen&&typeof s.seen==="object"?s.seen:{};s.templateLast=s.templateLast&&typeof s.templateLast==="object"?s.templateLast:{};s.templateSeen=s.templateSeen&&typeof s.templateSeen==="object"?s.templateSeen:{};
   s.dailyKey=s.dailyKey&&typeof s.dailyKey==="object"?s.dailyKey:{date:"",cat:""};s.keyring=Array.isArray(s.keyring)?s.keyring.filter(x=>x&&typeof x.cat==="string").slice(0,25):[];const firstKeyDate=s.keyring.map(x=>x.firstDate).filter(Boolean).sort()[0]||s.dailyKey.date||"";s.keyJourneyStart=typeof s.keyJourneyStart==="string"&&s.keyJourneyStart?s.keyJourneyStart:firstKeyDate;s.keyring.forEach((x,i)=>x.number=i+1);const rebuildTemplateSeen=!Object.keys(s.templateSeen).length;
@@ -201,6 +203,21 @@ function save(){
 }
 
 function formatStudyTime(ms){const total=Math.max(0,Math.round((ms||0)/1000)),h=Math.floor(total/3600),m=Math.floor((total%3600)/60),s=total%60;return h?`${h}h ${String(m).padStart(2,"0")}m`:m?`${m}m ${String(s).padStart(2,"0")}s`:`${s}s`;}
+function localDayKey(ts=Date.now()){const d=new Date(ts),p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
+function dueQuestionCountNow(){const now=Date.now();return Object.values(state?.seen||{}).filter(x=>x?.lastTs&&now>=(x.nextDueTs||x.lastTs+(x.intervalDays||1)*86400000)).length;}
+function focusPlanModel(){
+  const due=dueQuestionCountNow(),weak=Object.values(state?.metrics||{}).filter(m=>metricMastery(m)<.45).length,recent=(state?.sessionHistory||[]).filter(x=>x.mode==="training").slice(-4);
+  const dueBonus=due>=700?5:due>=350?4:due>=150?2:due>=50?1:0,weakBonus=weak>=6?4:weak>=3?2:weak>=1?1:0;
+  const acc=recent.length?mean(recent.map(x=>x.accuracy||0)):1,ms=recent.length?mean(recent.map(x=>x.avgMs||0)):0,fatigue=recent.length>=3&&acc<.52&&ms>6500?-2:0;
+  const recommended=Math.round(clamp(15+dueBonus+weakBonus+fatigue,12,25)),minimum=Math.max(10,recommended-5),stretch=Math.min(30,recommended+6);
+  const why=["Base 15m",dueBonus?`reviews +${dueBonus}m`:"reviews estable",weakBonus?`${weak} Keys débiles +${weakBonus}m`:"Keys estables",fatigue?"fatiga -2m":""].filter(Boolean).join(" · ");
+  return {minimum,recommended,stretch,due,weak,fatigue,why};
+}
+function ensureFocusTarget(day=localDayKey()){state.focusTargetsByDate=state.focusTargetsByDate||{};if(!state.focusTargetsByDate[day]){const p=focusPlanModel();state.focusTargetsByDate[day]={minimum:p.minimum,recommended:p.recommended,stretch:p.stretch,why:p.why,createdAt:Date.now()};}return state.focusTargetsByDate[day];}
+function weekDays(){const now=new Date(),day=(now.getDay()+6)%7,monday=new Date(now.getFullYear(),now.getMonth(),now.getDate()-day);return Array.from({length:7},(_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return {key:localDayKey(d.getTime()),label:["L","M","X","J","V","S","D"][i],future:d>Date.now(),today:localDayKey(d.getTime())===localDayKey()};});}
+function focusSummary(){const day=localDayKey(),target=ensureFocusTarget(day),todayMs=state.focusTimeByDate?.[day]||0,totalMs=Object.values(state.focusTimeByDate||{}).reduce((s,v)=>s+(Number(v)||0),0),days=weekDays(),weekMs=days.reduce((s,d)=>s+(state.focusTimeByDate?.[d.key]||0),0);return {day,target,todayMs,totalMs,days,weekMs};}
+function focusStatus(todayMin,t){if(todayMin>=t.stretch)return "STRETCH COMPLETE";if(todayMin>=t.recommended)return "RECOMMENDED COMPLETE";if(todayMin>=t.minimum)return `${Math.ceil(t.recommended-todayMin)}m to recommended`;return `${Math.ceil(t.minimum-todayMin)}m to minimum`;}
+
 function metricMastery(m){return .45*m.k+.35*m.a+.20*m.t;}
 function recentRows(n=75){return state.history.slice(-n);}
 function recentWrong(cat,n=20){
@@ -600,9 +617,9 @@ function coachSkillMovement(limit=5){
   return out.sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta)).slice(0,limit);
 }
 function coachPromptText(){
-  const st=overallStats(),ai=aiValorationStats(),learning=learningScoreStats(),peer=typicalLearnerStats(),c2=campaign2Readiness(),focus=coachSkillStats().slice(0,5),mistakes=commonMistakeGroups(8),trend=coachTrendSummary(),moves=coachSkillMovement(),targetPerf=targetPerformanceStats(),readingLoad=readingLoadStats();
+  const st=overallStats(),ai=aiValorationStats(),learning=learningScoreStats(),peer=typicalLearnerStats(),c2=campaign2Readiness(),focus=coachSkillStats().slice(0,5),mistakes=commonMistakeGroups(8),trend=coachTrendSummary(),moves=coachSkillMovement(),targetPerf=targetPerformanceStats(),readingLoad=readingLoadStats(),focusTime=focusSummary();
   const firstTs=state.history.find(r=>Number.isFinite(r.ts))?.ts||state.createdAt||Date.now(),studySpanDays=Math.max(0,(Date.now()-firstTs)/86400000),dueQuestionCount=Object.values(state.seen).filter(x=>x?.lastTs&&Date.now()>=(x.nextDueTs||x.lastTs+(x.intervalDays||1)*86400000)).length;
-  const snapshot={appVersion:APP_VERSION,campaign:CAMPAIGN.id,level:state.level,sessions:state.sessions,totalAnswers:state.totalAttempts,uniqueSeen:Object.keys(state.seen).length,bankSize:BANK.length,studySpanDays:+studySpanDays.toFixed(1),dueQuestionCount,coveragePct:+(st.coverage*100).toFixed(1),masteryPct:+(st.mastery*100).toFixed(1),recentAccuracyPct:+(st.accuracy*100).toFixed(1),recentAutomaticPct:+(st.auto*100).toFixed(1),avgResponseSec:+(st.avgMs/1000).toFixed(2),aeRating:+(st.rating*100).toFixed(1),learningScore:learning.current==null?null:+learning.current.toFixed(1),learningTrendDelta:learning.delta==null?null:+learning.delta.toFixed(1),aiLevel:ai.level,aiConfidencePct:+(ai.confidence*100).toFixed(1),typicalLearner:{you:peer.actual==null?null:+peer.actual.toFixed(1),healthyMin:+peer.healthyMin.toFixed(1),typical:+peer.typical.toFixed(1),strongPace:+peer.strongPace.toFixed(1),paceDelta:peer.delta==null?null:+peer.delta.toFixed(1),label:peer.label},campaign2ReadinessPct:+(c2.score*100).toFixed(1),targetPerformance:targetPerf.n?{levels:targetPerf.n,avgTarget:+targetPerf.avgTarget.toFixed(2),avgActual:+targetPerf.avgActual.toFixed(2),avgDelta:+targetPerf.avgDelta.toFixed(2),hitRatePct:+(targetPerf.hitRate*100).toFixed(1),abovePct:+(targetPerf.aboveRate*100).toFixed(1),exactPct:+(targetPerf.onRate*100).toFixed(1),belowPct:+(targetPerf.belowRate*100).toFixed(1)}:null,readingLoad:{windowAnswers:readingLoad.windowAnswers,short:readingLoadBucketForCoach(readingLoad.short),medium:readingLoadBucketForCoach(readingLoad.medium),long:readingLoadBucketForCoach(readingLoad.long),longVsShort:{accuracyDeltaPts:readingLoad.longVsShort.accuracyDeltaPts==null?null:+readingLoad.longVsShort.accuracyDeltaPts.toFixed(1),timeDeltaSec:readingLoad.longVsShort.timeDeltaMs==null?null:+(readingLoad.longVsShort.timeDeltaMs/1000).toFixed(2),timeoutDeltaPts:readingLoad.longVsShort.timeoutDeltaPts==null?null:+readingLoad.longVsShort.timeoutDeltaPts.toFixed(1)},evidence:readingLoad.evidence.label,lengthSensitiveSkills:readingLoad.sensitiveSkills.map(x=>({skill:x.skill,shortN:x.shortN,longN:x.longN,longVsShortAccuracyPts:+x.accuracyDeltaPts.toFixed(1),longVsShortTimeSec:+(x.timeDeltaMs/1000).toFixed(2)}))},recentTrend:trend,focus:focus.map(x=>({skill:x.name,masteryPct:+(x.mastery*100).toFixed(1),recentErrorPct:+(x.wrongRate*100).toFixed(1),attempts:x.m.attempts||0})),skillMovement:moves.map(x=>({skill:x.skill,deltaAccuracyPts:+x.delta.toFixed(1),recentAccuracyPct:+x.recent.toFixed(1),recentN:x.n})),commonMistakes:mistakes.map(g=>({skill:skillLabel(g.cat),recentMisses:g.count,question:g.record.question||g.record.originalQuestion||"",yourAnswer:g.record.userAnswer||"",correct:g.record.correctAnswer||"",rule:g.record.rule||""})),allSkills:[...rankedSkills()].reverse().map(x=>({skill:x.name,masteryPct:+(x.mastery*100).toFixed(1),attempts:x.m.attempts||0}))};
+  const snapshot={appVersion:APP_VERSION,campaign:CAMPAIGN.id,level:state.level,sessions:state.sessions,totalAnswers:state.totalAttempts,uniqueSeen:Object.keys(state.seen).length,bankSize:BANK.length,studySpanDays:+studySpanDays.toFixed(1),focusTime:{todayMin:+(focusTime.todayMs/60000).toFixed(1),weekMin:+(focusTime.weekMs/60000).toFixed(1),totalMin:+(focusTime.totalMs/60000).toFixed(1),dailyTargetMin:focusTime.target.recommended,minimumMin:focusTime.target.minimum,stretchMin:focusTime.target.stretch},dueQuestionCount,coveragePct:+(st.coverage*100).toFixed(1),masteryPct:+(st.mastery*100).toFixed(1),recentAccuracyPct:+(st.accuracy*100).toFixed(1),recentAutomaticPct:+(st.auto*100).toFixed(1),avgResponseSec:+(st.avgMs/1000).toFixed(2),aeRating:+(st.rating*100).toFixed(1),learningScore:learning.current==null?null:+learning.current.toFixed(1),learningTrendDelta:learning.delta==null?null:+learning.delta.toFixed(1),aiLevel:ai.level,aiConfidencePct:+(ai.confidence*100).toFixed(1),typicalLearner:{you:peer.actual==null?null:+peer.actual.toFixed(1),healthyMin:+peer.healthyMin.toFixed(1),typical:+peer.typical.toFixed(1),strongPace:+peer.strongPace.toFixed(1),paceDelta:peer.delta==null?null:+peer.delta.toFixed(1),label:peer.label},campaign2ReadinessPct:+(c2.score*100).toFixed(1),targetPerformance:targetPerf.n?{levels:targetPerf.n,avgTarget:+targetPerf.avgTarget.toFixed(2),avgActual:+targetPerf.avgActual.toFixed(2),avgDelta:+targetPerf.avgDelta.toFixed(2),hitRatePct:+(targetPerf.hitRate*100).toFixed(1),abovePct:+(targetPerf.aboveRate*100).toFixed(1),exactPct:+(targetPerf.onRate*100).toFixed(1),belowPct:+(targetPerf.belowRate*100).toFixed(1)}:null,readingLoad:{windowAnswers:readingLoad.windowAnswers,short:readingLoadBucketForCoach(readingLoad.short),medium:readingLoadBucketForCoach(readingLoad.medium),long:readingLoadBucketForCoach(readingLoad.long),longVsShort:{accuracyDeltaPts:readingLoad.longVsShort.accuracyDeltaPts==null?null:+readingLoad.longVsShort.accuracyDeltaPts.toFixed(1),timeDeltaSec:readingLoad.longVsShort.timeDeltaMs==null?null:+(readingLoad.longVsShort.timeDeltaMs/1000).toFixed(2),timeoutDeltaPts:readingLoad.longVsShort.timeoutDeltaPts==null?null:+readingLoad.longVsShort.timeoutDeltaPts.toFixed(1)},evidence:readingLoad.evidence.label,lengthSensitiveSkills:readingLoad.sensitiveSkills.map(x=>({skill:x.skill,shortN:x.shortN,longN:x.longN,longVsShortAccuracyPts:+x.accuracyDeltaPts.toFixed(1),longVsShortTimeSec:+(x.timeDeltaMs/1000).toFixed(2)}))},recentTrend:trend,focus:focus.map(x=>({skill:x.name,masteryPct:+(x.mastery*100).toFixed(1),recentErrorPct:+(x.wrongRate*100).toFixed(1),attempts:x.m.attempts||0})),skillMovement:moves.map(x=>({skill:x.skill,deltaAccuracyPts:+x.delta.toFixed(1),recentAccuracyPct:+x.recent.toFixed(1),recentN:x.n})),commonMistakes:mistakes.map(g=>({skill:skillLabel(g.cat),recentMisses:g.count,question:g.record.question||g.record.originalQuestion||"",yourAnswer:g.record.userAnswer||"",correct:g.record.correctAnswer||"",rule:g.record.rule||""})),allSkills:[...rankedSkills()].reverse().map(x=>({skill:x.name,masteryPct:+(x.mastery*100).toFixed(1),attempts:x.m.attempts||0}))};
   return `Analyze my Adaptive English Campaign 1 progress as my English coach. Tell me: (1) how I am progressing overall, (2) whether I am accelerating, plateauing or regressing, (3) my 3-5 highest-priority grammar targets and why, (4) which errors are conceptual versus automaticity/speed problems, (5) whether my pace is healthy relative to the app's model-based Typical Learner reference, and (6) what I should focus on for my next 5-10 levels. Also consider the real calendar study span and due-review count when judging retention. (7) Assess whether phrase length / reading load appears to be affecting errors, response time or timeouts, including whether the effect is skill-specific. The 10-second clock is intentionally fixed: do not recommend changing it from weak or insufficient reading-load evidence. Be specific and compare trends, not just current scores. The Typical Learner figures are a synthetic model, not real population averages.
 
 ADAPTIVE_ENGLISH_COACH_SNAPSHOT
@@ -643,7 +660,19 @@ function readingLoadStats(){
   return {windowAnswers:rows.length,short,medium,long,longVsShort:{accuracyDeltaPts:deltaAccuracy,timeDeltaMs:deltaTimeMs,timeoutDeltaPts:deltaTimeout},evidence:{enough,label,detail},sensitiveSkills:readingLoadSkillStats()};
 }
 function readingLoadBucketForCoach(x){return {n:x.n,accuracyPct:+(x.accuracy*100).toFixed(1),avgResponseSec:+(x.avgMs/1000).toFixed(2),timeoutPct:+(x.timeoutRate*100).toFixed(1),automaticPct:+(x.automaticRate*100).toFixed(1)};}
+function focusPanelHtml(){
+  const s=focusSummary(),t=s.target,todayMin=s.todayMs/60000,stretchMs=t.stretch*60000,p=Math.min(100,s.todayMs/stretchMs*100),recPos=Math.min(100,t.recommended/t.stretch*100),minPos=Math.min(100,t.minimum/t.stretch*100);
+  const maxDay=Math.max(t.stretch,...s.days.map(d=>(state.focusTimeByDate?.[d.key]||0)/60000),1),bars=s.days.map(d=>{const mins=(state.focusTimeByDate?.[d.key]||0)/60000,h=d.future?0:Math.max(4,Math.min(100,mins/maxDay*100));return `<div class="focus-day ${d.today?"today":""} ${d.future?"future":""}"><div class="focus-bar-mini"><i style="height:${h}%"></i></div><b>${d.label}</b><small>${mins?Math.round(mins)+"m":"·"}</small></div>`;}).join("");
+  return `<div class="focus-head"><div><span>FOCUS TIME · TODAY</span><strong>${formatStudyTime(s.todayMs)} <small>/ ${t.recommended}m</small></strong></div><em>${escapeHtml(focusStatus(todayMin,t))}</em></div><div class="focus-progress"><i style="width:${p}%"></i><b class="focus-mark min" style="left:${minPos}%"></b><b class="focus-mark rec" style="left:${recPos}%"></b></div><div class="focus-targets"><span>MIN ${t.minimum}m</span><span>REC ${t.recommended}m</span><span>STRETCH ${t.stretch}m</span></div><p class="focus-why">${escapeHtml(t.why)}</p><div class="focus-week"><div class="focus-week-head"><b>THIS WEEK · ${formatStudyTime(s.weekMs)}</b><span>TOTAL FOCUS · ${formatStudyTime(s.totalMs)}</span></div><div class="focus-week-bars">${bars}</div></div><small class="focus-note">Focus Time cuenta uso visible y activo; se pausa en segundo plano o tras 90s sin interacción.</small>`;
+}
+function renderFocusWidgets(){for(const id of ["startFocusPanel","statsFocusPanel"]){const el=$(id);if(el)el.innerHTML=focusPanelHtml();}}
+function markFocusActivity(){focusLastActivityTs=Date.now();}
+function flushFocusSave(){if(!state||focusSaveMs<1)return;focusSaveMs=0;try{save();}catch(e){console.error("Focus Time save failed",e);}}
+function focusTick(){const now=Date.now(),dt=Math.max(0,Math.min(1600,now-focusLastTickTs));focusLastTickTs=now;if(!state||document.visibilityState!=="visible"||now-focusLastActivityTs>90000)return;const day=localDayKey(now);state.focusTimeByDate[day]=(state.focusTimeByDate[day]||0)+dt;focusSaveMs+=dt;if(focusSaveMs>=15000)flushFocusSave();renderFocusWidgets();}
+function startFocusTracking(){if(focusTimerHandle)return;ensureFocusTarget();focusLastActivityTs=focusLastTickTs=Date.now();["pointerdown","keydown","touchstart","scroll"].forEach(ev=>document.addEventListener(ev,markFocusActivity,{passive:true}));document.addEventListener("visibilitychange",()=>{focusLastTickTs=Date.now();if(document.visibilityState==="hidden")flushFocusSave();else markFocusActivity();});window.addEventListener("beforeunload",flushFocusSave);focusTimerHandle=setInterval(focusTick,1000);}
+
 function renderStatsScreen(){
+  renderFocusWidgets();
   const st=overallStats(),ai=aiValorationStats(),learning=learningScoreStats(),c2=campaign2Readiness(),peer=typicalLearnerStats(),trend=state.sessionHistory.filter(x=>x.mode==="training"),tgt=targetPerformanceStats(),readingLoad=readingLoadStats();applyRatingTheme(st.rating);applyAiTheme(ai);
   $("statsAiLevel").textContent=`${ai.level} / 15`;paintText("statsAiLevel",ai.score/100);$("statsAiConfidence").textContent=`Evidence ${Math.round(ai.confidence*100)}%`;paintText("statsAiConfidence",ai.confidence);
   $("statsLearningScore").textContent=learning.current==null?"—":learning.current.toFixed(1);if(learning.current!=null)paintText("statsLearningScore",learning.current/100);const ld=$("statsLearningDelta");if(learning.delta==null){ld.className="learning-direction neutral";ld.textContent="→";ld.style.color="#b7c9bf";}else{const up=learning.delta>.05,down=learning.delta<-.05;ld.className=`learning-direction ${up?"good":down?"bad":"neutral"}`;ld.textContent=`${up?"↑":down?"↓":"→"} ${learning.delta>=0?"+":""}${learning.delta.toFixed(1)}`;ld.style.color=semanticDeltaColor(learning.delta,true);}$("statsLearningWindow").textContent=`Last ${learning.windowSize} vs previous ${learning.windowSize} levels`;
@@ -805,6 +834,7 @@ function renderStart(){
   renderCampaign2Readiness();
   renderDailyKey();
   renderGrowthTree();
+  renderFocusWidgets();
 }
 function showScreen(id){["startScreen","statsScreen","coachScreen","gameScreen","endScreen","errorsScreen"].forEach(x=>$(x).classList.toggle("hidden",x!==id));window.scrollTo(0,0);}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -842,9 +872,10 @@ async function startSession(finalMode=false){
 function abortSession(){
   if(!session)return;
   clearInterval(timerHandle);deadline=0;locked=true;missionOverlay(false);
+  const focusKeep={times:{...(state.focusTimeByDate||{})},targets:{...(state.focusTargetsByDate||{})},started:state.focusTrackingStartedAt};
   const snapshot=session.abortSnapshot;session=null;current=null;
   const f=$("feedback");if(f)f.classList.remove("show");hideCorrectReveal();document.body.classList.remove("feedback-correct","feedback-wrong");
-  if(snapshot){try{const restored=JSON.parse(snapshot);state=validProgressState(restored)?normaliseProgressState(restored):restored;localStorage.setItem(STORAGE_KEY,snapshot);}catch(e){console.error("Emergency exit rollback failed",e);}}
+  if(snapshot){try{const restored=JSON.parse(snapshot);state=validProgressState(restored)?normaliseProgressState(restored):restored;state.focusTimeByDate=focusKeep.times;state.focusTargetsByDate=focusKeep.targets;state.focusTrackingStartedAt=focusKeep.started;save();}catch(e){console.error("Emergency exit rollback failed",e);}}
   locked=false;renderStart();showScreen("startScreen");
 }
 function renderSegments(left){
@@ -986,7 +1017,7 @@ async function boot(){
   const before=CAMPAIGN.questions.length;
   CAMPAIGN.questions=CAMPAIGN.questions.filter(validQuestion);
   if(CAMPAIGN.questions.length!==before)console.warn(`Adaptive English skipped ${before-CAMPAIGN.questions.length} invalid question(s) with duplicate/broken options.`);
-  BANK=CAMPAIGN.questions;state=loadState();save();
+  BANK=CAMPAIGN.questions;state=loadState();startFocusTracking();save();
   const seg=$("segments");for(let i=0;i<10;i++){const d=document.createElement("div");d.className="seg";seg.appendChild(d);}
   $("startBtn").onclick=async()=>{await ensureAudio();await startSession(false);};
   $("statsBtn").onclick=()=>{renderStatsScreen();showScreen("statsScreen");};

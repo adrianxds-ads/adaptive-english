@@ -351,3 +351,9 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Error Lab cards use the AVS 15-colour scale from Gold downward, based on their position in the just-completed level.
 - Added ACTIVE TRAINING TIME, reconstructed from stored per-answer response milliseconds and accumulated exactly for future answers.
 - No change to adaptive timing weights, mastery, scheduler or the 10-second limit.
+
+## v2.11
+- Added Focus Time: visible, active app use including questions, feedback, Error Lab, Keys, My Coach and Statistics; pauses in background or after 90 seconds idle.
+- Added a transparent daily effort plan with Minimum / Recommended / Stretch targets. Recommended time starts from a 15-minute base and adapts modestly to due reviews, weak Keys and fatigue evidence.
+- Added a Monday-Sunday Focus Time chart and cumulative Focus Time total. Tracking starts with v2.11; historical non-question reading time is not fabricated.
+- Focus targets are effort metrics only and do not change mastery, AE Rating, scheduler, question timing or the fixed 10-second clock.
