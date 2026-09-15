@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="2.11">
-<title>Adaptive English - Campaign 1 - v2.11</title>
+<meta name="ae-version" content="2.12">
+<title>Adaptive English - Campaign 1 - v2.12</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -330,6 +330,13 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 .focus-panel{margin:14px 0;padding:16px;border:1px solid color-mix(in srgb,var(--ambient-rank-color,#57965A) 30%,rgba(255,255,255,.10));border-radius:15px;background:linear-gradient(145deg,rgba(8,19,13,.72),rgba(23,47,36,.82));box-shadow:inset 0 0 0 1px rgba(255,255,255,.025)}.focus-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}.focus-head span{display:block;font-size:10px;font-weight:950;letter-spacing:.13em;color:#c9ddd1}.focus-head strong{display:block;margin-top:3px;font-size:clamp(27px,7vw,38px);line-height:1;font-variant-numeric:tabular-nums;color:#f4f7f5}.focus-head strong small{font-size:.45em;color:#b7c9bf}.focus-head em{font-style:normal;font-size:10px;font-weight:950;letter-spacing:.06em;color:#f1da9e;text-align:right}.focus-progress{position:relative;height:13px;margin-top:14px;border-radius:999px;background:rgba(255,255,255,.10);overflow:visible}.focus-progress>i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--rank-11,#32A48F),var(--rank-15,#E7BF57));box-shadow:0 0 12px rgba(231,191,87,.18)}.focus-mark{position:absolute;top:-3px;width:2px;height:19px;background:rgba(255,255,255,.62);border-radius:2px}.focus-mark.rec{background:#f1da9e}.focus-targets{display:flex;justify-content:space-between;gap:6px;margin-top:7px;font-size:9px;font-weight:950;letter-spacing:.05em;color:#aebfb5}.focus-why{margin:10px 0 0;font-size:11px;line-height:1.4;color:#b7c9bf;font-weight:750}.focus-week{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}.focus-week-head{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#dce9e1}.focus-week-head span{color:#9fb2a7}.focus-week-bars{height:92px;display:grid;grid-template-columns:repeat(7,1fr);align-items:end;gap:7px;margin-top:10px}.focus-day{height:100%;display:grid;grid-template-rows:1fr auto auto;gap:3px;text-align:center}.focus-bar-mini{height:62px;display:flex;align-items:flex-end;justify-content:center;border-radius:7px;background:rgba(255,255,255,.045);overflow:hidden}.focus-bar-mini i{display:block;width:72%;min-height:0;border-radius:5px 5px 2px 2px;background:var(--rank-11,#32A48F)}.focus-day.today .focus-bar-mini{outline:1px solid rgba(231,191,87,.48)}.focus-day.today .focus-bar-mini i{background:var(--rank-15,#E7BF57)}.focus-day.future{opacity:.35}.focus-day b{font-size:10px;color:#dbe7df}.focus-day small{font-size:8px;color:#8fa298}.focus-note{display:block;margin-top:10px;font-size:9px;line-height:1.4;color:#82958a}.stats-focus-panel{margin-top:14px}
 @media(max-width:520px){.focus-panel{padding:14px 12px}.focus-head{align-items:flex-start}.focus-head em{max-width:120px}.focus-week-head{flex-direction:column;gap:3px}.focus-week-bars{gap:5px}.focus-targets{font-size:8px}.focus-why{font-size:10px}}
 </style>
+<style id="v212-style">
+/* v2.12 · Skill League podium, relegation zone, full-name tooltip and 8-level report */
+.skillrow{position:relative;grid-template-columns:72px minmax(0,1.3fr) minmax(62px,1fr) 44px!important;gap:8px;padding:8px 9px;margin:6px 0;border:1px solid rgba(255,255,255,.055);border-radius:9px;background:rgba(255,255,255,.018)}.skill-position{display:flex;align-items:center;gap:6px;min-width:0}.skill-rank{display:inline-grid;place-items:center;min-width:30px;height:25px;padding:0 5px;border-radius:7px;background:rgba(0,0,0,.18);font-style:normal;font-size:14px!important;font-weight:950;font-variant-numeric:tabular-nums;color:#dbe7df}.rank-move{min-width:28px;font-size:11px!important;font-weight:950;font-style:normal;font-variant-numeric:tabular-nums;text-align:left}.skill-name-hit{position:relative;min-width:0;max-width:100%;padding:5px 4px;border:0;background:transparent;color:#e7f0ea;text-align:left;cursor:help;font:inherit;font-weight:850}.skill-name-text{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.skill-name-popup{position:absolute;z-index:40;left:0;bottom:calc(100% + 7px);display:none;width:max-content;max-width:min(72vw,460px);padding:9px 11px;border:1px solid rgba(231,191,87,.28);border-radius:9px;background:#101b15;color:#f4f7f5;box-shadow:0 10px 28px rgba(0,0,0,.42);font-size:13px;line-height:1.35;font-weight:850;white-space:normal}.skill-name-hit:hover .skill-name-popup,.skill-name-hit:focus .skill-name-popup,.skill-name-hit:focus-visible .skill-name-popup,.skill-name-hit.show-tip .skill-name-popup{display:block}.skill-name-hit:focus{outline:1px solid rgba(231,191,87,.28);border-radius:7px}
+.skillrow.podium,.skillrow.bottom3{border-left:1px solid transparent!important}.skillrow.rank-1{background:linear-gradient(90deg,rgba(231,191,87,.24),rgba(231,191,87,.055) 64%,rgba(0,0,0,.03));border-color:rgba(231,191,87,.32)!important}.skillrow.rank-2{background:linear-gradient(90deg,rgba(198,207,211,.19),rgba(198,207,211,.045) 64%,rgba(0,0,0,.03));border-color:rgba(198,207,211,.25)!important}.skillrow.rank-3{background:linear-gradient(90deg,rgba(180,119,73,.22),rgba(180,119,73,.05) 64%,rgba(0,0,0,.03));border-color:rgba(180,119,73,.29)!important}.skillrow.rank-23{background:linear-gradient(90deg,rgba(132,55,41,.11),rgba(0,0,0,.02))}.skillrow.rank-24{background:linear-gradient(90deg,rgba(118,47,50,.17),rgba(0,0,0,.02))}.skillrow.rank-25{background:linear-gradient(90deg,rgba(99,45,42,.25),rgba(0,0,0,.02));border-color:rgba(176,111,114,.18)!important}.skillrow.rank-1 .skill-rank{background:#E7BF57;color:#211b08}.skillrow.rank-2 .skill-rank{background:#c6cfd3;color:#172026}.skillrow.rank-3 .skill-rank{background:#b47749;color:#20130d}.skillrow.rank-23 .skill-rank{background:#843729;color:#f3dbdc}.skillrow.rank-24 .skill-rank{background:#762F32;color:#f3dbdc}.skillrow.rank-25 .skill-rank{background:#632D2A;color:#f3dbdc}.skillrow .track{height:8px!important}.skillrow .pct{font-size:13px;font-variant-numeric:tabular-nums}
+.league-report{margin-top:14px;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(0,0,0,.12)}.league-report-head{display:flex;justify-content:space-between;gap:10px;align-items:end}.league-report-head span{font-size:10px;font-weight:950;letter-spacing:.11em;color:#f1da9e}.league-report-head b{font-size:9px;color:#82958a;font-weight:850}.league-report-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:9px}.league-note{min-width:0;padding:9px 10px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.055)}.league-note small{display:block;font-size:8px;font-weight:950;letter-spacing:.07em;color:#94a99c}.league-note b{display:block;margin-top:3px;font-size:19px;line-height:1;font-variant-numeric:tabular-nums}.league-note span{display:block;margin-top:5px;font-size:10px;line-height:1.25;font-weight:850;color:#dce8e0;overflow-wrap:anywhere}.league-note.up b{color:#88cabe}.league-note.down b{color:#c58f92}.league-note.medal b{color:#f1da9e}.league-note.escape b{color:#9ec29f}.league-note.steady{grid-column:1/-1}.skill-league-list{position:relative}
+@media(max-width:520px){.skillrow{grid-template-columns:64px minmax(0,1fr) minmax(54px,.72fr) 38px!important;gap:6px;padding:7px 6px}.skill-rank{min-width:28px;height:24px;font-size:13px!important}.rank-move{min-width:24px;font-size:10px!important}.skill-name-hit{padding:5px 2px;font-size:12px}.skill-name-popup{position:fixed;left:50%;bottom:auto;top:22vh;transform:translateX(-50%);width:min(88vw,420px);max-width:none;padding:13px 14px;font-size:15px;cursor:default}.skillrow .pct{font-size:12px}.league-report-head{align-items:flex-start;flex-direction:column;gap:3px}.league-report-grid{grid-template-columns:1fr 1fr}.league-note:last-child:nth-child(odd){grid-column:1/-1}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -339,7 +346,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 15</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.11</div>
+    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.12</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -384,7 +391,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 
 <section id="statsScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.11</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
+    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.12</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 15</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
@@ -394,13 +401,13 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
     <div class="section target-stats-section"><h3>Target performance</h3><div class="grid target-grid"><div class="card"><b id="targetAvg">—</b><span>Avg target /15</span></div><div class="card"><b id="targetActualAvg">—</b><span>Avg actual /15</span></div><div class="card"><b id="targetDeltaAvg">—</b><span>Avg vs target</span></div><div class="card"><b id="targetHitRate">—</b><span>Targets met</span></div></div><div id="targetBreakdown" class="statusbox"></div></div>
     <div class="section reading-load-section"><h3>Reading load · fixed 10s</h3><p class="meta">Observational only · the timer and adaptive engine do not change from these measurements.</p><div class="grid"><div class="card"><b id="readingShort">—</b><span>Short · ≤12 words</span><small id="readingShortMeta">No evidence yet</small></div><div class="card"><b id="readingMedium">—</b><span>Medium · 13–17 words</span><small id="readingMediumMeta">No evidence yet</small></div><div class="card"><b id="readingLong">—</b><span>Long · ≥18 words</span><small id="readingLongMeta">No evidence yet</small></div></div><div id="readingLoadInsight" class="statusbox">Building evidence.</div></div>
     <div id="statsCampaign2" class="statusbox"></div>
-    <div class="section"><h3>Keys · highest → lowest</h3><div id="statsSkills"></div></div>
+    <div class="section"><h3>Skill League · current ranking</h3><div id="statsSkills"></div></div>
     <div class="screen-nav"><button id="statsBackBtn" class="primary">BACK TO DASHBOARD</button></div>
   </div>
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">MY COACH · v2.11</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div class="resulttitle"><div class="kicker">MY COACH · v2.12</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
     <div id="coachIntro" class="statusbox"></div>
     <div class="section"><h3>Focus now</h3><div id="coachFocus" class="coach-grid"></div></div>
     <div class="section"><h3>Common mistakes</h3><div id="coachMistakes"></div></div>
@@ -459,7 +466,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
       <div class="card"><b id="eRepeats">0</b><span>Repeated phrases</span></div>
       <div class="card"><b id="eBankTotal">3000</b><span>Bank total</span></div>
     </div>
-    <div class="section"><h3>Keys · highest → lowest</h3><div id="weakSkills"></div></div>
+    <div class="section"><h3>Skill League · current ranking</h3><div id="weakSkills"></div></div>
     <div class="ai-legend-wrap"><span>CÓDIGO DE COLOR · 1 BAJO → 15 MÁXIMO</span><div id="aiLegend" class="ai-legend"></div></div>
     <div class="actions">
       <button id="continueBtn" class="primary">NEXT LEVEL</button>
@@ -467,12 +474,12 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
     </div>
-    <div class="footerline">Adaptive English v2.11 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
+    <div class="footerline">Adaptive English v2.12 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle error-lab-hero"><div class="kicker">ERROR LAB · v2.11</div><h1>Latest mistakes</h1><p id="errorsCount"></p><small>Solo contiene los errores del nivel que acabas de terminar.</small></div>
+    <div class="resulttitle error-lab-hero"><div class="kicker">ERROR LAB · v2.12</div><h1>Latest mistakes</h1><p id="errorsCount"></p><small>Solo contiene los errores del nivel que acabas de terminar.</small></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>

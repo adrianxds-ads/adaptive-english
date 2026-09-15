@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "2.11";
+const APP_VERSION = "2.12";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -632,7 +632,25 @@ function commonMistakeGroups(limit=8){
   const groups={};for(const r of state.history.filter(x=>!x.correct).slice(-500)){const key=`${r.cat}|${r.templateId||r.qid||r.originalQuestion}`;const g=groups[key]||(groups[key]={cat:r.cat,templateId:r.templateId,count:0,record:r,lastTs:0});g.count++;if((r.ts||0)>=g.lastTs){g.record=r;g.lastTs=r.ts||0;}}
   return Object.values(groups).sort((a,b)=>b.count-a.count||b.lastTs-a.lastTs).slice(0,limit);
 }
-function skillRowsHtml(rows,ascending=false){const list=ascending?[...rows].reverse():rows,ranks=skillRankPositions(),moves=latestRankMoves();return list.map(x=>{const rank=ranks[x.id]||25,move=Number(moves[x.id]||0),zone=rank<=3?" podium":rank>=23?" bottom3":"",moveText=move>0?`▲${move}`:move<0?`▼${Math.abs(move)}`:"—";return `<div class="skillrow${zone}"><div class="name"><i class="skill-rank">${String(rank).padStart(2,"0")}</i><span class="skill-name-text">${escapeHtml(x.name)}</span><em class="rank-move ${move>0?"up":move<0?"down":"flat"}">${moveText}</em></div><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%;background:${valueColor(x.mastery)}"></div></div><div class="pct" style="color:${valueTextColor(x.mastery)}">${pct(x.mastery)}%</div></div>`;}).join("");}
+function skillRowsHtml(rows,ascending=false){
+  const list=ascending?[...rows].reverse():rows,ranks=skillRankPositions(),moves=latestRankMoves();
+  return list.map(x=>{const rank=ranks[x.id]||25,move=Number(moves[x.id]||0),zone=rank<=3?` podium rank-${rank}`:rank>=23?` bottom3 rank-${rank}`:"",moveText=move>0?`▲${move}`:move<0?`▼${Math.abs(move)}`:"—",full=escapeHtml(x.name);return `<div class="skillrow${zone}"><div class="skill-position"><i class="skill-rank">${String(rank).padStart(2,"0")}</i><em class="rank-move ${move>0?"up":move<0?"down":"flat"}">${moveText}</em></div><button class="skill-name-hit" type="button" aria-label="${full}" title="${full}" onclick="this.classList.toggle('show-tip')" onblur="this.classList.remove('show-tip')"><span class="skill-name-text">${full}</span><span class="skill-name-popup" role="tooltip">${full}</span></button><div class="track"><div class="fill mastery" style="width:${pct(x.mastery)}%;background:${valueColor(x.mastery)}"></div></div><div class="pct" style="color:${valueTextColor(x.mastery)}">${pct(x.mastery)}%</div></div>`;}).join("");
+}
+function leagueWindowStats(window=8){
+  const levels=state.sessionHistory.filter(x=>x?.mode==="training").slice(-window),net={},ranks=skillRankPositions();
+  for(const row of levels)for(const [id,delta] of Object.entries(row.rankMoves||{}))net[id]=(net[id]||0)+Number(delta||0);
+  const entries=CAMPAIGN.skills.map(s=>{const current=ranks[s.id]||25,delta=net[s.id]||0,prior=clamp(current+delta,1,25);return {id:s.id,name:s.name,current,prior,delta};});
+  const climbers=entries.filter(x=>x.delta>0).sort((a,b)=>b.delta-a.delta||a.current-b.current),drops=entries.filter(x=>x.delta<0).sort((a,b)=>a.delta-b.delta||b.current-a.current);
+  const podium=entries.filter(x=>x.current<=3&&x.prior>3).sort((a,b)=>a.current-b.current),escaped=entries.filter(x=>x.current<23&&x.prior>=23).sort((a,b)=>b.delta-a.delta);
+  return {window:levels.length,entries,climber:climbers[0]||null,drop:drops[0]||null,podium:podium[0]||null,escaped:escaped[0]||null};
+}
+function leagueReportHtml(){
+  const x=leagueWindowStats(8);if(!x.window)return '<div class="league-report"><div class="league-report-head"><span>LEAGUE REPORT</span><b>Building evidence</b></div></div>';
+  const cards=[];if(x.climber)cards.push(`<div class="league-note up"><small>BIGGEST CLIMBER</small><b>▲${x.climber.delta}</b><span>${escapeHtml(x.climber.name)}</span></div>`);if(x.drop)cards.push(`<div class="league-note down"><small>BIGGEST DROP</small><b>▼${Math.abs(x.drop.delta)}</b><span>${escapeHtml(x.drop.name)}</span></div>`);if(x.podium)cards.push(`<div class="league-note medal"><small>NEW PODIUM</small><b>#${x.podium.current}</b><span>${escapeHtml(x.podium.name)}</span></div>`);else if(x.escaped)cards.push(`<div class="league-note escape"><small>ESCAPED BOTTOM 3</small><b>▲${x.escaped.delta}</b><span>${escapeHtml(x.escaped.name)}</span></div>`);
+  if(!cards.length)cards.push('<div class="league-note steady"><small>TABLE STATUS</small><b>—</b><span>No net position changes in this window</span></div>');
+  return `<div class="league-report"><div class="league-report-head"><span>LEAGUE REPORT · LAST ${x.window} LEVELS</span><b>movement, not mastery change</b></div><div class="league-report-grid">${cards.join("")}</div></div>`;
+}
+function skillLeagueHtml(rows){return `<div class="skill-league-list">${skillRowsHtml(rows)}</div>${leagueReportHtml()}`;}
 function targetPerformanceStats(){
   const rows=state.sessionHistory.filter(x=>x.mode==="training"&&Number.isFinite(x.target)&&Number.isFinite(x.correct));
   if(!rows.length)return {n:0,avgTarget:null,avgActual:null,avgDelta:null,hitRate:null,aboveRate:null,onRate:null,belowRate:null};
@@ -677,7 +695,7 @@ function renderStatsScreen(){
   $("statsAiLevel").textContent=`${ai.level} / 15`;paintText("statsAiLevel",ai.score/100);$("statsAiConfidence").textContent=`Evidence ${Math.round(ai.confidence*100)}%`;paintText("statsAiConfidence",ai.confidence);
   $("statsLearningScore").textContent=learning.current==null?"—":learning.current.toFixed(1);if(learning.current!=null)paintText("statsLearningScore",learning.current/100);const ld=$("statsLearningDelta");if(learning.delta==null){ld.className="learning-direction neutral";ld.textContent="→";ld.style.color="#b7c9bf";}else{const up=learning.delta>.05,down=learning.delta<-.05;ld.className=`learning-direction ${up?"good":down?"bad":"neutral"}`;ld.textContent=`${up?"↑":down?"↓":"→"} ${learning.delta>=0?"+":""}${learning.delta.toFixed(1)}`;ld.style.color=semanticDeltaColor(learning.delta,true);}$("statsLearningWindow").textContent=`Last ${learning.windowSize} vs previous ${learning.windowSize} levels`;
   [["statsCoverage",st.coverage,true],["statsMastery",st.mastery,true],["statsAccuracy",st.accuracy,true],["statsAutomatic",st.auto,true]].forEach(([id,v,pc])=>{$(id).textContent=pc?`${pct(v)}%`:String(v);paintText(id,v);});$("statsAvg").textContent=st.avgMs?fmtSec(st.avgMs):"—";$("statsTotal").textContent=(state.totalAttempts||0).toLocaleString();$("statsStudyTime").textContent=formatStudyTime(state.activeTrainingMs||0);
-  $("statsAccuracyChart").innerHTML=sessionScoreChart(trend,false);$("statsLearningChart").innerHTML=sparkline(learningCurveSeries(),v=>`${v.toFixed(1)}`,false,learning.start,"Start");$("statsSkills").innerHTML=skillRowsHtml(rankedSkills());
+  $("statsAccuracyChart").innerHTML=sessionScoreChart(trend,false);$("statsLearningChart").innerHTML=sparkline(learningCurveSeries(),v=>`${v.toFixed(1)}`,false,learning.start,"Start");$("statsSkills").innerHTML=skillLeagueHtml(rankedSkills());
   if(tgt.n){$("targetAvg").textContent=tgt.avgTarget.toFixed(1);paintScore("targetAvg",tgt.avgTarget);$("targetActualAvg").textContent=tgt.avgActual.toFixed(1);paintScore("targetActualAvg",tgt.avgActual);$("targetDeltaAvg").textContent=`${tgt.avgDelta>=0?"+":""}${tgt.avgDelta.toFixed(2)}`;paintDelta("targetDeltaAvg",tgt.avgDelta,true);$("targetHitRate").textContent=`${Math.round(tgt.hitRate*100)}%`;paintText("targetHitRate",tgt.hitRate);$("targetBreakdown").textContent=`${tgt.n} target levels · Above ${Math.round(tgt.aboveRate*100)}% · Exact ${Math.round(tgt.onRate*100)}% · Below ${Math.round(tgt.belowRate*100)}%`; }else{$("targetBreakdown").textContent="Complete levels with TARGET to build this statistic.";}
   [["readingShort", "readingShortMeta", readingLoad.short],["readingMedium", "readingMediumMeta", readingLoad.medium],["readingLong", "readingLongMeta", readingLoad.long]].forEach(([id,metaId,x])=>{const main=$(id),meta=$(metaId);main.textContent=x.n?`${Math.round(x.accuracy*100)}%`:"—";if(x.n)paintText(id,x.accuracy);meta.textContent=x.n?`${fmtSec(x.avgMs)} avg · ${Math.round(x.timeoutRate*100)}% timeout · n=${x.n}`:"No evidence yet";});
   const loadInsight=$("readingLoadInsight"),sensitive=readingLoad.sensitiveSkills[0];loadInsight.textContent=`${readingLoad.evidence.label} · ${readingLoad.evidence.detail}${sensitive?` Most length-sensitive key so far: ${sensitive.skill} (${sensitive.accuracyDeltaPts.toFixed(1)} pts long vs short).`:""}`;
@@ -980,7 +998,7 @@ function renderEnd(s,before){
   $("ePhrasesDone").textContent=phraseStats.unique.toLocaleString();paintText("ePhrasesDone",st.coverage);
   $("eRepeats").textContent=phraseStats.repeatedUnique.toLocaleString();
   $("eBankTotal").textContent=BANK.length.toLocaleString();
-  $("weakSkills").innerHTML=skillRowsHtml(rankedSkills());
+  $("weakSkills").innerHTML=skillLeagueHtml(rankedSkills());
   const wrong=session.records.filter(r=>!r.correct),errorGroups=levelErrorGroups(wrong),labToggle=$("endErrorLabToggle");
   if(labToggle){labToggle.classList.toggle("hidden",wrong.length===0);const m=$("endErrorLabToggleMeta");if(m)m.textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"}`:"No errors";}
   const errorsLabel=`ERROR LAB · ${wrong.length}`;$("errorsBtn").textContent=errorsLabel;$("topErrorsBtn").textContent=errorsLabel;

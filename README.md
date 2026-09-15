@@ -357,3 +357,9 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Added a transparent daily effort plan with Minimum / Recommended / Stretch targets. Recommended time starts from a 15-minute base and adapts modestly to due reviews, weak Keys and fatigue evidence.
 - Added a Monday-Sunday Focus Time chart and cumulative Focus Time total. Tracking starts with v2.11; historical non-question reading time is not fabricated.
 - Focus targets are effort metrics only and do not change mastery, AE Rating, scheduler, question timing or the fixed 10-second clock.
+
+## v2.12
+- Refined Skill League presentation: podium uses gold / silver / bronze row treatments; positions 23–25 use three relegation-red tones.
+- Ranking position and latest movement are shown side by side with larger, clearer numerals.
+- Truncated skill names expose the full name on hover/focus/tap via an overlay tooltip.
+- Added an 8-level League Report summarising biggest climber, biggest drop and notable podium / Bottom-3 movement without changing mastery or ranking logic.
