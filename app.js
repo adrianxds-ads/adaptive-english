@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "2.12";
+const APP_VERSION = "2.13";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -106,7 +106,7 @@ function keyMemoryEchoHtml(cat){
 }
 function showMemoryEcho(cat,correctAnswer=""){
   const el=$("memoryEcho"),x=memoryEchoFor(cat,correctAnswer);if(!el||!x)return;
-  el.innerHTML=`<small>MEMORY ECHO</small><b>${escapeHtml(x.artist)} · ${escapeHtml(x.title)}</b><span>${escapeHtml(x.cue)}</span>`;
+  el.innerHTML=`<b>${escapeHtml(x.title)}</b>`;
   el.classList.remove("show");void el.offsetWidth;el.classList.add("show");
   clearTimeout(showMemoryEcho._timer);showMemoryEcho._timer=setTimeout(()=>el.classList.remove("show"),1050);
 }
@@ -650,7 +650,9 @@ function leagueReportHtml(){
   if(!cards.length)cards.push('<div class="league-note steady"><small>TABLE STATUS</small><b>—</b><span>No net position changes in this window</span></div>');
   return `<div class="league-report"><div class="league-report-head"><span>LEAGUE REPORT · LAST ${x.window} LEVELS</span><b>movement, not mastery change</b></div><div class="league-report-grid">${cards.join("")}</div></div>`;
 }
-function skillLeagueHtml(rows){return `<div class="skill-league-list">${skillRowsHtml(rows)}</div>${leagueReportHtml()}`;}
+function skillLeagueHtml(rows,compactReport=false){return `<div class="skill-league-list">${skillRowsHtml(rows)}</div>${compactReport?`<button class="league-study-open" type="button" onclick="openLeagueStudy()"><span>LEAGUE STUDY</span><b>Explore the last 8 levels</b><em>OPEN →</em></button>`:leagueReportHtml()}`;}
+function renderLeagueScreen(){const host=$("leagueStudyBody");if(!host)return;host.innerHTML=`<div class="section league-study-table"><h3>Current table</h3>${skillRowsHtml(rankedSkills())}</div><div class="section league-study-report"><h3>Last 8 levels</h3>${leagueReportHtml()}</div>`;}
+function openLeagueStudy(){renderLeagueScreen();showScreen("leagueScreen");}
 function targetPerformanceStats(){
   const rows=state.sessionHistory.filter(x=>x.mode==="training"&&Number.isFinite(x.target)&&Number.isFinite(x.correct));
   if(!rows.length)return {n:0,avgTarget:null,avgActual:null,avgDelta:null,hitRate:null,aboveRate:null,onRate:null,belowRate:null};
@@ -695,7 +697,7 @@ function renderStatsScreen(){
   $("statsAiLevel").textContent=`${ai.level} / 15`;paintText("statsAiLevel",ai.score/100);$("statsAiConfidence").textContent=`Evidence ${Math.round(ai.confidence*100)}%`;paintText("statsAiConfidence",ai.confidence);
   $("statsLearningScore").textContent=learning.current==null?"—":learning.current.toFixed(1);if(learning.current!=null)paintText("statsLearningScore",learning.current/100);const ld=$("statsLearningDelta");if(learning.delta==null){ld.className="learning-direction neutral";ld.textContent="→";ld.style.color="#b7c9bf";}else{const up=learning.delta>.05,down=learning.delta<-.05;ld.className=`learning-direction ${up?"good":down?"bad":"neutral"}`;ld.textContent=`${up?"↑":down?"↓":"→"} ${learning.delta>=0?"+":""}${learning.delta.toFixed(1)}`;ld.style.color=semanticDeltaColor(learning.delta,true);}$("statsLearningWindow").textContent=`Last ${learning.windowSize} vs previous ${learning.windowSize} levels`;
   [["statsCoverage",st.coverage,true],["statsMastery",st.mastery,true],["statsAccuracy",st.accuracy,true],["statsAutomatic",st.auto,true]].forEach(([id,v,pc])=>{$(id).textContent=pc?`${pct(v)}%`:String(v);paintText(id,v);});$("statsAvg").textContent=st.avgMs?fmtSec(st.avgMs):"—";$("statsTotal").textContent=(state.totalAttempts||0).toLocaleString();$("statsStudyTime").textContent=formatStudyTime(state.activeTrainingMs||0);
-  $("statsAccuracyChart").innerHTML=sessionScoreChart(trend,false);$("statsLearningChart").innerHTML=sparkline(learningCurveSeries(),v=>`${v.toFixed(1)}`,false,learning.start,"Start");$("statsSkills").innerHTML=skillLeagueHtml(rankedSkills());
+  $("statsAccuracyChart").innerHTML=sessionScoreChart(trend,false);$("statsLearningChart").innerHTML=sparkline(learningCurveSeries(),v=>`${v.toFixed(1)}`,false,learning.start,"Start");$("statsSkills").innerHTML=skillLeagueHtml(rankedSkills(),true);
   if(tgt.n){$("targetAvg").textContent=tgt.avgTarget.toFixed(1);paintScore("targetAvg",tgt.avgTarget);$("targetActualAvg").textContent=tgt.avgActual.toFixed(1);paintScore("targetActualAvg",tgt.avgActual);$("targetDeltaAvg").textContent=`${tgt.avgDelta>=0?"+":""}${tgt.avgDelta.toFixed(2)}`;paintDelta("targetDeltaAvg",tgt.avgDelta,true);$("targetHitRate").textContent=`${Math.round(tgt.hitRate*100)}%`;paintText("targetHitRate",tgt.hitRate);$("targetBreakdown").textContent=`${tgt.n} target levels · Above ${Math.round(tgt.aboveRate*100)}% · Exact ${Math.round(tgt.onRate*100)}% · Below ${Math.round(tgt.belowRate*100)}%`; }else{$("targetBreakdown").textContent="Complete levels with TARGET to build this statistic.";}
   [["readingShort", "readingShortMeta", readingLoad.short],["readingMedium", "readingMediumMeta", readingLoad.medium],["readingLong", "readingLongMeta", readingLoad.long]].forEach(([id,metaId,x])=>{const main=$(id),meta=$(metaId);main.textContent=x.n?`${Math.round(x.accuracy*100)}%`:"—";if(x.n)paintText(id,x.accuracy);meta.textContent=x.n?`${fmtSec(x.avgMs)} avg · ${Math.round(x.timeoutRate*100)}% timeout · n=${x.n}`:"No evidence yet";});
   const loadInsight=$("readingLoadInsight"),sensitive=readingLoad.sensitiveSkills[0];loadInsight.textContent=`${readingLoad.evidence.label} · ${readingLoad.evidence.detail}${sensitive?` Most length-sensitive key so far: ${sensitive.skill} (${sensitive.accuracyDeltaPts.toFixed(1)} pts long vs short).`:""}`;
@@ -998,7 +1000,7 @@ function renderEnd(s,before){
   $("ePhrasesDone").textContent=phraseStats.unique.toLocaleString();paintText("ePhrasesDone",st.coverage);
   $("eRepeats").textContent=phraseStats.repeatedUnique.toLocaleString();
   $("eBankTotal").textContent=BANK.length.toLocaleString();
-  $("weakSkills").innerHTML=skillLeagueHtml(rankedSkills());
+  $("weakSkills").innerHTML=skillLeagueHtml(rankedSkills(),true);
   const wrong=session.records.filter(r=>!r.correct),errorGroups=levelErrorGroups(wrong),labToggle=$("endErrorLabToggle");
   if(labToggle){labToggle.classList.toggle("hidden",wrong.length===0);const m=$("endErrorLabToggleMeta");if(m)m.textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"}`:"No errors";}
   const errorsLabel=`ERROR LAB · ${wrong.length}`;$("errorsBtn").textContent=errorsLabel;$("topErrorsBtn").textContent=errorsLabel;
@@ -1044,6 +1046,7 @@ async function boot(){
   $("scoreModal").onclick=e=>{if(e.target===$("scoreModal"))$("scoreModal").classList.add("hidden");};
   $("coachBtn").onclick=()=>{renderCoachScreen();showScreen("coachScreen");};
   $("statsBackBtn").onclick=()=>{renderStart();showScreen("startScreen");};
+  $("leagueBackBtn").onclick=()=>{renderStatsScreen();showScreen("statsScreen");};
   $("coachGenerateBtn").onclick=generateCoachPrompt;$("coachPromptCopy").onclick=copyCoachPrompt;$("coachBackBtn").onclick=()=>{renderStart();showScreen("startScreen");};
   const continueFromEnd=async()=>{await ensureAudio();if(state.completed){renderStart();showScreen("startScreen");}else await startSession(false);};$("continueBtn").onclick=continueFromEnd;$("topContinueBtn").onclick=continueFromEnd;
   const finalFromEnd=async()=>{await ensureAudio();await startSession(true);};$("finalBtn").onclick=finalFromEnd;$("topFinalBtn").onclick=finalFromEnd;

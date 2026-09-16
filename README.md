@@ -363,3 +363,11 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Ranking position and latest movement are shown side by side with larger, clearer numerals.
 - Truncated skill names expose the full name on hover/focus/tap via an overlay tooltip.
 - Added an 8-level League Report summarising biggest climber, biggest drop and notable podium / Bottom-3 movement without changing mastery or ranking logic.
+
+
+## v2.13 · League Study
+- Skill League gains a dedicated study screen for the current table and the last 8 levels.
+- Ranking and movement numerals are larger while keeping the compact table.
+- Statistics uses a compact LEAGUE STUDY launcher instead of squeezing the 8-level report under the table.
+- Wrong-answer in-game MEMORY ECHO is reduced to the song title only; the answer correction remains in the existing game feedback.
+- Campaign mastery, scheduler, fixed 10-second timer and ranking mathematics are unchanged.
