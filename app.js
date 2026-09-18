@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.3";
+const APP_VERSION = "3.4";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -735,6 +735,9 @@ function levelErrorGroups(records){
 }
 function solvedErrorSentence(r){const q=String(r.question||r.originalQuestion||"");return q.includes("___")?q.replace("___",r.correctAnswer||"___"):q;}
 function normErrorAnswer(x){return String(x||"").trim().toLowerCase().replace(/\s+/g," ");}
+function infinitiveBody(x){const m=normErrorAnswer(x).match(/^to\s+([a-z]+)$/);return m?m[1]:null;}
+function isExactBareOf(w,c){const base=infinitiveBody(c);return !!base&&normErrorAnswer(w)===base;}
+function isIngOf(w,c){const base=infinitiveBody(c),x=normErrorAnswer(w);if(!base)return false;const forms=new Set([base+"ing"]);if(base.endsWith("e"))forms.add(base.slice(0,-1)+"ing");if(/[^aeiou][aeiou][^aeiouwxy]$/.test(base))forms.add(base+base.slice(-1)+"ing");return forms.has(x);}
 const MISCONCEPTION_RULES={
   unless:[
     {id:"CONDITION_TO_CAUSE",label:"condition → cause",test:(w,c)=>/\bbecause\b/.test(w)&&/\b(if|unless)\b/.test(c)},
@@ -745,7 +748,7 @@ const MISCONCEPTION_RULES={
   used_to:[{id:"USED_TO_INFLECTED",label:"used to + inflected verb",test:(w,c)=>/\b(ing|ed)\b/.test(w)||/ing$|ed$/.test(w)}],
   get_used_to:[{id:"USED_TO_BASE_INSTEAD_OF_ING",label:"be/get used to + base verb",test:(w,c)=>! /ing\b/.test(w)&&/ing\b/.test(c)}],
   look_forward:[{id:"LOOK_FORWARD_TO_BASE",label:"look forward to + base verb",test:(w,c)=>! /ing\b/.test(w)&&/ing\b/.test(c)}],
-  allow_to:[{id:"ALLOW_BARE_INFINITIVE",label:"allow + object + bare infinitive",test:(w,c)=>!/^to\s+/.test(w)&&/^to\s+/.test(c)}],
+  allow_to:[{id:"ALLOW_BARE_INFINITIVE",label:"allow + object + bare infinitive",test:(w,c)=>isExactBareOf(w,c)},{id:"ALLOW_GERUND_INSTEAD_OF_TO",label:"allow + object + -ing instead of to-infinitive",test:(w,c)=>isIngOf(w,c)}],
   despite:[{id:"DESPITE_CLAUSE",label:"despite + finite clause",test:(w,c)=>/\b(although|though|even though)\b/.test(c)&&/\bdespite\b/.test(w)}],
   so_such:[{id:"SO_SUCH_SWAP",label:"so / such swap",test:(w,c)=>/\b(so|such)\b/.test(w)&&/\b(so|such)\b/.test(c)&&w!==c}],
   too_enough:[{id:"TOO_ENOUGH_SWAP",label:"too / enough swap",test:(w,c)=>/\b(too|enough)\b/.test(w)&&/\b(too|enough)\b/.test(c)&&w!==c}],
@@ -871,7 +874,7 @@ function renderGrowthTree(){
   host.innerHTML=`<div class="growth-tree-canvas" data-tree-stage="${stage}"><svg viewBox="0 0 420 300" role="img" aria-label="Practice tree, growth stage ${stage} of 200"><defs><linearGradient id="treeTrunk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5d3827"/><stop offset=".55" stop-color="#76503a"/><stop offset="1" stop-color="#957258"/></linearGradient></defs><ellipse class="tree-ground" cx="210" cy="282" rx="78" ry="7"/> <g class="tree-branches" fill="none" stroke="url(#treeTrunk)" stroke-linecap="round" stroke-linejoin="round">${branch}</g><g class="tree-leaves">${leaf}</g></svg></div><div class="growth-tree-count"><b>${level.toLocaleString()}</b><span>LEVEL</span></div>`;
 }
 
-const RELEASE_NOTES=["Local Coach reads the app data offline after every level","Correct-answer transition is faster; wrong-answer review time stays longer","Music Echo now shows the artist below the large song title","✓ / ✕ lifetime record remains the dominant feedback"];
+const RELEASE_NOTES=["Misconception rules now require strict morphological matches for allow + object + to-infinitive","Level-end overlay now shows a larger Skill League matchday flash with risers and fallers","Local Coach, Music Echo artist and fast ✓ / slower ✕ pacing remain active"];
 function renderReleaseInfo(){const host=$("releaseInfo");if(!host)return;host.innerHTML=`<details class="release-info"><summary><b>Adaptive English v${APP_VERSION}</b><span>WHAT’S NEW</span></summary><ul>${RELEASE_NOTES.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></details>`;}
 function renderStart(){
   ensureDailyKey();
@@ -914,12 +917,18 @@ async function showLevelIntro(finalMode,target){
   for(const n of [3,2,1]){$("missionCount").textContent=String(n);$("missionCount").classList.remove("pop");void $("missionCount").offsetWidth;$("missionCount").classList.add("pop");playCountdownStep(n);await wait(820);}
   $("missionCount").textContent="GO";tone(1318.5,.09,.022,"sine");await wait(320);missionOverlay(false);
 }
+function leagueFlashHtml(s){
+  const moves=Object.entries(s.rankMoves||{}).map(([id,delta])=>({id,delta,name:skillLabel(id)})).filter(x=>x.delta).sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta));
+  if(!moves.length)return `<div class="league-flash"><div class="league-flash-title">SKILL LEAGUE</div><div class="league-steady">— NO POSITION CHANGES</div></div>`;
+  const up=moves.filter(x=>x.delta>0).slice(0,3),down=moves.filter(x=>x.delta<0).slice(0,3),row=(x,good)=>`<div class="league-flash-row ${good?"up":"down"}"><strong>${good?"▲":"▼"}${Math.abs(x.delta)}</strong><span>${escapeHtml(x.name)}</span></div>`;
+  return `<div class="league-flash"><div class="league-flash-title">SKILL LEAGUE · MATCHDAY</div><div class="league-flash-grid"><div>${up.map(x=>row(x,true)).join("")||'<div class="league-none">NO RISERS</div>'}</div><div>${down.map(x=>row(x,false)).join("")||'<div class="league-none">NO FALLERS</div>'}</div></div></div>`;
+}
 async function showLevelResolution(s,before){
   const el=missionOverlay(true);if(!el)return;const finalClear=s.mode==="final"&&s.accuracy>=.85&&s.avgMs<=6000,hit=s.mode==="final"?finalClear:s.target!=null&&s.correct>=s.target;
   el.className=`mission-overlay resolution ${hit?"hit":"miss"}`;el.style.setProperty("--mission-accent",hit?COLOR_BANDS_15[14]:COLOR_BANDS_15[3]);
-  const d=s.target==null?null:s.correct-s.target,aiChange=before&&Number.isFinite(before.aiLevel)&&before.aiLevel!==s.aiLevel?`<div class="mission-change" style="color:${valueTextColor(s.aiLevel/15)}">AI RANK ${before.aiLevel} → ${s.aiLevel}</div>`:"",leagueChange=(s.leagueEvents||[]).slice(0,2).map(x=>`<div class="mission-change league-change">${escapeHtml(x)}</div>`).join("");
+  const d=s.target==null?null:s.correct-s.target,aiChange=before&&Number.isFinite(before.aiLevel)&&before.aiLevel!==s.aiLevel?`<div class="mission-change" style="color:${valueTextColor(s.aiLevel/15)}">AI RANK ${before.aiLevel} → ${s.aiLevel}</div>`:"",leagueChange=leagueFlashHtml(s);
   $("missionBody").innerHTML=`<div class="mission-eyebrow">${s.mode==="final"?(hit?"FINAL CLEARED":"FINAL NOT CLEARED"):(hit?"TARGET CLEARED":"TARGET MISSED")}</div><div class="mission-score">${s.correct}<small>/${s.total}</small></div>${s.target==null?"":`<div class="mission-targetline">TARGET ${s.target.toFixed(1)} · <b>${d>=0?"+":""}${d.toFixed(1)}</b></div>`}<div class="mission-meta">${s.mode==="training"?`LEVEL ${s.level} → ${state.level}`:`${Math.round(s.accuracy*100)}% · ${fmtSec(s.avgMs)}`}</div>${aiChange}${leagueChange}`;
-  $("missionCount").textContent=hit?"CLEAR":"REVIEW";hit?playLevelClear():playLevelMiss();await wait(2850);missionOverlay(false);
+  $("missionCount").textContent=hit?"CLEAR":"REVIEW";hit?playLevelClear():playLevelMiss();await wait(3450);missionOverlay(false);
 }
 function adaptiveLevelTarget(plan){
   if(!Array.isArray(plan)||!plan.length)return null;

@@ -408,3 +408,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Correct-answer transition reduced to 760 ms; wrong-answer transitions remain 1450–1650 ms to preserve correction-viewing time.
 - Transient Music Echo now shows the song title prominently and the artist underneath; long titles wrap instead of clipping.
 - ✓ / ✕ phrase-history counts are slightly larger. Core adaptive mathematics and the fixed 10-second question clock are unchanged.
+
+
+## v3.4 · Strict misconception matching + League Matchday
+- Fixes the real Level 311 false positive where `used` was incorrectly grouped with bare `use` for `allow staff to use`. `ALLOW_BARE_INFINITIVE` now requires an exact morphological base match (`use` → `to use`); supported `-ing` forms get a separate family and unrelated forms fall back to OTHER.
+- The level-resolution overlay now includes a larger Skill League Matchday flash after every level, whether the target was hit or missed. It shows up to three biggest risers and three biggest fallers with ▲/▼ position movement.
+- The resolution stays visible slightly longer (3.45 s) so the league movement can be read before the statistics/end screen.
+- Adaptive ranking mathematics, scheduler, mastery and the fixed 10-second question clock are unchanged.
