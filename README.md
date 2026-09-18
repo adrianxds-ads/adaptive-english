@@ -371,3 +371,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Statistics uses a compact LEAGUE STUDY launcher instead of squeezing the 8-level report under the table.
 - Wrong-answer in-game MEMORY ECHO is reduced to the song title only; the answer correction remains in the existing game feedback.
 - Campaign mastery, scheduler, fixed 10-second timer and ranking mathematics are unchanged.
+
+
+## v2.14 · Clean miss cue + stronger League
+- A wrong answer now triggers only the song title as the in-game memory cue.
+- The separate correct-answer reveal above the game panel is suppressed; the answer panel itself remains the single correction source.
+- League Study gives more visual weight to rank, movement, mastery percentage and 8-level movement cards.
+- No mastery, scheduler, timer, target or ranking mathematics changed.
