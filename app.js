@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.7";
+const APP_VERSION = "3.8";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -93,6 +93,10 @@ const MEMORY_ECHOES={
   second_conditional:{title:"If I Were a Boy",artist:"Beyoncé",cue:"IF + PAST → WOULD"},
   had_better:{title:"You Better Run",artist:"Pat Benatar",cue:"HAD BETTER + BASE VERB"}
 };
+const DISCOVERY_CARDS=[
+  {number:26,id:"gotye_used_to",releasedOn:"2026-09-19",title:"GOTYE",front:"used to or be/get used to?",back:"GOTYE → CORTO · BE/GET → -ING",formula:"used to + BASE | be/get used to + -ING",cue:"I used to know him. · I'm used to working here.",echoCat:"used_to"}
+];
+function unlockedDiscoveryCards(){const today=localDateKey();return DISCOVERY_CARDS.filter(x=>!x.releasedOn||x.releasedOn<=today);}
 function memoryEchoFor(cat,correctAnswer=""){
   if(cat==="so_such")return /\bsuch\b/i.test(correctAnswer)?{title:"Such Great Heights",artist:"The Postal Service",cue:"SUCH + NOUN"}:{title:"So What",artist:"P!nk",cue:"SO + ADJECTIVE"};
   if(cat==="too_enough")return /\benough\b/i.test(correctAnswer)?{title:"Never Enough",artist:"Loren Allred",cue:"ADJECTIVE + ENOUGH"}:{title:"Too Much",artist:"Spice Girls",cue:"TOO + ADJECTIVE"};
@@ -251,36 +255,45 @@ function overallStats(){
   const speed=history.length?mean(history.map(r=>r.correct?r.speedScore:0)):0;
   const transfer=mean(metrics.map(m=>m.t));
   const fluency=history.length?clamp(.50*accuracy+.30*speed+.20*transfer):0;
-  // AE Rating is the competence indicator. LEVEL remains the session number.
   const rating=history.length?clamp(.35*accuracy+.25*speed+.20*transfer+.20*mastery):0;
   const mastered=metrics.filter(m=>metricMastery(m)>=.80&&m.a>=.65&&m.attempts>=8).length;
   const keysUnlocked=Math.min(25,Array.isArray(state.keyring)?state.keyring.length:0);
-  const eligible=coverage>=.999&&mastery>=.85&&minSkill>=.70&&keysUnlocked>=25;
-  return {coverage,mastery,minSkill,accuracy,auto,avgMs,speed,transfer,fluency,rating,mastered,keysUnlocked,eligible};
+  const base={coverage,mastery,minSkill,accuracy,auto,avgMs,speed,transfer,fluency,rating,mastered,keysUnlocked};
+  const graduation=graduationEvidence(base);
+  return {...base,eligible:graduation.eligible,graduation};
+}
+function graduationEvidence(st){
+  const now=Date.now(),day=86400000,hist=state.history||[],training=hist.filter(r=>r.sessionMode!=="final"),reviews=training.filter(r=>r.review).slice(-300);
+  const retentionAccuracy=reviews.length?reviews.filter(r=>r.correct).length/reviews.length:0;
+  const firstTs=hist.find(r=>Number.isFinite(r.ts))?.ts||state.createdAt||now,spanDays=Math.max(0,(now-firstTs)/day);
+  const recentSessions=(state.sessionHistory||[]).filter(x=>x.mode==="training").slice(-8),stableAccuracy=recentSessions.length?mean(recentSessions.map(x=>Number(x.accuracy)||0)):0,stableTimeMs=recentSessions.length?mean(recentSessions.map(x=>Number(x.avgMs)||0)):0;
+  const fluencyPass=st.auto>=.04||(st.accuracy>=.80&&st.avgMs>0&&st.avgMs<=5500);
+  const gates={coverage:st.coverage>=.999,mastery:st.mastery>=.85,minSkill:st.minSkill>=.70,keys:st.keysUnlocked>=25,calendar:spanDays>=14,retentionEvidence:reviews.length>=150,retention:retentionAccuracy>=.72,stabilityEvidence:recentSessions.length>=8,stability:stableAccuracy>=.68,fluency:fluencyPass};
+  return {eligible:Object.values(gates).every(Boolean),gates,reviewCount:reviews.length,retentionAccuracy,spanDays,recentSessions:recentSessions.length,stableAccuracy,stableTimeMs};
 }
 function phraseExposureStats(){const rows=Object.values(state.seen||{}),unique=rows.length,repeatedUnique=rows.filter(x=>(x?.count||1)>1).length,repeatAttempts=rows.reduce((n,x)=>n+Math.max(0,(x?.count||1)-1),0);return {unique,repeatedUnique,repeatAttempts};}
 function campaign2Readiness(){
-  const st=overallStats(),metrics=Object.values(state.metrics),learning=learningScoreStats();
-  const breadth=metrics.filter(m=>metricMastery(m)>=.55).length/metrics.length;
-  const strong=metrics.filter(m=>metricMastery(m)>=.70).length/metrics.length;
-  const weak=metrics.filter(m=>metricMastery(m)<.40).length;
-  const evidence=clamp((state.totalAttempts||0)/2400),curve=clamp((learning.current??st.mastery*100)/100);
-  const score=clamp(.30*st.coverage+.30*st.mastery+.15*breadth+.10*strong+.10*curve+.05*evidence);
-  const gates={evidence:(state.totalAttempts||0)>=2200,coverage:st.coverage>=.65,mastery:st.mastery>=.62,breadth:breadth>=.70,weak:weak<=5,keys:st.keysUnlocked>=25};
-  const ready=score>=.70&&Object.values(gates).every(Boolean);
-  const stage=ready?"Campaign 2 recommended":score>=.60?"Approaching Campaign 2":score>=.45?"Building transfer":"Building foundation";
+  const st=overallStats(),metrics=Object.values(state.metrics),learning=learningScoreStats(),g=st.graduation;
+  const breadth=metrics.filter(m=>metricMastery(m)>=.55).length/metrics.length,strong=metrics.filter(m=>metricMastery(m)>=.70).length/metrics.length,weak=metrics.filter(m=>metricMastery(m)<.40).length;
+  const evidence=clamp((state.totalAttempts||0)/4500),curve=clamp((learning.current??st.mastery*100)/100),minSkillScore=clamp(st.minSkill/.70),retentionScore=g.reviewCount?clamp(g.retentionAccuracy/.72):0,stabilityScore=g.recentSessions?clamp(g.stableAccuracy/.75):0,autoScore=clamp(st.auto/.12),calendarScore=clamp(g.spanDays/14);
+  const score=clamp(.15*st.coverage+.19*st.mastery+.09*breadth+.07*strong+.10*minSkillScore+.14*retentionScore+.08*stabilityScore+.05*autoScore+.05*calendarScore+.03*evidence+.05*curve);
+  const ready=g.eligible&&score>=.82;
+  const stage=ready?"Campaign 2 gate achieved":score>=.72?"Late consolidation":score>=.55?"Building graduation evidence":"Building foundation";
   const blockers=[];
-  if(!gates.coverage)blockers.push(`${Math.max(0,1950-Object.keys(state.seen).length).toLocaleString()} more unique questions`);
-  if(!gates.mastery)blockers.push(`mastery ${pct(st.mastery)}% → 62%`);
-  if(!gates.breadth)blockers.push(`${Math.max(0,Math.ceil(metrics.length*.70)-Math.round(breadth*metrics.length))} more Keys above 55%`);
-  if(!gates.evidence)blockers.push(`${Math.max(0,2200-(state.totalAttempts||0)).toLocaleString()} more answers of evidence`);
-  if(!gates.weak)blockers.push(`reduce sub-40% Keys from ${weak} to 5 or fewer`);
-  if(!gates.keys)blockers.push(`${25-st.keysUnlocked} more daily Keys to unlock`);
-  return {score,ready,stage,breadth,strong,weak,evidence,curve,blockers};
+  if(!g.gates.coverage)blockers.push(`${Math.max(0,Math.ceil(CAMPAIGN.questions.length*.999)-Object.keys(state.seen).length).toLocaleString()} more unique questions`);
+  if(!g.gates.mastery)blockers.push(`mastery ${pct(st.mastery)}% → 85%`);
+  if(!g.gates.minSkill)blockers.push(`weakest Key ${pct(st.minSkill)}% → 70%`);
+  if(!g.gates.calendar)blockers.push(`${Math.max(0,Math.ceil(14-g.spanDays))} more calendar days of longitudinal evidence`);
+  if(!g.gates.retentionEvidence)blockers.push(`${Math.max(0,150-g.reviewCount)} more spaced-review answers`);
+  else if(!g.gates.retention)blockers.push(`review retention ${pct(g.retentionAccuracy)}% → 72%`);
+  if(!g.gates.stability)blockers.push(`8-level stability ${pct(g.stableAccuracy)}% → 68%`);
+  if(!g.gates.fluency)blockers.push(`fluency gate: automatic ≥4% OR recent accuracy ≥80% with ≤5.5s average`);
+  if(!g.gates.keys)blockers.push(`${25-st.keysUnlocked} more base Keys to unlock`);
+  return {score,ready,stage,breadth,strong,weak,evidence,curve,blockers,graduation:g,retentionScore,stabilityScore,autoScore};
 }
 function campaign2Brief(){
   const r=campaign2Readiness(),st=overallStats();
-  return `Adaptive English recommends preparing Campaign 2. I will attach/export my Campaign 1 progress JSON. Use that export as the primary diagnostic. Build Campaign 2 as a separate 3,000-question bank that preserves Campaign 1 and the existing app architecture. Prioritize genuinely new C1 material plus targeted transfer for my remaining weak patterns; avoid duplicate questions and retain 15 questions per level, 10-second timing, adaptive selection, dynamic names, micro-lessons, AI Valoration and the long-term Learning Curve. Current handoff: readiness ${pct(r.score)}%, coverage ${pct(st.coverage)}%, mastery ${pct(st.mastery)}%, breadth ${pct(r.breadth)}%, weak Keys under 40%: ${r.weak}, Key Journey ${st.keysUnlocked}/25. First analyze my export and propose the Campaign 2 skill map before generating the new 3,000 questions.`;
+  return `Adaptive English recommends preparing Campaign 2. I will attach/export my Campaign 1 progress JSON. Use that export as the primary diagnostic. Build Campaign 2 as a separate 3,000-question bank that preserves Campaign 1 and the existing app architecture. Prioritize genuinely new C1 material plus targeted transfer for my remaining weak patterns; avoid duplicate questions and retain 15 questions per level, 10-second timing, adaptive selection, dynamic names, micro-lessons, AI Valoration and the long-term Learning Curve. Current handoff: readiness ${pct(r.score)}%, coverage ${pct(st.coverage)}%, mastery ${pct(st.mastery)}%, weakest Key ${pct(st.minSkill)}%, review retention ${pct(r.graduation.retentionAccuracy)}% across ${r.graduation.reviewCount} recent review answers, automatic ${pct(st.auto)}%, 8-level stability ${pct(r.graduation.stableAccuracy)}%, real evidence span ${r.graduation.spanDays.toFixed(1)} days, Key Journey ${st.keysUnlocked}/25. Campaign 2 must remain locked until every graduation gate and the final challenge are passed. First analyze my export and propose the Campaign 2 skill map before generating the new 3,000 questions.`;
 }
 function stageInfo(coverage){
   const seen=Object.keys(state.seen).length;
@@ -702,25 +715,24 @@ function renderStatsScreen(){
   [["readingShort", "readingShortMeta", readingLoad.short],["readingMedium", "readingMediumMeta", readingLoad.medium],["readingLong", "readingLongMeta", readingLoad.long]].forEach(([id,metaId,x])=>{const main=$(id),meta=$(metaId);main.textContent=x.n?`${Math.round(x.accuracy*100)}%`:"—";if(x.n)paintText(id,x.accuracy);meta.textContent=x.n?`${fmtSec(x.avgMs)} avg · ${Math.round(x.timeoutRate*100)}% timeout · n=${x.n}`:"No evidence yet";});
   const loadInsight=$("readingLoadInsight"),sensitive=readingLoad.sensitiveSkills[0];loadInsight.textContent=`${readingLoad.evidence.label} · ${readingLoad.evidence.detail}${sensitive?` Most length-sensitive key so far: ${sensitive.skill} (${sensitive.accuracyDeltaPts.toFixed(1)} pts long vs short).`:""}`;
   $("statsPeerYou").textContent=peer.actual==null?"—":peer.actual.toFixed(1);if(peer.actual!=null)paintText("statsPeerYou",peer.actual/100);$("statsPeerHealthy").textContent=peer.healthyMin.toFixed(1);paintText("statsPeerHealthy",peer.healthyMin/100);$("statsPeerExpected").textContent=peer.typical.toFixed(1);paintText("statsPeerExpected",peer.typical/100);$("statsPeerStrong").textContent=peer.strongPace.toFixed(1);paintText("statsPeerStrong",peer.strongPace/100);const peerText=peer.delta==null?"—":`${peer.delta>=0?"+":""}${peer.delta.toFixed(1)}`;$("statsPeerDelta").textContent=peerText;$("statsPeerDeltaMini").textContent=peerText;if(peer.delta!=null){paintDelta("statsPeerDelta",peer.delta,true);paintDelta("statsPeerDeltaMini",peer.delta,true);}const pd=$("statsPeerDelta");pd.className=`peer-delta ${peer.delta==null||Math.abs(peer.delta)<2?"neutral":peer.delta>0?"good":"bad"}`;$("statsPeerLabel").textContent=`${peer.label} · Typical range ${peer.healthyMin.toFixed(1)}–${peer.strongPace.toFixed(1)} at ${peer.attempts.toLocaleString()} answers. Model-based reference, not measured users.`;
-  $("statsCampaign2").textContent=`Campaign 2 readiness ${pct(c2.score)}% · ${c2.stage}${c2.ready?" · Recommended now":" · "+(c2.blockers[0]||"Keep consolidating")}`;$("statsCampaign2").style.color=valueTextColor(c2.score);
+  $("statsCampaign2").textContent=`Campaign 2 readiness ${pct(c2.score)}% · ${c2.stage}${c2.ready?" · Graduation gate achieved":" · "+(c2.blockers[0]||"Keep consolidating")}`;$("statsCampaign2").style.color=valueTextColor(c2.score);
 }
 function campaignEta(){
-  const c=campaign2Readiness(),hist=state.history||[],sessions=(state.sessionHistory||[]).filter(x=>x.mode==="training"),now=Date.now(),day=86400000;
-  const firstTs=hist.find(x=>Number.isFinite(x.ts))?.ts||state.createdAt||now,spanDays=Math.max(.25,(now-firstTs)/day);
-  const todayKey=localDayKey(now),todayRows=hist.filter(x=>Number.isFinite(x.ts)&&localDayKey(x.ts)===todayKey),recentSessions=sessions.slice(-8),priorSessions=sessions.slice(-16,-8);
-  const avg=(a,k)=>a.length?mean(a.map(x=>Number(x[k])||0)):null,recentLearning=avg(recentSessions,"learningScore"),priorLearning=avg(priorSessions,"learningScore");
-  const learningVelocity=recentLearning!=null&&priorLearning!=null?Math.max(0,(recentLearning-priorLearning)/Math.max(1,recentSessions.length)):0;
-  const focus=focusSummary(),todayMin=focus.todayMs/60000,practiceFactor=clamp(todayMin/Math.max(1,focus.target.recommended),.35,1.65);
-  const scoreGap=Math.max(0,.72-c.score),masteryGap=Math.max(0,.64-overallStats().mastery),weakGap=Math.max(0,c.weak-3)/25,breadthGap=Math.max(0,.76-c.breadth);
+  const c=campaign2Readiness(),st=overallStats(),g=c.graduation,hist=state.history||[],sessions=(state.sessionHistory||[]).filter(x=>x.mode==="training"),now=Date.now(),day=86400000,learning=learningScoreStats();
+  const firstTs=hist.find(x=>Number.isFinite(x.ts))?.ts||state.createdAt||now,spanDays=Math.max(.25,(now-firstTs)/day),focus=focusSummary(),todayMin=focus.todayMs/60000,practiceFactor=clamp(todayMin/Math.max(1,focus.target.recommended),.35,1.65);
   const due=Object.values(state.seen||{}).filter(x=>x?.lastTs&&now>=(x.nextDueTs||x.lastTs+(x.intervalDays||1)*day)).length,dueRatio=Object.keys(state.seen||{}).length?due/Object.keys(state.seen||{}).length:1;
-  const distance=scoreGap*1.8+masteryGap*1.4+weakGap*.9+breadthGap*.8+Math.max(0,dueRatio-.35)*.45;
-  const baseGain=Math.max(.012,learningVelocity/100+.012)*practiceFactor,rawDays=Math.ceil(distance/Math.max(.012,baseGain));
-  const confidence=clamp((spanDays-5)/16)*clamp(sessions.length/80),days=Math.max(3,Math.min(90,rawDays)),spread=Math.max(3,Math.round(days*(.45-.20*confidence)));
-  const low=Math.max(2,days-spread),high=Math.min(120,days+spread),mainGate=dueRatio>.55?"RETENTION":c.weak>3?"WEAKEST SKILLS":overallStats().mastery<.64?"MASTERY":c.breadth<.76?"BREADTH":"STABILITY";
+  const longitudinalGain=learning.gain!=null&&spanDays>0?Math.max(0,learning.gain/100/spanDays):0,recentTrend=learning.delta!=null?Math.max(-.004,learning.delta/100/8):0;
+  const scoreGap=Math.max(0,.82-c.score),coverageGap=Math.max(0,.999-st.coverage),masteryGap=Math.max(0,.85-st.mastery),minSkillGap=Math.max(0,.70-st.minSkill),retentionGap=g.reviewCount<150?.20:Math.max(0,.72-g.retentionAccuracy),calendarGap=Math.max(0,14-g.spanDays)/14,stabilityGap=Math.max(0,.68-g.stableAccuracy),fluencyGap=g.gates.fluency?0:.08;
+  const distance=scoreGap*1.10+coverageGap*.55+masteryGap*1.20+minSkillGap*.85+retentionGap*.80+calendarGap*.16+stabilityGap*.55+fluencyGap+Math.max(0,dueRatio-.55)*.18;
+  const observedPace=clamp(.006+longitudinalGain*.45+Math.max(0,recentTrend)*.25,.006,.035),pace=observedPace*practiceFactor,rawDays=Math.ceil(distance/Math.max(.005,pace));
+  const confidence=clamp((spanDays-5)/18)*clamp(sessions.length/100),days=Math.max(3,Math.min(120,rawDays)),spread=Math.max(4,Math.round(days*(.48-.23*confidence)));
+  const low=Math.max(2,days-spread),high=Math.min(160,days+spread);
+  let mainGate=!g.gates.calendar?"LONGITUDINAL RETENTION":!g.gates.retentionEvidence||!g.gates.retention||dueRatio>.60?"RETENTION":!g.gates.coverage?"COVERAGE":!g.gates.minSkill?"WEAKEST SKILLS":!g.gates.mastery?"MASTERY":!g.gates.fluency?"AUTOMATICITY / FLUENCY":!g.gates.stability?"STABILITY":"FINAL CHALLENGE";
   const enough=spanDays>=5&&sessions.length>=20;
-  return {days,low,high,mainGate,enough,spanDays,todayMin,due,dueRatio,practiceFactor,score:c.score};
+  if(state.completed)mainGate="CLEARED";else if(st.eligible)mainGate="FINAL CHALLENGE";
+  return {days:state.completed?0:days,low:state.completed?0:low,high:state.completed?0:high,mainGate,enough,spanDays,todayMin,due,dueRatio,practiceFactor,score:c.score,confidence,eligible:st.eligible,completed:state.completed};
 }
-function campaignEtaHtml(){const e=campaignEta();return `<article class="campaign-eta"><div><small>CAMPAIGN 2 ETA</small><h2>${e.enough?`~${e.days} DAYS`:"BUILDING"}</h2><p>${e.enough?`At today's learning pace · range ${e.low}–${e.high} days`:`Need a little more longitudinal evidence before estimating days.`}</p></div><aside><span>MAIN GATE</span><b>${escapeHtml(e.mainGate)}</b><em>${e.due.toLocaleString()} reviews due</em></aside><footer>Forecast, not a deadline · recalculated from learning pace, mastery, weak skills, retention load, breadth and stability. It does not unlock Campaign 2.</footer></article>`;}
+function campaignEtaHtml(){const e=campaignEta(),headline=e.completed?"CLEARED":e.eligible?"FINAL":e.enough?`~${e.days} DAYS`:"BUILDING";return `<article class="campaign-eta"><div><small>CAMPAIGN 2 ETA</small><h2>${headline}</h2><p>${e.completed?`Campaign 1 completed.`:e.eligible?`Graduation gates passed · final challenge remains.`:e.enough?`At today's learning pace · range ${e.low}–${e.high} days`:`Need a little more longitudinal evidence before estimating days.`}</p></div><aside><span>MAIN GATE</span><b>${escapeHtml(e.mainGate)}</b><em>${e.due.toLocaleString()} reviews due</em></aside><footer>Forecast, not a deadline · recalculated from coverage, mastery, weakest skill, spaced-review retention, stability, automaticity/fluency, calendar evidence and today's practice pace. ETA never unlocks Campaign 2.</footer></article>`;}
 function localCoachReport(){
   const hist=state.history||[],recent=hist.slice(-120),prev=hist.slice(-240,-120),stats=overallStats(),trend=coachTrendSummary(),focus=coachSkillStats(),top=focus.slice(0,5),due=Object.values(state.seen||{}).filter(x=>x?.lastTs&&Date.now()>=(x.nextDueTs||x.lastTs+(x.intervalDays||1)*86400000)).length;
   const acc=a=>a.length?a.filter(x=>x.correct).length/a.length:null,avg=a=>a.length?a.reduce((n,x)=>n+(x.ms||0),0)/a.length:null,auto=a=>a.length?a.filter(x=>x.type==="automatic").length/a.length:null;
@@ -824,8 +836,8 @@ function renderLevelLesson(records){
 
 function renderCampaign2Readiness(){
   const r=campaign2Readiness(),score=pct(r.score),fill=$("campaign2Fill"),box=$("campaign2Box");
-  if(box){$("campaign2Score").textContent=`${score}%`;paintText("campaign2Score",r.score);fill.style.width=`${score}%`;paintFill("campaign2Fill",r.score);$("campaign2Stage").textContent=r.stage;$("campaign2Status").textContent=r.ready?"Enough evidence to design the next 3,000 questions. Export Campaign 1 progress and send it to ChatGPT.":`${r.blockers.slice(0,2).join(" · ") || "Keep training to build stronger evidence."}`;$("campaign2Copy").classList.toggle("hidden",!r.ready);box.classList.toggle("ready",r.ready);}
-  const end=$("campaign2End");if(end){const show=r.ready||r.score>=.60;end.classList.toggle("hidden",!show);if(show)end.textContent=r.ready?`CAMPAIGN 2 RECOMMENDED · Readiness ${score}% · Export progress and send it to ChatGPT.`:`CAMPAIGN 2 IS GETTING CLOSE · Readiness ${score}% · Keep consolidating Campaign 1.`;}
+  if(box){$("campaign2Score").textContent=`${score}%`;paintText("campaign2Score",r.score);fill.style.width=`${score}%`;paintFill("campaign2Fill",r.score);$("campaign2Stage").textContent=r.stage;$("campaign2Status").textContent=r.ready?"Graduation gate achieved. The final challenge still decides Campaign 1 completion.":`${r.blockers.slice(0,2).join(" · ") || "Keep training to build stronger evidence."}`;$("campaign2Copy").classList.toggle("hidden",!r.ready);box.classList.toggle("ready",r.ready);}
+  const end=$("campaign2End");if(end){const show=r.ready||r.score>=.60;end.classList.toggle("hidden",!show);if(show)end.textContent=r.ready?`GRADUATION GATE ACHIEVED · Readiness ${score}% · Final challenge remains.`:`CAMPAIGN 2 IS GETTING CLOSE · Readiness ${score}% · Keep consolidating Campaign 1.`;}
 }
 async function copyCampaign2Brief(){
   const text=campaign2Brief();
@@ -851,18 +863,21 @@ function ensureDailyKey(){
 }
 function keySlideHtml(x){
   const key=(window.AE_KEYS||{})[x.cat],skill=CAMPAIGN.skills.find(s=>s.id===x.cat),m=state.metrics[x.cat],mastery=m?metricMastery(m):0,n=x.number||1,echo=memoryEchoFor(x.cat,x.cat==="so_such"?"such":x.cat==="too_enough"?"enough":"");
-  return `<article class="key-slide" data-key-number="${n}"><div class="key-slide-meta"><span>KEY ${n} / 25</span><small>${pct(mastery)}% MASTERY</small></div><button class="daily-key-card" type="button" aria-expanded="false"><div class="daily-key-face daily-key-front"><small>ESPAÑOL → INGLÉS</small><strong>${escapeHtml(key.front)}</strong><span>TOCA PARA REVELAR</span></div><div class="daily-key-face daily-key-back"><small>KEY ${n} UNLOCKED</small><strong>${escapeHtml(key.back)}</strong><b>${escapeHtml(key.formula)}</b><span>${escapeHtml(key.cue)}</span>${keyMemoryEchoHtml(x.cat)}</div></button>${spotifyOpenHtml(echo,"key-spotify-open")}</article>`;
+  return `<article class="key-slide" data-key-number="${n}"><div class="key-slide-meta"><span>BASE KEY ${n} / 25</span><small>${pct(mastery)}% MASTERY</small></div><button class="daily-key-card" type="button" aria-expanded="false"><div class="daily-key-face daily-key-front"><small>ESPAÑOL → INGLÉS</small><strong>${escapeHtml(key.front)}</strong><span>TOCA PARA REVELAR</span></div><div class="daily-key-face daily-key-back"><small>KEY ${n} UNLOCKED</small><strong>${escapeHtml(key.back)}</strong><b>${escapeHtml(key.formula)}</b><span>${escapeHtml(key.cue)}</span>${keyMemoryEchoHtml(x.cat)}</div></button>${spotifyOpenHtml(echo,"key-spotify-open")}</article>`;
 }
+function discoverySlideHtml(x){const echo=memoryEchoFor(x.echoCat||"","");return `<article class="key-slide discovery-slide" data-key-number="${x.number}"><div class="key-slide-meta"><span>DISCOVERY ${String(x.number).padStart(3,"0")}</span><small>DIARY KEY</small></div><button class="daily-key-card discovery-card" type="button" aria-expanded="false"><div class="daily-key-face daily-key-front"><small>${escapeHtml(x.title)}</small><strong>${escapeHtml(x.front)}</strong><span>TOCA PARA REVELAR</span></div><div class="daily-key-face daily-key-back"><small>KEY ${String(x.number).padStart(3,"0")} · DISCOVERED</small><strong>${escapeHtml(x.back)}</strong><b>${escapeHtml(x.formula)}</b><span>${escapeHtml(x.cue)}</span>${echo?`<em class="key-memory-echo"><small>MUSIC ECHO</small><span>${escapeHtml(echo.artist)} · ${escapeHtml(echo.title)}</span><b>${escapeHtml(echo.cue)}</b></em>`:""}</div></button>${spotifyOpenHtml(echo,"key-spotify-open")}</article>`;}
 function renderDailyKey(){
   const host=$("dailyKeyHost"),journey=ensureDailyKey();if(!host||!journey)return;
-  const unlocked=[...state.keyring].sort((a,b)=>(a.number||0)-(b.number||0)),lockedN=Math.min(25,unlocked.length+1);
+  const unlocked=[...state.keyring].sort((a,b)=>(a.number||0)-(b.number||0)),discoveries=unlockedDiscoveryCards(),lockedN=Math.min(25,unlocked.length+1);
   const marks=Array.from({length:25},(_,i)=>`<i class="${i<unlocked.length?"on":""}"></i>`).join("");
-  const locked=unlocked.length<25?`<article class="key-slide key-slide-locked" data-key-number="${lockedN}"><div class="key-slide-meta"><span>KEY ${lockedN} / 25</span><small>LOCKED</small></div><div class="daily-key-card locked-card"><div class="daily-key-face"><small>NEXT SECRET</small><strong>◇</strong><b>KEY ${lockedN}</b><span>SE DESBLOQUEA CON EL PRÓXIMO DÍA</span></div></div></article>`:"";
-  host.innerHTML=`<div class="daily-key-head"><div><span>KEY JOURNEY</span><b>${unlocked.length} / 25 UNLOCKED</b></div><em>${unlocked.length}/25</em></div><div class="key-marks" aria-label="${unlocked.length} of 25 Keys unlocked">${marks}</div><div id="keyCarousel" class="key-carousel">${unlocked.map(keySlideHtml).join("")}${locked}</div><div class="key-carousel-hint">TOCA PARA GIRAR · DESLIZA ↔</div>`;
+  const locked=unlocked.length<25?`<article class="key-slide key-slide-locked" data-key-number="${lockedN}"><div class="key-slide-meta"><span>BASE KEY ${lockedN} / 25</span><small>LOCKED</small></div><div class="daily-key-card locked-card"><div class="daily-key-face"><small>NEXT BASE KEY</small><strong>?</strong><b>KEY ${lockedN}</b><span>SE DESBLOQUEA CON EL PRÓXIMO DÍA</span></div></div></article>`:"";
+  host.innerHTML=`<div class="daily-key-head"><div><span>KEY DIARY</span><b>${unlocked.length} / 25 BASE · ${discoveries.length} DISCOVERED</b></div><em>${unlocked.length+discoveries.length}</em></div><div class="key-marks" aria-label="${unlocked.length} of 25 base Keys unlocked">${marks}</div><div id="keyCarousel" class="key-carousel">${unlocked.map(keySlideHtml).join("")}${discoveries.map(discoverySlideHtml).join("")}${locked}</div><div class="key-carousel-hint">1 TOQUE: GIRAR · 2º TOQUE: SIGUIENTE</div>`;
   const carousel=$("keyCarousel"),slides=[...carousel.querySelectorAll(".key-slide")],cards=[...carousel.querySelectorAll("button.daily-key-card")];
   const centerSlide=(slide,behavior="smooth")=>{if(!slide)return;const left=Math.max(0,slide.offsetLeft-(carousel.clientWidth-slide.clientWidth)/2);carousel.scrollTo({left,behavior});};
-  cards.forEach(card=>card.addEventListener("click",async()=>{clearTimeout(card._autoTurnTimer);const revealed=card.classList.toggle("revealed");card.setAttribute("aria-expanded",revealed?"true":"false");try{await ensureAudio();playKeyFlip(revealed);}catch(e){console.error("Key flip audio failed",e);}if(revealed)card._autoTurnTimer=setTimeout(()=>{if(!card.classList.contains("revealed"))return;card.classList.remove("revealed");card.setAttribute("aria-expanded","false");try{playKeyFlip(false,true);}catch(e){}},10000);}));
-  requestAnimationFrame(()=>{const current=slides.find(x=>Number(x.dataset.keyNumber)===journey.number);centerSlide(current,"auto");});
+  cards.forEach(card=>card.addEventListener("click",async()=>{clearTimeout(card._autoTurnTimer);const slide=card.closest(".key-slide");if(!card.classList.contains("revealed")){card.classList.add("revealed");card.setAttribute("aria-expanded","true");try{await ensureAudio();playKeyFlip(true);}catch(e){console.error("Key flip audio failed",e);}card._autoTurnTimer=setTimeout(()=>{if(!card.classList.contains("revealed"))return;card.classList.remove("revealed");card.setAttribute("aria-expanded","false");try{playKeyFlip(false,true);}catch(e){}},10000);return;}
+    card.classList.remove("revealed");card.setAttribute("aria-expanded","false");try{await ensureAudio();playKeyFlip(false,true);}catch(e){}const i=slides.indexOf(slide),next=slides[i+1]||slides[0];centerSlide(next);
+  }));
+  requestAnimationFrame(()=>{const discovery=discoveries[discoveries.length-1],current=discovery?slides.find(x=>Number(x.dataset.keyNumber)===discovery.number):slides.find(x=>Number(x.dataset.keyNumber)===journey.number);centerSlide(current,"auto");});
 }
 function treeRand(seed=129){let t=seed>>>0;return()=>{t+=0x6D2B79F5;let x=t;x=Math.imul(x^x>>>15,x|1);x^=x+Math.imul(x^x>>>7,x|61);return((x^x>>>14)>>>0)/4294967296;};}
 let TREE_PARTS_CACHE=null;
@@ -891,7 +906,7 @@ function renderGrowthTree(){
   host.innerHTML=`<div class="growth-tree-canvas" data-tree-stage="${stage}"><svg viewBox="0 0 420 300" role="img" aria-label="Practice tree, growth stage ${stage} of 200"><defs><linearGradient id="treeTrunk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5d3827"/><stop offset=".55" stop-color="#76503a"/><stop offset="1" stop-color="#957258"/></linearGradient></defs><ellipse class="tree-ground" cx="210" cy="282" rx="78" ry="7"/> <g class="tree-branches" fill="none" stroke="url(#treeTrunk)" stroke-linecap="round" stroke-linejoin="round">${branch}</g><g class="tree-leaves">${leaf}</g></svg></div><div class="growth-tree-count"><b>${level.toLocaleString()}</b><span>LEVEL</span></div>`;
 }
 
-const RELEASE_NOTES=["My Coach now shows CAMPAIGN 2 ETA: a rolling days-at-today’s-learning-pace forecast with an uncertainty range and main graduation gate","ETA uses mastery, weak skills, retention load, breadth, recent learning velocity and today’s Focus Time; it never unlocks Campaign 2 by itself","Make Me Feel memory hook and the tighter v3.6 game pacing remain active; core adaptive engine and 10-second clock are unchanged"];
+const RELEASE_NOTES=["Full audit/recalibration: Campaign 2 readiness now follows the real graduation gate instead of the older permissive handoff thresholds","Graduation now requires near-complete coverage, 85% global mastery, every skill at 70%+, 14 real days, enough spaced-review evidence, retention, stability and a modest automaticity/fluency signal before the final challenge","Campaign ETA was recalibrated to those stricter gates and its learning-velocity bug was fixed; it now uses the actual Learning Curve instead of a nonexistent session field","KEY DIARY keeps the 25 base Keys and adds open-ended discovery cards; #026 is GOTYE, and cards now use Anki-style tap once to flip, tap again to advance","Core 3,000-question bank, scheduler, 15-question levels, fixed 10-second clock and STORAGE_KEY are unchanged"];
 function renderReleaseInfo(){const host=$("releaseInfo");if(!host)return;host.innerHTML=`<details class="release-info"><summary><b>Adaptive English v${APP_VERSION}</b><span>WHAT’S NEW</span></summary><ul>${RELEASE_NOTES.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></details>`;}
 function renderStart(){
   ensureDailyKey();
@@ -913,7 +928,7 @@ function renderStart(){
   $("startTotal").textContent=(state.totalAttempts||0).toLocaleString();$("startStudyTime").textContent=formatStudyTime(state.activeTrainingMs||0);const phraseStats=phraseExposureStats();$("startPhrasesDone").textContent=phraseStats.unique.toLocaleString();$("startRepeatedPhrases").textContent=phraseStats.repeatedUnique.toLocaleString();
   const peer=typicalLearnerStats(),spd=$("startPeerDelta");spd.textContent=peer.delta==null?"—":`${peer.delta>=0?"+":""}${peer.delta.toFixed(1)}`;spd.className=`peer-delta ${peer.delta==null||Math.abs(peer.delta)<2?"neutral":peer.delta>0?"good":"bad"}`;$("startPeerStatus").textContent=`${peer.label} · typical ${peer.typical.toFixed(1)} · range ${peer.healthyMin.toFixed(1)}–${peer.strongPace.toFixed(1)}`;
   let status=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Math.max(0,sg.to-sg.seen)} new exercises until the next stage.`;
-  if(st.coverage>=.999&&!st.eligible){const knowledgeReady=st.mastery>=.85&&st.minSkill>=.70;status=knowledgeReady&&st.keysUnlocked<25?`Knowledge gates achieved. KEY JOURNEY ${st.keysUnlocked}/25 · Campaign remains locked until all 25 Keys are collected.`:`All 3,000 exercises explored. Consolidation continues until mastery ≥85%, every Key ≥70%, and KEY JOURNEY reaches 25/25.`;}
+  if(st.coverage>=.999&&!st.eligible){const gate=campaign2Readiness();status=`All 3,000 exercises explored. GRADUATION GATE pending · ${gate.blockers[0]||"keep consolidating longitudinal evidence"}.`;}
   if(st.eligible&&!state.completed)status="FINAL CHALLENGE READY · Campaign requirements achieved.";
   if(state.completed)status="CAMPAIGN 1 COMPLETE · Free practice remains available, or load the next campaign later.";
   $("campaignStatus").textContent=status;

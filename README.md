@@ -434,3 +434,12 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - The forecast combines graduation distance with mastery, breadth, sub-40% weak skills, due-review load, recent learning velocity, and today's Focus Time. It identifies the current main gate (retention, weakest skills, mastery, breadth, or stability).
 - ETA is motivational/observational only and cannot unlock Campaign 2. Graduation remains a separate evidence gate.
 - The adaptive engine, 15-question rounds, fixed 10-second clock, scheduler and storage key are unchanged.
+
+
+## v3.8 · Graduation audit + Key Diary
+- Recalibrates Campaign 2 readiness against a strict graduation gate: ~100% coverage, 85% global mastery, 70% minimum skill mastery, all 25 base Keys, at least 14 calendar days of evidence, at least 150 spaced-review answers with >=72% retention, 8-level stability >=68%, plus a modest automaticity/fluency signal.
+- The final challenge remains separate: passing the forecast or readiness percentage never graduates the campaign.
+- Fixes the v3.7 ETA velocity bug: the ETA now reads the actual Learning Curve instead of a nonexistent `sessionHistory.learningScore` field, and projects against the strict graduation deficits.
+- Adds the open-ended Key Diary without changing the 25-skill Campaign 1 taxonomy. Discovery #026 is the Gotye cue: `GOTYE -> CORTO · BE/GET -> -ING`.
+- Key Diary interaction is now Anki-like: first tap flips; second tap advances to the next card. Swipe remains optional.
+- Protected learning engine invariants remain unchanged: 3,000-question bank, scheduler, 15-question levels, fixed 10-second timer, and `adaptive_english_campaign1_v1` storage key.
