@@ -393,6 +393,16 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 #gameScreen .feedback .feedback-record small{grid-column:1/-1;margin:7px 0 0!important;font-size:9px!important;font-weight:850;letter-spacing:.08em;color:rgba(255,255,255,.58)!important}
 @media(max-width:520px){#gameScreen .feedback{padding:7px 8px!important}#gameScreen .feedback .feedback-record{gap:0 10px;padding:3px 5px 1px!important}#gameScreen .feedback .feedback-record i{font-size:clamp(30px,9vw,43px)}#gameScreen .feedback .feedback-record b{font-size:clamp(49px,16vw,70px)}}
 </style>
+
+<style id="v330-style">
+/* v3.3 · Local Coach + clearer Music Echo */
+#coachScreen .panel{max-width:980px!important}#coachScreen .resulttitle h1{font-size:clamp(38px,9vw,68px)}
+.local-coach-report{margin:16px 0 24px}.local-coach-hero{padding:22px 24px;border-radius:16px;background:linear-gradient(145deg,rgba(var(--ai-rgb),.24),rgba(0,0,0,.15));border:1px solid rgba(255,255,255,.11);border-left:7px solid var(--ai-color)}.local-coach-hero small{font-size:11px;font-weight:950;letter-spacing:.13em;color:#b9c9c0}.local-coach-hero h2{margin:7px 0 10px;font-size:clamp(30px,7vw,50px);line-height:1}.local-coach-hero p{margin:0;font-size:clamp(17px,3.8vw,21px);line-height:1.55;color:#e8f0eb}
+.coach-narrative{margin-top:12px;padding:20px 24px;border-radius:15px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.08)}#coachScreen .coach-narrative h3{margin:20px 0 5px;font-size:clamp(18px,4vw,23px);color:#f4f7f5}#coachScreen .coach-narrative h3:first-child{margin-top:0}#coachScreen .coach-narrative p{font-size:clamp(16px,3.6vw,20px);line-height:1.62;margin:0;color:#d7e1db}.coach-method{margin-top:20px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;line-height:1.5;color:#82978c}
+.memory-echo{max-width:min(92vw,680px)!important;padding:14px 22px!important;text-align:center}.memory-echo b{display:block!important;font-size:clamp(25px,7vw,42px)!important;line-height:1.05!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}.memory-echo span{display:block;margin-top:6px;font-size:clamp(14px,3.8vw,19px);font-weight:800;color:rgba(255,255,255,.76);white-space:normal}
+#gameScreen .feedback .feedback-record b{font-size:clamp(60px,17vw,94px)!important}
+@media(max-width:520px){.local-coach-hero,.coach-narrative{padding:18px 17px}.memory-echo{max-width:94vw!important;padding:12px 16px!important}#gameScreen .feedback .feedback-record b{font-size:clamp(54px,18vw,78px)!important}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -473,7 +483,8 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">MY COACH · v3.0</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div class="resulttitle"><div class="kicker">MY COACH · LIVE</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div id="localCoachReport" class="local-coach-report"></div>
     <div id="coachIntro" class="statusbox"></div>
     <div class="section"><h3>Focus now</h3><div id="coachFocus" class="coach-grid"></div></div>
     <div class="section"><h3>Common mistakes</h3><div id="coachMistakes"></div></div>

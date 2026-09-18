@@ -400,3 +400,11 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - The dominant information is now the phrase's lifetime record: large `✓ correct` and `✕ wrong` counts.
 - Total attempts and response time remain as small secondary context because attempts are simply correct + wrong.
 - Adaptive scoring, outcome classification and timing logic are unchanged; only the feedback presentation changed.
+
+
+## v3.3 · Local Coach
+- MY COACH now contains a large offline narrative report generated from the same local progress state used by the ChatGPT handoff. It recalculates whenever the Coach screen is opened, therefore after every completed level.
+- The report compares recent vs previous answer windows, retention span, due reviews, priority skills and supported misconception fingerprints. It uses deterministic evidence language and does not call an API.
+- Correct-answer transition reduced to 760 ms; wrong-answer transitions remain 1450–1650 ms to preserve correction-viewing time.
+- Transient Music Echo now shows the song title prominently and the artist underneath; long titles wrap instead of clipping.
+- ✓ / ✕ phrase-history counts are slightly larger. Core adaptive mathematics and the fixed 10-second question clock are unchanged.

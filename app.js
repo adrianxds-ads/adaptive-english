@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.2";
+const APP_VERSION = "3.3";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -106,9 +106,9 @@ function keyMemoryEchoHtml(cat){
 }
 function showMemoryEcho(cat,correctAnswer=""){
   const el=$("memoryEcho"),x=memoryEchoFor(cat,correctAnswer);if(!el||!x)return;
-  el.innerHTML=`<b>${escapeHtml(x.title)}</b>`;
+  el.innerHTML=`<b>${escapeHtml(x.title)}</b><span>${escapeHtml(x.artist)}</span>`;
   el.classList.remove("show");void el.offsetWidth;el.classList.add("show");
-  clearTimeout(showMemoryEcho._timer);showMemoryEcho._timer=setTimeout(()=>el.classList.remove("show"),1050);
+  clearTimeout(showMemoryEcho._timer);showMemoryEcho._timer=setTimeout(()=>el.classList.remove("show"),1350);
 }
 function playKeyFlip(revealed=true,soft=false){
   const notes=revealed?[[659.25,0],[987.77,.045],[1318.5,.095]]:[[987.77,0],[783.99,.045],[587.33,.09]],gain=soft?.006:.011;
@@ -704,7 +704,21 @@ function renderStatsScreen(){
   $("statsPeerYou").textContent=peer.actual==null?"—":peer.actual.toFixed(1);if(peer.actual!=null)paintText("statsPeerYou",peer.actual/100);$("statsPeerHealthy").textContent=peer.healthyMin.toFixed(1);paintText("statsPeerHealthy",peer.healthyMin/100);$("statsPeerExpected").textContent=peer.typical.toFixed(1);paintText("statsPeerExpected",peer.typical/100);$("statsPeerStrong").textContent=peer.strongPace.toFixed(1);paintText("statsPeerStrong",peer.strongPace/100);const peerText=peer.delta==null?"—":`${peer.delta>=0?"+":""}${peer.delta.toFixed(1)}`;$("statsPeerDelta").textContent=peerText;$("statsPeerDeltaMini").textContent=peerText;if(peer.delta!=null){paintDelta("statsPeerDelta",peer.delta,true);paintDelta("statsPeerDeltaMini",peer.delta,true);}const pd=$("statsPeerDelta");pd.className=`peer-delta ${peer.delta==null||Math.abs(peer.delta)<2?"neutral":peer.delta>0?"good":"bad"}`;$("statsPeerLabel").textContent=`${peer.label} · Typical range ${peer.healthyMin.toFixed(1)}–${peer.strongPace.toFixed(1)} at ${peer.attempts.toLocaleString()} answers. Model-based reference, not measured users.`;
   $("statsCampaign2").textContent=`Campaign 2 readiness ${pct(c2.score)}% · ${c2.stage}${c2.ready?" · Recommended now":" · "+(c2.blockers[0]||"Keep consolidating")}`;$("statsCampaign2").style.color=valueTextColor(c2.score);
 }
+function localCoachReport(){
+  const hist=state.history||[],recent=hist.slice(-120),prev=hist.slice(-240,-120),stats=overallStats(),trend=coachTrendSummary(),focus=coachSkillStats(),top=focus.slice(0,5),due=Object.values(state.seen||{}).filter(x=>x?.lastTs&&Date.now()>=(x.nextDueTs||x.lastTs+(x.intervalDays||1)*86400000)).length;
+  const acc=a=>a.length?a.filter(x=>x.correct).length/a.length:null,avg=a=>a.length?a.reduce((n,x)=>n+(x.ms||0),0)/a.length:null,auto=a=>a.length?a.filter(x=>x.type==="automatic").length/a.length:null;
+  const ra=acc(recent),pa=acc(prev),rt=avg(recent),pt=avg(prev),rau=auto(recent),pau=auto(prev),delta=ra!=null&&pa!=null?(ra-pa)*100:null,timeDelta=rt!=null&&pt!=null?(rt-pt)/1000:null,autoDelta=rau!=null&&pau!=null?(rau-pau)*100:null;
+  let phase="BUILDING EVIDENCE",phaseText="Todavía necesito más historial reciente para separar una tendencia real de la variación normal.";
+  if(recent.length>=60&&prev.length>=60){if(delta>=4&&timeDelta<=.35){phase="IMPROVING";phaseText=`La precisión reciente sube ${delta.toFixed(1)} puntos frente a la ventana anterior sin pagar una penalización clara de tiempo.`;}else if(delta<=-5){phase="VOLATILE / REVIEW";phaseText=`La precisión reciente cae ${Math.abs(delta).toFixed(1)} puntos frente a la ventana anterior. Conviene leerlo como señal de consolidación pendiente, no como pérdida demostrada de aprendizaje.`;}else if(autoDelta>=3&&timeDelta<0){phase="AUTOMATIZING";phaseText=`La precisión está relativamente estable, pero la automaticidad sube ${autoDelta.toFixed(1)} puntos y respondes ${Math.abs(timeDelta).toFixed(2)} s más rápido.`;}else{phase="CONSOLIDATING";phaseText="El rendimiento reciente está relativamente estable: ahora importa especialmente si las revisiones espaciadas se sostienen mientras aumenta la cobertura.";}}
+  const firstTs=hist.find(x=>Number.isFinite(x.ts))?.ts||state.createdAt||Date.now(),days=Math.max(0,(Date.now()-firstTs)/86400000),best=top[0],second=top[1];
+  const misconceptionRows=[];for(const r of hist.filter(x=>!x.correct).slice(-500)){const m=misconceptionFingerprint(r);if(m.source==="fallback"||m.id==="NO_ANSWER")continue;if(!misconceptionRows.some(x=>x.id===m.id))misconceptionRows.push(m);}misconceptionRows.sort((a,b)=>b.recentCount-a.recentCount||b.count-a.count);const mc=misconceptionRows[0];
+  const evidence=days<7?`Llevas ${days.toFixed(1)} días reales de evidencia. El volumen puede mostrar adquisición, pero todavía es pronto para llamar retención a largo plazo a una mejora reciente.`:`El historial cubre ${days.toFixed(1)} días reales y hay ${due} preguntas actualmente debidas para revisión.`;
+  const next=best?`Durante los próximos 5 niveles, la prioridad principal es <b>${escapeHtml(best.name)}</b>${second?` y después <b>${escapeHtml(second.name)}</b>`:""}. ${best.rows.length?`En ${best.rows.length} intentos recientes, ${Math.round(best.wrongRate*100)}% fueron errores.`:""}`:"Sigue acumulando niveles para construir prioridades fiables.";
+  return {phase,html:`<article class="local-coach-hero"><small>LIVE · LEVEL ${state.level}</small><h2>${phase}</h2><p>${phaseText}</p></article><article class="coach-narrative"><h3>Qué está pasando</h3><p>Tu ventana inmediata contiene <b>${recent.length}</b> respuestas. Precisión: <b>${ra==null?"—":(ra*100).toFixed(1)+"%"}</b>; automaticidad: <b>${rau==null?"—":(rau*100).toFixed(1)+"%"}</b>; tiempo medio: <b>${rt==null?"—":(rt/1000).toFixed(2)+" s"}</b>. ${delta==null?"Aún no hay una ventana anterior comparable.":`Frente a las ${prev.length} respuestas anteriores: precisión ${delta>=0?"+":""}${delta.toFixed(1)} pp, tiempo ${timeDelta>=0?"+":""}${timeDelta.toFixed(2)} s y automaticidad ${autoDelta>=0?"+":""}${autoDelta.toFixed(1)} pp.`}</p><h3>Retención y carga pendiente</h3><p>${evidence} Ahora mismo hay <b>${due}</b> revisiones debidas.</p><h3>Cuello de botella</h3><p>${best?`La prioridad calculada es <b>${escapeHtml(best.name)}</b>, con mastery ${Math.round(best.mastery*100)}% y ${Math.round(best.wrongRate*100)}% de error en su ventana reciente.`:"Todavía no hay evidencia suficiente."}${mc?` La misconception con señal reciente más clara es <b>${escapeHtml(mc.label)}</b>: ${mc.count} casos históricos, ${mc.recentCount} entre los últimos 30 errores de esa skill (${mc.evidence} evidence).`:""}</p><h3>Próximos 5 niveles</h3><p>${next}</p><div class="coach-method">Informe local determinista · se recalcula después de cada nivel · no usa Internet ni modifica el motor adaptativo.</div></article>`};
+}
+function renderLocalCoach(){const host=$("localCoachReport");if(!host)return;host.innerHTML=localCoachReport().html;}
 function renderCoachScreen(){
+  renderLocalCoach();
   const focus=coachSkillStats(),top=focus.slice(0,5),mistakes=commonMistakeGroups(8),worst=[...rankedSkills()].reverse();applyRatingTheme(overallStats().rating);applyAiTheme(aiValorationStats());
   const weak40=focus.filter(x=>x.mastery<.40).length;$("coachIntro").textContent=`Based on ${(state.totalAttempts||0).toLocaleString()} answers, your coach is prioritising ${top.map(x=>x.name).slice(0,3).join(", ")||"more evidence"}. ${weak40} key${weak40===1?"":"s"} are still below 40% mastery.`;
   $("coachFocus").innerHTML=top.map(x=>{const l=(window.AE_LESSONS||{})[x.id]||{},recent=x.rows.length?`${pct(x.wrongRate)}% errors in last ${x.rows.length} attempts`:"Not enough recent evidence";return `<div class="coach-card"><div class="coach-head"><h3>${escapeHtml(x.name)}</h3><span class="coach-score" style="color:${valueTextColor(x.mastery)}">${pct(x.mastery)}%</span></div><p>${escapeHtml(recent)} · ${x.m.attempts||0} total attempts</p><p>${escapeHtml(l.es||"Keep identifying the grammar pattern before choosing the form.")}</p>${l.formula?`<div class="formula">${escapeHtml(l.formula)}</div>`:""}${l.cue?`<p>💡 ${escapeHtml(l.cue)}</p>`:""}</div>`;}).join("")||'<p class="meta">Complete a few levels to build your study file.</p>';
@@ -857,7 +871,7 @@ function renderGrowthTree(){
   host.innerHTML=`<div class="growth-tree-canvas" data-tree-stage="${stage}"><svg viewBox="0 0 420 300" role="img" aria-label="Practice tree, growth stage ${stage} of 200"><defs><linearGradient id="treeTrunk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5d3827"/><stop offset=".55" stop-color="#76503a"/><stop offset="1" stop-color="#957258"/></linearGradient></defs><ellipse class="tree-ground" cx="210" cy="282" rx="78" ry="7"/> <g class="tree-branches" fill="none" stroke="url(#treeTrunk)" stroke-linecap="round" stroke-linejoin="round">${branch}</g><g class="tree-leaves">${leaf}</g></svg></div><div class="growth-tree-count"><b>${level.toLocaleString()}</b><span>LEVEL</span></div>`;
 }
 
-const RELEASE_NOTES=["Answer feedback is now a large ✓ / ✕ lifetime record","Total attempts and response time are secondary","Misconception fingerprints + copyable diagnostic JSON"];
+const RELEASE_NOTES=["Local Coach reads the app data offline after every level","Correct-answer transition is faster; wrong-answer review time stays longer","Music Echo now shows the artist below the large song title","✓ / ✕ lifetime record remains the dominant feedback"];
 function renderReleaseInfo(){const host=$("releaseInfo");if(!host)return;host.innerHTML=`<details class="release-info"><summary><b>Adaptive English v${APP_VERSION}</b><span>WHAT’S NEW</span></summary><ul>${RELEASE_NOTES.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></details>`;}
 function renderStart(){
   ensureDailyKey();
@@ -963,7 +977,7 @@ function feedback(ok,type,sec,correct,appearance,patternAppearance,phraseCorrect
   const f=$("feedback");f.className="feedback "+(ok?"ok":"no");
   f.innerHTML=`<div class="feedback-record" aria-label="${phraseCorrect} correctas y ${phraseWrong} incorrectas"><span class="record-good"><i>✓</i><b>${phraseCorrect}</b></span><span class="record-bad"><i>✕</i><b>${phraseWrong}</b></span><small>${appearance} intentos · ${sec.toFixed(2)}s</small></div>`;
   requestAnimationFrame(()=>f.classList.add("show"));
-  const hold=ok?1030:(type==="fast-wrong"?1580:type==="timeout"?1430:1380);setTimeout(()=>f.classList.remove("show"),hold);
+  const hold=ok?700:(type==="fast-wrong"?1580:type==="timeout"?1430:1380);setTimeout(()=>f.classList.remove("show"),hold);
 }
 function answer(pos,timeout=false){
   if(locked)return;locked=true;clearInterval(timerHandle);
@@ -981,7 +995,7 @@ function answer(pos,timeout=false){
   if(!ok){hideCorrectReveal();showMemoryEcho(current.cat,rec.correctAnswer);}else hideCorrectReveal();
   try{flashGrammarFocus(shownQuestion,rec.correctAnswer,current.visibleFocus||current.focus||[]);}catch(e){console.error("Grammar focus flash failed",e);}
   state.history.push(rec);state.history=state.history.slice(-12000);state.activeTrainingMs=(state.activeTrainingMs||0)+rec.ms;state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
-  const answeredIndex=session.index,delay=ok?1100:(type==="fast-wrong"?1650:type==="timeout"?1500:1450);setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
+  const answeredIndex=session.index,delay=ok?760:(type==="fast-wrong"?1650:type==="timeout"?1500:1450);setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
   try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance,phraseCorrect,phraseWrong);}catch(e){console.error("Feedback failed",e);}
 }
 async function finishSession(){
