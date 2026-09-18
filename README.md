@@ -385,3 +385,11 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Fingerprints are deliberately evidence-based: recurring literal wrong-answer patterns are counted now; deeper misconception tags can accumulate prospectively without rewriting the adaptive engine.
 - Instant answer feedback now shows the phrase exposure count plus its correct/wrong record for rapid recognition.
 - Campaign mastery, scheduler, 10-second timer, 15-question levels and adaptive scoring remain unchanged.
+
+
+## v3.1 · Misconception layer + visible release ledger
+- Adds a second Error Fingerprint layer that groups different wrong answers into misconception families where deterministic evidence supports the classification.
+- The copied Error JSON now includes `misconception_fingerprint` with family, count, share, recent recurrence, first/last level and evidence strength.
+- Unknown distractors are explicitly classified as fallback/other rather than given an invented linguistic cause.
+- The home screen now has one canonical version display below the Practice Tree with collapsible release notes.
+- Core Campaign 1 adaptive mathematics remain untouched.

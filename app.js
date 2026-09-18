@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.0";
+const APP_VERSION = "3.1";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -721,11 +721,33 @@ function levelErrorGroups(records){
 }
 function solvedErrorSentence(r){const q=String(r.question||r.originalQuestion||"");return q.includes("___")?q.replace("___",r.correctAnswer||"___"):q;}
 function normErrorAnswer(x){return String(x||"").trim().toLowerCase().replace(/\s+/g," ");}
+const MISCONCEPTION_RULES={
+  unless:[
+    {id:"CONDITION_TO_CAUSE",label:"condition → cause",test:(w,c)=>/\bbecause\b/.test(w)&&/\b(if|unless)\b/.test(c)},
+    {id:"UNLESS_PLUS_NOT",label:"unless + explicit negation",test:(w,c)=>/\bunless\b/.test(w)&&/\b(not|don't|doesn't|didn't|won't|wouldn't|can't|cannot)\b/.test(w)},
+    {id:"IF_UNLESS_POLARITY",label:"if / unless polarity",test:(w,c)=>/\b(if|unless)\b/.test(w)&&/\b(if|unless)\b/.test(c)&&w!==c}
+  ],
+  make_bare:[{id:"MAKE_TO_INFINITIVE",label:"make + object + to-infinitive",test:(w,c)=>/^to\s+/.test(w)&&!/^to\s+/.test(c)},{id:"MAKE_GERUND",label:"make + object + -ing",test:(w,c)=>/ing\b/.test(w)&&! /ing\b/.test(c)}],
+  used_to:[{id:"USED_TO_INFLECTED",label:"used to + inflected verb",test:(w,c)=>/\b(ing|ed)\b/.test(w)||/ing$|ed$/.test(w)}],
+  get_used_to:[{id:"USED_TO_BASE_INSTEAD_OF_ING",label:"be/get used to + base verb",test:(w,c)=>! /ing\b/.test(w)&&/ing\b/.test(c)}],
+  look_forward:[{id:"LOOK_FORWARD_TO_BASE",label:"look forward to + base verb",test:(w,c)=>! /ing\b/.test(w)&&/ing\b/.test(c)}],
+  allow_to:[{id:"ALLOW_BARE_INFINITIVE",label:"allow + object + bare infinitive",test:(w,c)=>!/^to\s+/.test(w)&&/^to\s+/.test(c)}],
+  despite:[{id:"DESPITE_CLAUSE",label:"despite + finite clause",test:(w,c)=>/\b(although|though|even though)\b/.test(c)&&/\bdespite\b/.test(w)}],
+  so_such:[{id:"SO_SUCH_SWAP",label:"so / such swap",test:(w,c)=>/\b(so|such)\b/.test(w)&&/\b(so|such)\b/.test(c)&&w!==c}],
+  too_enough:[{id:"TOO_ENOUGH_SWAP",label:"too / enough swap",test:(w,c)=>/\b(too|enough)\b/.test(w)&&/\b(too|enough)\b/.test(c)&&w!==c}],
+  second_conditional:[{id:"SECOND_CONDITIONAL_WILL",label:"will in the if-clause",test:(w,c)=>/\bwill\b/.test(w)&&! /\bwill\b/.test(c)}],
+  third_conditional:[{id:"THIRD_CONDITIONAL_FORM",label:"third conditional form confusion",test:(w,c)=>w!==c}],
+  modal_deduction:[{id:"PAST_MODAL_FORM",label:"past modal deduction form",test:(w,c)=>w!==c}],
+  backshift:[{id:"BACKSHIFT_TENSE",label:"reported-speech backshift",test:(w,c)=>w!==c}],
+  mixed_conditional:[{id:"MIXED_TIME_REFERENCE",label:"mixed conditional time reference",test:(w,c)=>w!==c}]
+};
+function misconceptionFor(r){const w=normErrorAnswer(r.userAnswer),c=normErrorAnswer(r.correctAnswer);if(!w||w==="no answer")return {id:"NO_ANSWER",label:"timeout / no answer",source:"observed"};const rules=MISCONCEPTION_RULES[r.cat]||[];const hit=rules.find(x=>{try{return x.test(w,c,r);}catch(e){return false;}});return hit?{id:hit.id,label:hit.label,source:"rule"}:{id:`${String(r.cat||"skill").toUpperCase()}_OTHER`,label:"other distractor in this skill",source:"fallback"};}
+function misconceptionFingerprint(r){const m=misconceptionFor(r),all=state.history.filter(x=>!x.correct&&x.cat===r.cat).map(x=>({r:x,m:misconceptionFor(x)})),same=all.filter(x=>x.m.id===m.id),recent=all.slice(-30),recentSame=recent.filter(x=>x.m.id===m.id);return {...m,count:same.length,shareOfSkillErrorsPct:all.length?+(same.length/all.length*100).toFixed(1):0,recentCount:recentSame.length,firstSeenLevel:same[0]?.r.level??r.level,lastSeenLevel:same[same.length-1]?.r.level??r.level,evidence:same.length>=8?"HIGH":same.length>=4?"MODERATE":"BUILDING"};}
 function errorFingerprint(r){
   const skillRows=state.history.filter(x=>x.cat===r.cat),wrong=skillRows.filter(x=>!x.correct),same=wrong.filter(x=>normErrorAnswer(x.userAnswer)===normErrorAnswer(r.userAnswer)),recent=wrong.slice(-30),recentSame=recent.filter(x=>normErrorAnswer(x.userAnswer)===normErrorAnswer(r.userAnswer));
   return {skillAttempts:skillRows.length,skillMisses:wrong.length,sameWrongAnswerCount:same.length,shareOfSkillErrorsPct:wrong.length?+(same.length/wrong.length*100).toFixed(1):0,recentMisses:recent.length,recentSameWrongAnswerCount:recentSame.length,firstSeenLevel:same[0]?.level??r.level,lastSeenLevel:same[same.length-1]?.level??r.level,evidence:same.length>=5?"RECURRING":same.length>=3?"EMERGING":"BUILDING"};
 }
-function errorPromptPayload(r){const fp=errorFingerprint(r);return {task:"diagnose_one_english_error",app:"Adaptive English",version:APP_VERSION,skill:skillLabel(r.cat),question:r.question||r.originalQuestion||"",my_answer:r.userAnswer||"No answer",correct_answer:r.correctAnswer||"",response_time_sec:+((r.ms||0)/1000).toFixed(2),error_type:r.type||"wrong",level:r.level,error_fingerprint:fp,instruction:"Diagnose only this error. Explain the likely misconception without pretending certainty. Use the historical pattern as evidence, distinguish conceptual confusion from a possible execution slip, contrast my wrong form with the correct form, give a memorable rule, 3 minimal pairs, and a very short retrieval drill. Answer mainly in Spanish, using English for the examples."};}
+function errorPromptPayload(r){const fp=errorFingerprint(r),mc=misconceptionFingerprint(r);return {task:"diagnose_one_english_error",app:"Adaptive English",version:APP_VERSION,skill:skillLabel(r.cat),question:r.question||r.originalQuestion||"",my_answer:r.userAnswer||"No answer",correct_answer:r.correctAnswer||"",response_time_sec:+((r.ms||0)/1000).toFixed(2),error_type:r.type||"wrong",level:r.level,error_fingerprint:fp,misconception_fingerprint:mc,instruction:"Diagnose only this error. Explain the likely misconception without pretending certainty. Use the historical pattern as evidence, distinguish conceptual confusion from a possible execution slip, contrast my wrong form with the correct form, give a memorable rule, 3 minimal pairs, and a very short retrieval drill. Answer mainly in Spanish, using English for the examples."};}
 async function copyErrorPrompt(btn,index){const records=session?.records||[],groups=levelErrorGroups(records),r=groups[index]?.records?.slice(-1)[0];if(!r)return;const text=JSON.stringify(errorPromptPayload(r),null,2);try{await navigator.clipboard.writeText(text);btn.textContent="COPIED ✓";setTimeout(()=>btn.textContent="COPY ERROR JSON",1300);}catch(e){const t=document.createElement("textarea");t.value=text;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();btn.textContent="COPIED ✓";}}
 function errorCoachCardHtml(group,index){
   const records=group.records||[],r=records[records.length-1]||{},lesson=(window.AE_LESSONS||{})[group.cat]||{},coach=(window.AE_ERROR_COACH||{})[group.cat]||{},title=skillLabel(group.cat),echoes=[];
@@ -734,7 +756,7 @@ function errorCoachCardHtml(group,index){
   const whyEs=coach.must||lesson.es||r.rule||"Fíjate en la estructura de la respuesta correcta.",whyEn=lesson.en||"Notice the pattern in the correct answer and reuse it.",formula=lesson.formula||r.rule||r.correctAnswer||"",quick=lesson.cue||coach.must||"Identifica primero el patrón.",secret=coach.secret||quick,trap=coach.trap||"Contrasta tu respuesta con la forma correcta hasta que la estructura salga automáticamente.";
   const music=echoes.length?`<div class="error-music">${echoes.map(e=>`<div><small>MUSIC ECHO</small><b>♪ ${escapeHtml(e.artist)} · ${escapeHtml(e.title)}</b><span>${escapeHtml(e.cue)}</span>${spotifyOpenHtml(e)}</div>`).join("")}</div>`:`<div class="error-music"><div><small>MEMORY ECHO</small><b>${escapeHtml(lesson.example||r.correctAnswer||title)}</b></div></div>`;
   const rank=Math.max(0,14-index),style=`--error-accent:${COLOR_BANDS_15[rank]};--error-surface:${SURFACE_BANDS_15[rank]};--error-text:${AVS_TEXT_BANDS_15[rank]}`;
-  const fp=errorFingerprint(r),finger=`<div class="error-fingerprint"><span>${fp.evidence}</span><b>${fp.sameWrongAnswerCount}× same answer</b><small>${fp.shareOfSkillErrorsPct}% of this skill’s recorded misses</small></div><button class="copy-error-json" type="button" onclick="copyErrorPrompt(this,${index})">COPY ERROR JSON</button>`;
+  const fp=errorFingerprint(r),mc=misconceptionFingerprint(r),finger=`<div class="error-fingerprint"><span>${fp.evidence}</span><b>${fp.sameWrongAnswerCount}× same answer</b><small>${fp.shareOfSkillErrorsPct}% of this skill’s recorded misses</small></div><div class="misconception-fingerprint"><span>${mc.evidence} EVIDENCE</span><b>${escapeHtml(mc.label)}</b><small>${mc.count} cases · ${mc.shareOfSkillErrorsPct}% of skill misses · ${mc.recentCount} in last 30 misses</small></div><button class="copy-error-json" type="button" onclick="copyErrorPrompt(this,${index})">COPY ERROR JSON</button>`;
   return `<article class="error-coach-card" style="${style}"><div class="error-coach-head"><div><small>ERROR KEY ${String(index+1).padStart(2,"0")}</small><h3>${escapeHtml(title)}</h3></div><span>${records.length} ${records.length===1?"MISS":"MISSES"}</span></div>${examples}${finger}<div class="error-formula">${escapeHtml(formula)}</div><div class="error-quick"><b>QUICK RULE</b><span>${escapeHtml(quick)}</span></div><details class="error-detail"><summary>WHY? · ENTIÉNDELO</summary><div class="error-detail-body"><p><b>ES ·</b> ${escapeHtml(whyEs)}</p><p><b>EN ·</b> ${escapeHtml(whyEn)}</p></div></details><details class="error-detail secret-detail"><summary>🗝 SECRET KEY · MEMORY ECHO</summary><div class="error-detail-body"><div class="secret-key-copy">${escapeHtml(secret)}</div><p class="secret-trap">${escapeHtml(trap)}</p>${music}</div></details></article>`;
 }
 function renderErrorLab(records,targetId){
@@ -835,6 +857,8 @@ function renderGrowthTree(){
   host.innerHTML=`<div class="growth-tree-canvas" data-tree-stage="${stage}"><svg viewBox="0 0 420 300" role="img" aria-label="Practice tree, growth stage ${stage} of 200"><defs><linearGradient id="treeTrunk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5d3827"/><stop offset=".55" stop-color="#76503a"/><stop offset="1" stop-color="#957258"/></linearGradient></defs><ellipse class="tree-ground" cx="210" cy="282" rx="78" ry="7"/> <g class="tree-branches" fill="none" stroke="url(#treeTrunk)" stroke-linecap="round" stroke-linejoin="round">${branch}</g><g class="tree-leaves">${leaf}</g></svg></div><div class="growth-tree-count"><b>${level.toLocaleString()}</b><span>LEVEL</span></div>`;
 }
 
+const RELEASE_NOTES=["Misconception families across different distractors","Error JSON now includes misconception fingerprint","Version + release notes shown under Practice Tree"];
+function renderReleaseInfo(){const host=$("releaseInfo");if(!host)return;host.innerHTML=`<details class="release-info"><summary><b>Adaptive English v${APP_VERSION}</b><span>WHAT’S NEW</span></summary><ul>${RELEASE_NOTES.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></details>`;}
 function renderStart(){
   ensureDailyKey();
   const st=overallStats(),sg=stageInfo(st.coverage),rb=ratingBand(st.rating),ai=aiValorationStats();
@@ -862,6 +886,7 @@ function renderStart(){
   renderCampaign2Readiness();
   renderDailyKey();
   renderGrowthTree();
+  renderReleaseInfo();
   renderFocusWidgets();
 }
 function showScreen(id){["startScreen","statsScreen","coachScreen","gameScreen","endScreen","errorsScreen"].forEach(x=>$(x).classList.toggle("hidden",x!==id));window.scrollTo(0,0);}

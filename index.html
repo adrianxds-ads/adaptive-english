@@ -371,16 +371,23 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 .error-fingerprint span{font-size:9px;font-weight:950;letter-spacing:.12em;color:#f0cf75}.error-fingerprint b{font-size:13px}.error-fingerprint small{grid-column:1/-1;color:#aebdb4;font-size:11px}.copy-error-json{width:100%;margin:0 0 12px;padding:11px;border:1px solid rgba(240,207,117,.25);border-radius:9px;background:rgba(240,207,117,.08);color:#f4df9e;font-size:11px;font-weight:950;letter-spacing:.08em}
 @media(max-width:520px){#gameScreen .feedback{grid-template-columns:minmax(112px,1.35fr) minmax(88px,.95fr) minmax(78px,.72fr)!important}.feedback-record{gap:5px;padding:8px 3px}.feedback-record span{font-size:16px}}
 </style>
+
+<style id="v310-style">
+/* v3.1 · misconception fingerprint + release ledger */
+.misconception-fingerprint{display:grid;grid-template-columns:auto 1fr;gap:3px 9px;margin:8px 0;padding:11px 12px;border:1px solid rgba(126,201,255,.14);border-radius:10px;background:rgba(68,129,170,.09)}
+.misconception-fingerprint span{font-size:9px;font-weight:950;letter-spacing:.11em;color:#9fd6f4}.misconception-fingerprint b{font-size:13px;color:#e7f7ff}.misconception-fingerprint small{grid-column:1/-1;color:#aebdc4;font-size:11px}
+.release-info{margin:14px 2px 2px;border-top:1px solid rgba(255,255,255,.07);padding-top:10px;color:#8fa49a}.release-info summary{display:flex;justify-content:center;gap:10px;align-items:center;cursor:pointer;list-style:none;font-size:10px;letter-spacing:.08em}.release-info summary::-webkit-details-marker{display:none}.release-info summary b{color:#b7c8bf}.release-info summary span{font-size:8px;color:#71857b}.release-info ul{margin:9px auto 0;padding:10px 12px 10px 28px;max-width:520px;border-radius:9px;background:rgba(0,0,0,.10);font-size:10px;line-height:1.55;color:#9eb0a7}
+</style>
 </head>
 <body>
 <div class="app">
 <section id="startScreen" class="screen start">
   <div class="panel">
-    <div id="startKicker" class="kicker">CAMPAIGN 1 - VERSION 1.11</div>
+    <div id="startKicker" class="kicker">CAMPAIGN 1 · ADAPTIVE ENGLISH</div>
     <h1 id="startLevel">LEVEL 42</h1>
     <p class="subtitle">Adaptive English · B2 → C1 Core</p>
     <div class="ai-valuation-box hero-ai"><div><span>AI VALORATION</span><b id="startAiLevel">— / 15</b><small id="startAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
-    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock · v2.12</div>
+    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 10-second clock</div>
     <div class="hero-progress">
       <div class="progress-label"><span>Coverage</span><strong id="coverageText">0 / 3000</strong></div>
       <div class="track"><div id="coverageFill" class="fill" style="width:0%"></div></div>
@@ -419,6 +426,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
     </div>
     <section class="daily-key-section"><div id="dailyKeyHost"></div></section>
     <section class="growth-tree-section"><div id="growthTreeHost"></div></section>
+    <div id="releaseInfo"></div>
   </div>
 </section>
 
