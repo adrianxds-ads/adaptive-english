@@ -421,3 +421,9 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Correct and wrong answer transitions are approximately 18% faster for a more continuous game rhythm. Correct advance: 760→625 ms; normal wrong: 1450→1190 ms; fast-wrong: 1650→1350 ms; timeout: 1500→1230 ms. Feedback-card visibility was shortened proportionally.
 - Skill League Matchday keeps the top three risers and fallers and adds prominent TOP RISER / TOP FALLER cards for the largest movement in each direction.
 - Fixed 10-second answering clock and adaptive mathematics remain unchanged.
+
+
+## v3.6 · Make Me Feel + tighter game rhythm
+- `make + object + bare infinitive` now uses Aretha Franklin, `(You Make Me Feel Like) A Natural Woman`, replacing the Britney Spears anchor. The compact cue is `MAKE/MADE → NO TO · MAKE ME FEEL`, matching the user's strongest spontaneous retrieval hook.
+- Inter-question pacing is shortened by about another 11%: correct 625→555 ms; normal wrong 1190→1060 ms; fast-wrong 1350→1200 ms; timeout 1230→1095 ms. Feedback visibility is shortened proportionally.
+- This is a pacing/Memory Echo layer only. The 15-question round, fixed 10-second answering clock, scheduler, mastery and adaptive scoring are unchanged.
