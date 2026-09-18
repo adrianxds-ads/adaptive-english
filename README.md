@@ -449,3 +449,11 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Re-publishes the full v3.8 feature set after a cross-app conflict audit.
 - Fixes a real isolation bug in the service worker: Adaptive English previously deleted every Cache Storage entry on the shared origin during activation. It now removes only old caches whose names begin with `ae-campaign1-`, leaving unrelated apps untouched.
 - No learning logic, progress data, 3,000-question bank, scheduler, timer, graduation gates, ETA, or Key Diary behavior changed.
+
+
+## v3.9 · Practice-hours ETA
+- Campaign ETA now always produces a concrete estimated amount of focused practice remaining in hours, with a modeled range and confidence label.
+- The dashboard shows both `~X h` and the equivalent `≈ Y days at Z min/day`; if today has at least 10 active minutes, the daily projection uses today's pace, otherwise it uses the recommended daily target.
+- A separate calendar floor preserves the longitudinal-retention gate: practice hours cannot bypass the minimum real-time evidence requirement.
+- The same expanded estimate is visible in My Coach.
+- No change to the 3,000-question bank, scheduler, mastery updates, 15-question levels, 10-second clock, graduation thresholds, progress key, or cache-isolation fix.
