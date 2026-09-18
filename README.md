@@ -393,3 +393,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Unknown distractors are explicitly classified as fallback/other rather than given an invented linguistic cause.
 - The home screen now has one canonical version display below the Practice Tree with collapsible release notes.
 - Core Campaign 1 adaptive mathematics remain untouched.
+
+
+## v3.2 · Instant answer record
+- The transient feedback card no longer spells out CORRECT / INCORRECT / AUTOMATIC / SLOW. Its green/red state is the outcome signal.
+- The dominant information is now the phrase's lifetime record: large `✓ correct` and `✕ wrong` counts.
+- Total attempts and response time remain as small secondary context because attempts are simply correct + wrong.
+- Adaptive scoring, outcome classification and timing logic are unchanged; only the feedback presentation changed.
