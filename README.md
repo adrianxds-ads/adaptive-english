@@ -457,3 +457,11 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - A separate calendar floor preserves the longitudinal-retention gate: practice hours cannot bypass the minimum real-time evidence requirement.
 - The same expanded estimate is visible in My Coach.
 - No change to the 3,000-question bank, scheduler, mastery updates, 15-question levels, 10-second clock, graduation thresholds, progress key, or cache-isolation fix.
+
+
+## v3.9.1 · Estimated Practice Left
+- Renames the live Campaign 2 forecast from ETA to `ESTIMATED PRACTICE LEFT`.
+- Keeps focused practice hours as the primary estimate, with equivalent practice days, modeled range, calendar floor, main gate, and confidence as secondary context.
+- Renames the coach export field to `campaign2PracticeEstimate`.
+- Restores the Local Coach narrative that was accidentally dropped during the v3.9 hours update.
+- No campaign bank, scheduler, timer, mastery, graduation gate, or progress storage logic changed.
