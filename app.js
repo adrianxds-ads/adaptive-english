@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "2.14";
+const APP_VERSION = "3.0";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -720,6 +720,13 @@ function levelErrorGroups(records){
   return order.map(cat=>groups[cat]).sort((a,b)=>b.records.length-a.records.length||a.firstTs-b.firstTs);
 }
 function solvedErrorSentence(r){const q=String(r.question||r.originalQuestion||"");return q.includes("___")?q.replace("___",r.correctAnswer||"___"):q;}
+function normErrorAnswer(x){return String(x||"").trim().toLowerCase().replace(/\s+/g," ");}
+function errorFingerprint(r){
+  const skillRows=state.history.filter(x=>x.cat===r.cat),wrong=skillRows.filter(x=>!x.correct),same=wrong.filter(x=>normErrorAnswer(x.userAnswer)===normErrorAnswer(r.userAnswer)),recent=wrong.slice(-30),recentSame=recent.filter(x=>normErrorAnswer(x.userAnswer)===normErrorAnswer(r.userAnswer));
+  return {skillAttempts:skillRows.length,skillMisses:wrong.length,sameWrongAnswerCount:same.length,shareOfSkillErrorsPct:wrong.length?+(same.length/wrong.length*100).toFixed(1):0,recentMisses:recent.length,recentSameWrongAnswerCount:recentSame.length,firstSeenLevel:same[0]?.level??r.level,lastSeenLevel:same[same.length-1]?.level??r.level,evidence:same.length>=5?"RECURRING":same.length>=3?"EMERGING":"BUILDING"};
+}
+function errorPromptPayload(r){const fp=errorFingerprint(r);return {task:"diagnose_one_english_error",app:"Adaptive English",version:APP_VERSION,skill:skillLabel(r.cat),question:r.question||r.originalQuestion||"",my_answer:r.userAnswer||"No answer",correct_answer:r.correctAnswer||"",response_time_sec:+((r.ms||0)/1000).toFixed(2),error_type:r.type||"wrong",level:r.level,error_fingerprint:fp,instruction:"Diagnose only this error. Explain the likely misconception without pretending certainty. Use the historical pattern as evidence, distinguish conceptual confusion from a possible execution slip, contrast my wrong form with the correct form, give a memorable rule, 3 minimal pairs, and a very short retrieval drill. Answer mainly in Spanish, using English for the examples."};}
+async function copyErrorPrompt(btn,index){const records=session?.records||[],groups=levelErrorGroups(records),r=groups[index]?.records?.slice(-1)[0];if(!r)return;const text=JSON.stringify(errorPromptPayload(r),null,2);try{await navigator.clipboard.writeText(text);btn.textContent="COPIED ✓";setTimeout(()=>btn.textContent="COPY ERROR JSON",1300);}catch(e){const t=document.createElement("textarea");t.value=text;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();btn.textContent="COPIED ✓";}}
 function errorCoachCardHtml(group,index){
   const records=group.records||[],r=records[records.length-1]||{},lesson=(window.AE_LESSONS||{})[group.cat]||{},coach=(window.AE_ERROR_COACH||{})[group.cat]||{},title=skillLabel(group.cat),echoes=[];
   for(const row of records){const e=memoryEchoFor(group.cat,row.correctAnswer||"");if(e&&!echoes.some(x=>x.artist===e.artist&&x.title===e.title))echoes.push(e);}
@@ -727,7 +734,8 @@ function errorCoachCardHtml(group,index){
   const whyEs=coach.must||lesson.es||r.rule||"Fíjate en la estructura de la respuesta correcta.",whyEn=lesson.en||"Notice the pattern in the correct answer and reuse it.",formula=lesson.formula||r.rule||r.correctAnswer||"",quick=lesson.cue||coach.must||"Identifica primero el patrón.",secret=coach.secret||quick,trap=coach.trap||"Contrasta tu respuesta con la forma correcta hasta que la estructura salga automáticamente.";
   const music=echoes.length?`<div class="error-music">${echoes.map(e=>`<div><small>MUSIC ECHO</small><b>♪ ${escapeHtml(e.artist)} · ${escapeHtml(e.title)}</b><span>${escapeHtml(e.cue)}</span>${spotifyOpenHtml(e)}</div>`).join("")}</div>`:`<div class="error-music"><div><small>MEMORY ECHO</small><b>${escapeHtml(lesson.example||r.correctAnswer||title)}</b></div></div>`;
   const rank=Math.max(0,14-index),style=`--error-accent:${COLOR_BANDS_15[rank]};--error-surface:${SURFACE_BANDS_15[rank]};--error-text:${AVS_TEXT_BANDS_15[rank]}`;
-  return `<article class="error-coach-card" style="${style}"><div class="error-coach-head"><div><small>ERROR KEY ${String(index+1).padStart(2,"0")}</small><h3>${escapeHtml(title)}</h3></div><span>${records.length} ${records.length===1?"MISS":"MISSES"}</span></div>${examples}<div class="error-formula">${escapeHtml(formula)}</div><div class="error-quick"><b>QUICK RULE</b><span>${escapeHtml(quick)}</span></div><details class="error-detail"><summary>WHY? · ENTIÉNDELO</summary><div class="error-detail-body"><p><b>ES ·</b> ${escapeHtml(whyEs)}</p><p><b>EN ·</b> ${escapeHtml(whyEn)}</p></div></details><details class="error-detail secret-detail"><summary>🗝 SECRET KEY · MEMORY ECHO</summary><div class="error-detail-body"><div class="secret-key-copy">${escapeHtml(secret)}</div><p class="secret-trap">${escapeHtml(trap)}</p>${music}</div></details></article>`;
+  const fp=errorFingerprint(r),finger=`<div class="error-fingerprint"><span>${fp.evidence}</span><b>${fp.sameWrongAnswerCount}× same answer</b><small>${fp.shareOfSkillErrorsPct}% of this skill’s recorded misses</small></div><button class="copy-error-json" type="button" onclick="copyErrorPrompt(this,${index})">COPY ERROR JSON</button>`;
+  return `<article class="error-coach-card" style="${style}"><div class="error-coach-head"><div><small>ERROR KEY ${String(index+1).padStart(2,"0")}</small><h3>${escapeHtml(title)}</h3></div><span>${records.length} ${records.length===1?"MISS":"MISSES"}</span></div>${examples}${finger}<div class="error-formula">${escapeHtml(formula)}</div><div class="error-quick"><b>QUICK RULE</b><span>${escapeHtml(quick)}</span></div><details class="error-detail"><summary>WHY? · ENTIÉNDELO</summary><div class="error-detail-body"><p><b>ES ·</b> ${escapeHtml(whyEs)}</p><p><b>EN ·</b> ${escapeHtml(whyEn)}</p></div></details><details class="error-detail secret-detail"><summary>🗝 SECRET KEY · MEMORY ECHO</summary><div class="error-detail-body"><div class="secret-key-copy">${escapeHtml(secret)}</div><p class="secret-trap">${escapeHtml(trap)}</p>${music}</div></details></article>`;
 }
 function renderErrorLab(records,targetId){
   const host=$(targetId),groups=levelErrorGroups(records);if(!host)return groups;
@@ -926,10 +934,10 @@ function nextQuestion(){
   current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=view.options[i];b.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"){e.preventDefault();answer(i,false);}});b.addEventListener("click",()=>answer(i,false));wrap.appendChild(b);});
   $("timerText").textContent="10.0";$("timer").classList.remove("urgent");renderSegments(10);startTimer();
 }
-function feedback(ok,type,sec,correct,appearance,patternAppearance){
+function feedback(ok,type,sec,correct,appearance,patternAppearance,phraseCorrect=0,phraseWrong=0){
   const f=$("feedback");f.className="feedback "+(ok?"ok":"no");
   const label=ok?(type==="automatic"?"AUTOMATIC":type==="secure"?"CORRECT":"CORRECT · SLOW"):(type==="timeout"?"TIME":"INCORRECT");
-  f.innerHTML=`<div class="feedback-exposure"><strong>${appearance}</strong><span>ª VEZ</span><small>ESTA FRASE</small></div><div class="feedback-label"><b>${label}</b><small>${sec.toFixed(2)}s</small></div><div class="appearance"><small>PATRÓN</small><b>${patternAppearance}ª</b></div>`;
+  f.innerHTML=`<div class="feedback-exposure"><strong>${appearance}</strong><span>ª VEZ</span><small>ESTA FRASE</small></div><div class="feedback-label"><b>${label}</b><small>${sec.toFixed(2)}s</small></div><div class="feedback-record"><span class="record-good">✓ ${phraseCorrect}</span><span class="record-bad">✕ ${phraseWrong}</span></div>`;
   requestAnimationFrame(()=>f.classList.add("show"));
   const hold=ok?1030:(type==="fast-wrong"?1580:type==="timeout"?1430:1380);setTimeout(()=>f.classList.remove("show"),hold);
 }
@@ -941,7 +949,7 @@ function answer(pos,timeout=false){
   buttons.forEach((b,i)=>{b.disabled=true;b.classList.remove("good","bad","dim");if(i===current.correctPos)b.classList.add("good");else b.classList.add("dim");});
   if(!ok&&pos>=0){buttons[pos].classList.remove("dim");buttons[pos].classList.add("bad");}
   const previousSeen=state.seen[current.fingerprint]||null,previousTemplate=state.templateSeen[current.templateId]||null,speedScore=updateMetric(current,ok,sec,type),info=previousSeen||{count:0,lastLevel:-99,lapses:0};
-  const appearance=info.count+1,patternAppearance=(previousTemplate?.count||0)+1,lapses=(info.lapses||0)+(ok?0:1);
+  const appearance=info.count+1,patternAppearance=(previousTemplate?.count||0)+1,lapses=(info.lapses||0)+(ok?0:1),priorPhraseRows=state.history.filter(x=>x.qid===current.id),phraseCorrect=priorPhraseRows.filter(x=>x.correct).length+(ok?1:0),phraseWrong=priorPhraseRows.filter(x=>!x.correct).length+(ok?0:1);
   const now=Date.now(),intervalDays=reviewIntervalDays(previousSeen,type);
   state.seen[current.fingerprint]={count:appearance,lastLevel:state.level,lastTs:now,lastCorrect:ok,lapses,intervalDays,nextDueTs:now+intervalDays*86400000};state.templateLast[current.templateId]=state.level;state.templateSeen[current.templateId]={count:patternAppearance,lastLevel:state.level,lastTs:now};
   const shownQuestion=current.visibleQuestion||current.q,shownOptions=current.visibleOptions||current.display,load=promptLoadMeta(shownQuestion);
@@ -950,7 +958,7 @@ function answer(pos,timeout=false){
   try{flashGrammarFocus(shownQuestion,rec.correctAnswer,current.visibleFocus||current.focus||[]);}catch(e){console.error("Grammar focus flash failed",e);}
   state.history.push(rec);state.history=state.history.slice(-12000);state.activeTrainingMs=(state.activeTrainingMs||0)+rec.ms;state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
   const answeredIndex=session.index,delay=ok?1100:(type==="fast-wrong"?1650:type==="timeout"?1500:1450);setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
-  try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance);}catch(e){console.error("Feedback failed",e);}
+  try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance,phraseCorrect,phraseWrong);}catch(e){console.error("Feedback failed",e);}
 }
 async function finishSession(){
   clearInterval(timerHandle);

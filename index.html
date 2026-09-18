@@ -339,13 +339,13 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 </style>
 
 <style id="v213-style">
-/* v2.14 · League Study and cleaner wrong-answer music cue */
+/* v3.0 · League Study and cleaner wrong-answer music cue */
 .skill-rank{font-size:16px!important;min-width:33px;height:28px}.rank-move{font-size:13px!important;min-width:31px}.league-study-open{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;margin-top:13px;padding:13px 14px;border:1px solid rgba(231,191,87,.22);border-radius:11px;background:linear-gradient(90deg,rgba(231,191,87,.11),rgba(122,165,236,.06));color:#edf4ef;text-align:left}.league-study-open span{font-size:10px;font-weight:950;letter-spacing:.11em;color:#f1da9e}.league-study-open b{font-size:12px}.league-study-open em{font-style:normal;font-size:10px;font-weight:950;color:#a9bcb0}.league-study-hero p{max-width:560px;margin-left:auto;margin-right:auto}.league-study-table .skillrow{padding-top:10px;padding-bottom:10px}.league-study-report .league-report{margin-top:8px}.league-study-report .league-report-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.league-study-report .league-note{padding:15px}.league-study-report .league-note small{font-size:10px}.league-study-report .league-note b{font-size:28px}.league-study-report .league-note span{font-size:14px;line-height:1.4}.league-study-report .league-report-head span{font-size:12px}.league-study-report .league-report-head b{font-size:11px}.league-study-explain{margin:12px 0 0;font-size:13px;line-height:1.55;color:#b8c9bf}.memory-echo b{font-size:clamp(19px,5.2vw,28px)!important}.memory-echo small,.memory-echo span{display:none!important}
 @media(max-width:520px){.skill-rank{font-size:15px!important;min-width:31px}.rank-move{font-size:12px!important;min-width:27px}.league-study-open b{font-size:11px}.league-study-report .league-report-grid{grid-template-columns:1fr}.league-study-report .league-note{padding:14px}.league-study-report .league-note span{font-size:15px}.league-study-report .league-note b{font-size:30px}}
 </style>
 
 <style id="v214-style">
-/* v2.14 · wrong answer = song title only; League gets stronger visual hierarchy */
+/* v3.0 · wrong answer = song title only; League gets stronger visual hierarchy */
 #leagueScreen .skill-rank{font-size:19px!important;min-width:38px;height:31px;font-weight:950}
 #leagueScreen .rank-move{font-size:15px!important;min-width:34px;font-weight:950}
 #leagueScreen .skill-name-text{font-size:14px;font-weight:850}
@@ -359,6 +359,17 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 .memory-echo{padding:16px 18px!important}
 .memory-echo b{margin:0!important;font-size:clamp(23px,6vw,32px)!important;line-height:1.08!important}
 @media(max-width:520px){#leagueScreen .skill-rank{font-size:17px!important;min-width:34px}#leagueScreen .rank-move{font-size:14px!important;min-width:30px}#leagueScreen .skill-name-text{font-size:13px}.memory-echo b{font-size:clamp(22px,6.5vw,29px)!important}}
+</style>
+
+<style id="v300-style">
+/* v3.0 · Error Fingerprints + instant phrase record */
+#gameScreen .feedback{grid-template-columns:minmax(128px,1.45fr) minmax(100px,1fr) minmax(82px,.72fr)!important}
+.feedback-record{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;padding:9px 5px;border-radius:9px;background:rgba(0,0,0,.11)}
+.feedback-record span{font-size:clamp(16px,4.5vw,24px);font-weight:980;line-height:1;white-space:nowrap}.record-good{color:#b8f1cb}.record-bad{color:#ffc0c7}
+.feedback.ok .record-good{color:#e9fff0}.feedback.ok .record-bad{color:#ffd0d5}.feedback.no .record-good{color:#c9f6d7}.feedback.no .record-bad{color:#fff0f1}
+.error-fingerprint{display:grid;grid-template-columns:auto 1fr;gap:3px 9px;margin:12px 0 8px;padding:11px 12px;border:1px solid rgba(255,255,255,.10);border-radius:10px;background:rgba(0,0,0,.14)}
+.error-fingerprint span{font-size:9px;font-weight:950;letter-spacing:.12em;color:#f0cf75}.error-fingerprint b{font-size:13px}.error-fingerprint small{grid-column:1/-1;color:#aebdb4;font-size:11px}.copy-error-json{width:100%;margin:0 0 12px;padding:11px;border:1px solid rgba(240,207,117,.25);border-radius:9px;background:rgba(240,207,117,.08);color:#f4df9e;font-size:11px;font-weight:950;letter-spacing:.08em}
+@media(max-width:520px){#gameScreen .feedback{grid-template-columns:minmax(112px,1.35fr) minmax(88px,.95fr) minmax(78px,.72fr)!important}.feedback-record{gap:5px;padding:8px 3px}.feedback-record span{font-size:16px}}
 </style>
 </head>
 <body>
@@ -414,7 +425,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 
 <section id="statsScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">DASHBOARD · v2.14</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
+    <div class="resulttitle"><div class="kicker">DASHBOARD · v3.0</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 15</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
@@ -431,7 +442,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 
 <section id="leagueScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle league-study-hero"><div class="kicker">SKILL LEAGUE · v2.14</div><h1>League Study</h1><p>La clasificación completa y el movimiento de las últimas 8 jornadas, con espacio para leer cada cambio con claridad.</p></div>
+    <div class="resulttitle league-study-hero"><div class="kicker">SKILL LEAGUE · v3.0</div><h1>League Study</h1><p>La clasificación completa y el movimiento de las últimas 8 jornadas, con espacio para leer cada cambio con claridad.</p></div>
     <div id="leagueStudyBody"></div>
     <p class="league-study-explain"><b>Cómo leerla:</b> ▲/▼ indica movimiento de puestos en la liga. No significa por sí solo que el mastery haya mejorado o empeorado: una skill también puede cambiar de posición porque otras la adelantan.</p>
     <div class="screen-nav"><button id="leagueBackBtn" class="primary">BACK TO STATISTICS</button></div>
@@ -439,7 +450,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
-    <div class="resulttitle"><div class="kicker">MY COACH · v2.14</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
+    <div class="resulttitle"><div class="kicker">MY COACH · v3.0</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
     <div id="coachIntro" class="statusbox"></div>
     <div class="section"><h3>Focus now</h3><div id="coachFocus" class="coach-grid"></div></div>
     <div class="section"><h3>Common mistakes</h3><div id="coachMistakes"></div></div>
@@ -506,12 +517,12 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
     </div>
-    <div class="footerline">Adaptive English v2.14 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
+    <div class="footerline">Adaptive English v3.0 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
-    <div class="resulttitle error-lab-hero"><div class="kicker">ERROR LAB · v2.14</div><h1>Latest mistakes</h1><p id="errorsCount"></p><small>Solo contiene los errores del nivel que acabas de terminar.</small></div>
+    <div class="resulttitle error-lab-hero"><div class="kicker">ERROR LAB · v3.0</div><h1>Latest mistakes</h1><p id="errorsCount"></p><small>Solo contiene los errores del nivel que acabas de terminar.</small></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>
   </div>

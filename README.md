@@ -378,3 +378,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - The separate correct-answer reveal above the game panel is suppressed; the answer panel itself remains the single correction source.
 - League Study gives more visual weight to rank, movement, mastery percentage and 8-level movement cards.
 - No mastery, scheduler, timer, target or ranking mathematics changed.
+
+
+## v3.0 · Error Fingerprints
+- Error Lab now builds a historical fingerprint from each recorded wrong answer and exposes a one-tap COPY ERROR JSON prompt for ChatGPT micro-diagnosis.
+- Fingerprints are deliberately evidence-based: recurring literal wrong-answer patterns are counted now; deeper misconception tags can accumulate prospectively without rewriting the adaptive engine.
+- Instant answer feedback now shows the phrase exposure count plus its correct/wrong record for rapid recognition.
+- Campaign mastery, scheduler, 10-second timer, 15-question levels and adaptive scoring remain unchanged.
