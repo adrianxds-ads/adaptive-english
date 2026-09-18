@@ -474,3 +474,11 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Calendar/retention requirements remain a separate floor: more practice cannot fake longitudinal retention.
 - The UI now shows learning progress, the hour-driver gate, range, confidence, and graduation readiness separately.
 - Core 3,000-question bank, scheduler, mastery updates, 15-question rounds, fixed 10-second clock, and progress storage remain unchanged.
+
+
+## v3.11 · Daily practice plan
+- Estimated Practice Left now converts remaining focused hours into a stable daily prescription using the existing adaptive Focus target.
+- Dashboard/My Coach show `recommended minutes/day -> estimated days`, plus minimum, stretch, and today-at-this-pace scenarios.
+- More focused minutes shorten the modeled horizon and fewer minutes lengthen it, while calendar/retention floors remain independent.
+- The primary day estimate no longer shrinks merely because today's accumulated Focus Time rises; it is anchored to the recommended daily target.
+- No changes to the question bank, scheduler, mastery updates, 10-second clock, or progress storage.
