@@ -465,3 +465,12 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Renames the coach export field to `campaign2PracticeEstimate`.
 - Restores the Local Coach narrative that was accidentally dropped during the v3.9 hours update.
 - No campaign bank, scheduler, timer, mastery, graduation gate, or progress storage logic changed.
+
+
+## v3.10 · Calibrated practice estimate
+- Separates `GRADUATION READINESS` (evidence/gate index) from `LEARNING PROGRESS` (progress along the learning curve). They are deliberately not treated as a percentage of time completed.
+- Rebuilds Estimated Practice Left from observed in-app velocity. The model estimates recent/lifetime improvement per focused level-hour for learning progress, global mastery, and coverage; it also models the weakest-skill gap using the adaptive weak-skill boost.
+- Remaining practice hours are driven by the slowest learning gate rather than by a second unrelated weighted-distance formula.
+- Calendar/retention requirements remain a separate floor: more practice cannot fake longitudinal retention.
+- The UI now shows learning progress, the hour-driver gate, range, confidence, and graduation readiness separately.
+- Core 3,000-question bank, scheduler, mastery updates, 15-question rounds, fixed 10-second clock, and progress storage remain unchanged.
