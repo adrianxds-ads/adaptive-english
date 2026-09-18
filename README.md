@@ -415,3 +415,9 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - The level-resolution overlay now includes a larger Skill League Matchday flash after every level, whether the target was hit or missed. It shows up to three biggest risers and three biggest fallers with ▲/▼ position movement.
 - The resolution stays visible slightly longer (3.45 s) so the league movement can be read before the statistics/end screen.
 - Adaptive ranking mathematics, scheduler, mastery and the fixed 10-second question clock are unchanged.
+
+
+## v3.5 · Faster play + Matchday leaders
+- Correct and wrong answer transitions are approximately 18% faster for a more continuous game rhythm. Correct advance: 760→625 ms; normal wrong: 1450→1190 ms; fast-wrong: 1650→1350 ms; timeout: 1500→1230 ms. Feedback-card visibility was shortened proportionally.
+- Skill League Matchday keeps the top three risers and fallers and adds prominent TOP RISER / TOP FALLER cards for the largest movement in each direction.
+- Fixed 10-second answering clock and adaptive mathematics remain unchanged.

@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.4";
+const APP_VERSION = "3.5";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -874,7 +874,7 @@ function renderGrowthTree(){
   host.innerHTML=`<div class="growth-tree-canvas" data-tree-stage="${stage}"><svg viewBox="0 0 420 300" role="img" aria-label="Practice tree, growth stage ${stage} of 200"><defs><linearGradient id="treeTrunk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5d3827"/><stop offset=".55" stop-color="#76503a"/><stop offset="1" stop-color="#957258"/></linearGradient></defs><ellipse class="tree-ground" cx="210" cy="282" rx="78" ry="7"/> <g class="tree-branches" fill="none" stroke="url(#treeTrunk)" stroke-linecap="round" stroke-linejoin="round">${branch}</g><g class="tree-leaves">${leaf}</g></svg></div><div class="growth-tree-count"><b>${level.toLocaleString()}</b><span>LEVEL</span></div>`;
 }
 
-const RELEASE_NOTES=["Misconception rules now require strict morphological matches for allow + object + to-infinitive","Level-end overlay now shows a larger Skill League matchday flash with risers and fallers","Local Coach, Music Echo artist and fast ✓ / slower ✕ pacing remain active"];
+const RELEASE_NOTES=["Question-to-question transitions are ~18% faster after both correct and wrong answers","League Matchday now highlights TOP RISER and TOP FALLER above the 3-up / 3-down table","Strict misconception matching and Local Coach remain active"];
 function renderReleaseInfo(){const host=$("releaseInfo");if(!host)return;host.innerHTML=`<details class="release-info"><summary><b>Adaptive English v${APP_VERSION}</b><span>WHAT’S NEW</span></summary><ul>${RELEASE_NOTES.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></details>`;}
 function renderStart(){
   ensureDailyKey();
@@ -919,10 +919,11 @@ async function showLevelIntro(finalMode,target){
 }
 function leagueFlashHtml(s){
   const moves=Object.entries(s.rankMoves||{}).map(([id,delta])=>({id,delta,name:skillLabel(id)})).filter(x=>x.delta).sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta));
-  if(!moves.length)return `<div class="league-flash"><div class="league-flash-title">SKILL LEAGUE</div><div class="league-steady">— NO POSITION CHANGES</div></div>`;
-  const up=moves.filter(x=>x.delta>0).slice(0,3),down=moves.filter(x=>x.delta<0).slice(0,3),row=(x,good)=>`<div class="league-flash-row ${good?"up":"down"}"><strong>${good?"▲":"▼"}${Math.abs(x.delta)}</strong><span>${escapeHtml(x.name)}</span></div>`;
-  return `<div class="league-flash"><div class="league-flash-title">SKILL LEAGUE · MATCHDAY</div><div class="league-flash-grid"><div>${up.map(x=>row(x,true)).join("")||'<div class="league-none">NO RISERS</div>'}</div><div>${down.map(x=>row(x,false)).join("")||'<div class="league-none">NO FALLERS</div>'}</div></div></div>`;
+  if(!moves.length)return `<div class="league-flash"><div class="league-flash-title">SKILL LEAGUE · MATCHDAY</div><div class="league-steady">— NO POSITION CHANGES</div></div>`;
+  const up=moves.filter(x=>x.delta>0).sort((a,b)=>b.delta-a.delta).slice(0,3),down=moves.filter(x=>x.delta<0).sort((a,b)=>a.delta-b.delta).slice(0,3),best=up[0],worst=down[0],row=(x,good)=>`<div class="league-flash-row ${good?"up":"down"}"><strong>${good?"▲":"▼"}${Math.abs(x.delta)}</strong><span>${escapeHtml(x.name)}</span></div>`,star=(x,good)=>x?`<div class="league-star ${good?"up":"down"}"><small>${good?"TOP RISER":"TOP FALLER"}</small><b>${good?"▲":"▼"}${Math.abs(x.delta)}</b><span>${escapeHtml(x.name)}</span></div>`:"";
+  return `<div class="league-flash"><div class="league-flash-title">SKILL LEAGUE · MATCHDAY</div><div class="league-stars">${star(best,true)}${star(worst,false)}</div><div class="league-flash-grid"><div>${up.map(x=>row(x,true)).join("")||'<div class="league-none">NO RISERS</div>'}</div><div>${down.map(x=>row(x,false)).join("")||'<div class="league-none">NO FALLERS</div>'}</div></div></div>`;
 }
+
 async function showLevelResolution(s,before){
   const el=missionOverlay(true);if(!el)return;const finalClear=s.mode==="final"&&s.accuracy>=.85&&s.avgMs<=6000,hit=s.mode==="final"?finalClear:s.target!=null&&s.correct>=s.target;
   el.className=`mission-overlay resolution ${hit?"hit":"miss"}`;el.style.setProperty("--mission-accent",hit?COLOR_BANDS_15[14]:COLOR_BANDS_15[3]);
@@ -986,7 +987,7 @@ function feedback(ok,type,sec,correct,appearance,patternAppearance,phraseCorrect
   const f=$("feedback");f.className="feedback "+(ok?"ok":"no");
   f.innerHTML=`<div class="feedback-record" aria-label="${phraseCorrect} correctas y ${phraseWrong} incorrectas"><span class="record-good"><i>✓</i><b>${phraseCorrect}</b></span><span class="record-bad"><i>✕</i><b>${phraseWrong}</b></span><small>${appearance} intentos · ${sec.toFixed(2)}s</small></div>`;
   requestAnimationFrame(()=>f.classList.add("show"));
-  const hold=ok?700:(type==="fast-wrong"?1580:type==="timeout"?1430:1380);setTimeout(()=>f.classList.remove("show"),hold);
+  const hold=ok?575:(type==="fast-wrong"?1295:type==="timeout"?1175:1130);setTimeout(()=>f.classList.remove("show"),hold);
 }
 function answer(pos,timeout=false){
   if(locked)return;locked=true;clearInterval(timerHandle);
@@ -1004,7 +1005,7 @@ function answer(pos,timeout=false){
   if(!ok){hideCorrectReveal();showMemoryEcho(current.cat,rec.correctAnswer);}else hideCorrectReveal();
   try{flashGrammarFocus(shownQuestion,rec.correctAnswer,current.visibleFocus||current.focus||[]);}catch(e){console.error("Grammar focus flash failed",e);}
   state.history.push(rec);state.history=state.history.slice(-12000);state.activeTrainingMs=(state.activeTrainingMs||0)+rec.ms;state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
-  const answeredIndex=session.index,delay=ok?760:(type==="fast-wrong"?1650:type==="timeout"?1500:1450);setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
+  const answeredIndex=session.index,delay=ok?625:(type==="fast-wrong"?1350:type==="timeout"?1230:1190);setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
   try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance,phraseCorrect,phraseWrong);}catch(e){console.error("Feedback failed",e);}
 }
 async function finishSession(){
