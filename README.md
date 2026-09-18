@@ -443,3 +443,9 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Adds the open-ended Key Diary without changing the 25-skill Campaign 1 taxonomy. Discovery #026 is the Gotye cue: `GOTYE -> CORTO · BE/GET -> -ING`.
 - Key Diary interaction is now Anki-like: first tap flips; second tap advances to the next card. Swipe remains optional.
 - Protected learning engine invariants remain unchanged: 3,000-question bank, scheduler, 15-question levels, fixed 10-second timer, and `adaptive_english_campaign1_v1` storage key.
+
+
+## v3.8.1 · Cache isolation hotfix
+- Re-publishes the full v3.8 feature set after a cross-app conflict audit.
+- Fixes a real isolation bug in the service worker: Adaptive English previously deleted every Cache Storage entry on the shared origin during activation. It now removes only old caches whose names begin with `ae-campaign1-`, leaving unrelated apps untouched.
+- No learning logic, progress data, 3,000-question bank, scheduler, timer, graduation gates, ETA, or Key Diary behavior changed.
