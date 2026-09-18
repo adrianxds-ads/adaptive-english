@@ -419,6 +419,56 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 .league-stars{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:0 0 11px}.league-star{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:9px;align-items:center;padding:9px 10px;border-radius:10px;text-align:left;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08)}.league-star small{grid-column:1/-1;font-size:8px;font-weight:1000;letter-spacing:.14em;color:#aab8b0}.league-star b{font-size:27px;line-height:1;font-weight:1000}.league-star span{font-size:12px;line-height:1.08;font-weight:950}.league-star.up{border-color:rgba(174,242,194,.22)}.league-star.down{border-color:rgba(255,173,180,.22)}.league-star.up b{color:#aef2c2}.league-star.down b{color:#ffadb4}
 @media(max-width:520px){.league-stars{gap:5px}.league-star{padding:7px 6px;column-gap:5px}.league-star b{font-size:22px}.league-star span{font-size:10px}}
 </style>
+
+<style id="v312-readable-ui">
+/* v3.12 readability pass. Deliberately excludes #gameScreen, whose calibrated gameplay typography/layout is frozen. */
+#startScreen .kicker,#statsScreen .kicker,#coachScreen .kicker,#leagueScreen .kicker,#endScreen .kicker,#errorsScreen .kicker{font-size:14px}
+#startScreen .subtitle,#statsScreen .subtitle,#coachScreen .subtitle,#leagueScreen .subtitle,#endScreen .subtitle,#errorsScreen .subtitle{font-size:20px;line-height:1.4}
+#startScreen .meta,#statsScreen .meta,#coachScreen .meta,#leagueScreen .meta,#endScreen .meta,#errorsScreen .meta{font-size:15px;line-height:1.5}
+#startScreen .progress-label,#statsScreen .progress-label,#endScreen .progress-label{font-size:15px}
+#startScreen .card span,#statsScreen .card span,#endScreen .card span{font-size:13px!important;line-height:1.3}
+#startScreen .statusbox,#statsScreen .statusbox,#endScreen .statusbox{font-size:15px;line-height:1.55}
+#startScreen .primary,#startScreen .secondary,#startScreen .ghost,#statsScreen .primary,#statsScreen .secondary,#statsScreen .ghost,#coachScreen .primary,#coachScreen .secondary,#coachScreen .ghost,#leagueScreen .primary,#leagueScreen .secondary,#leagueScreen .ghost,#endScreen .primary,#endScreen .secondary,#endScreen .ghost,#errorsScreen .primary,#errorsScreen .secondary,#errorsScreen .ghost{font-size:15px}
+#startScreen .small,#statsScreen .small,#coachScreen .small,#leagueScreen .small,#endScreen .small,#errorsScreen .small{font-size:14px}
+
+/* Campaign progress / time planning */
+.next-campaign-head span{font-size:14px}.next-campaign-head em{font-size:14px;line-height:1.35}.next-campaign-box p{font-size:15px;line-height:1.5}
+.campaign-eta-mini{padding:16px 16px;gap:5px 14px}.campaign-eta-mini strong{font-size:clamp(38px,9vw,54px)}.campaign-eta-mini span{font-size:13px;line-height:1.35}.campaign-eta-mini b{font-size:17px;line-height:1.4}.campaign-eta-mini small{font-size:13px;line-height:1.6;margin-top:9px}
+.campaign-plan-scenarios{gap:8px;margin-top:12px}.campaign-plan-scenarios span{font-size:12px;padding:7px 10px;line-height:1.3}
+.campaign-eta{padding:22px 24px}.campaign-eta small,.campaign-eta aside span{font-size:12px}.campaign-eta p{font-size:17px;line-height:1.5}.campaign-eta aside b{font-size:21px;line-height:1.25}.campaign-eta aside em{font-size:14px;line-height:1.4}.campaign-eta-range{font-size:13px;line-height:1.55}.campaign-eta footer{font-size:13px;line-height:1.6}
+
+/* Menus / coach */
+.menu-btn{padding:15px 14px}.menu-btn b{font-size:15px}.menu-btn span{font-size:13px;line-height:1.4;margin-top:5px}
+.coach-card{padding:15px}.coach-card h3{font-size:18px}.coach-card .coach-score{font-size:16px}.coach-card p{font-size:15px;line-height:1.55}.coach-card .formula{font-size:15px;line-height:1.45}
+.mistake-card b{font-size:15px}.mistake-card p{font-size:14px;line-height:1.6}.mistake-choice div{font-size:14px;line-height:1.45;padding:10px}
+#coachScreen .coach-prompt-box textarea{font-size:15px;line-height:1.6}.coach-method{font-size:13px;line-height:1.6}
+
+/* Statistics */
+.chartmeta{font-size:13px;line-height:1.4}.score-section .ghost{font-size:14px}.ai-legend-wrap>span{font-size:12px}.ai-legend-item{font-size:12px}.ai-legend-item.current b{font-size:15px}
+.peer-head span{font-size:13px}.peer-box small{font-size:13px;line-height:1.45}.peer-values span{font-size:11px;line-height:1.25}.peer-values b{font-size:27px}
+.focus-head span{font-size:13px}.focus-head em{font-size:12px;line-height:1.4}.focus-targets{font-size:12px}.focus-why{font-size:13px;line-height:1.5}.focus-week-head{font-size:13px}.focus-day b{font-size:12px}.focus-day small{font-size:10px}.focus-note{font-size:12px;line-height:1.5}
+
+/* Key diary */
+.daily-key-head span{font-size:13px}.daily-key-head b{font-size:19px}.daily-key-face small{font-size:13px}.daily-key-face span{font-size:13px;line-height:1.35}.daily-key-back b{font-size:16px}.key-slide-meta span{font-size:14px}.key-slide-meta small{font-size:12px}.key-carousel-hint{font-size:11px;line-height:1.4}.keyring-item span{font-size:14px}.keyring-item small{font-size:12px}
+.release-info summary{font-size:12px}.release-info summary span{font-size:10px}.release-info ul{font-size:12px;line-height:1.65}
+
+/* Skill league */
+#statsScreen .skill-name-text,#leagueScreen .skill-name-text{font-size:14px}.skillrow .pct{font-size:14px}.league-report-head span{font-size:12px}.league-report-head b{font-size:11px}.league-note small{font-size:10px}.league-note span{font-size:12px;line-height:1.4}.league-study-open span{font-size:12px}.league-study-open b{font-size:14px}.league-study-open em{font-size:12px}
+
+/* Review/end screens */
+#endScreen .footerline,#errorsScreen .footerline{font-size:13px;line-height:1.5}#errorsScreen .spotify-open,#errorsScreen .key-spotify-open{font-size:13px}
+
+@media(max-width:520px){
+  #startScreen .subtitle,#statsScreen .subtitle,#coachScreen .subtitle,#leagueScreen .subtitle,#endScreen .subtitle,#errorsScreen .subtitle{font-size:19px}
+  #startScreen .meta,#statsScreen .meta,#coachScreen .meta,#leagueScreen .meta,#endScreen .meta,#errorsScreen .meta{font-size:14px}
+  .campaign-eta-mini span{font-size:14px}.campaign-eta-mini b{font-size:18px}.campaign-eta-mini small{font-size:14px;line-height:1.65}
+  .campaign-eta{padding:19px}.campaign-eta p{font-size:17px}.campaign-eta-range{font-size:13px}.campaign-eta footer{font-size:13px}.campaign-plan-scenarios span{font-size:12px}
+  .peer-values{grid-template-columns:repeat(5,1fr)}.peer-values b{font-size:20px}.peer-values span{font-size:9px}.peer-values div{padding:8px 4px}
+  .focus-targets{font-size:10px}.focus-why{font-size:12px}.focus-day b{font-size:11px}.focus-day small{font-size:9px}
+  #statsScreen .skill-name-text,#leagueScreen .skill-name-text{font-size:14px}.skillrow .pct{font-size:13px}
+  .league-note span{font-size:12px}.league-note small{font-size:9px}
+}
+</style>
 </head>
 <body>
 <div class="app">

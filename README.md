@@ -482,3 +482,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - More focused minutes shorten the modeled horizon and fewer minutes lengthen it, while calendar/retention floors remain independent.
 - The primary day estimate no longer shrinks merely because today's accumulated Focus Time rises; it is anchored to the recommended daily target.
 - No changes to the question bank, scheduler, mastery updates, 10-second clock, or progress storage.
+
+
+## v3.12 · Readability pass
+- Enlarges typography and secondary information throughout the home dashboard, statistics, My Coach, Skill League, Key Diary, campaign-planning, end and review screens.
+- Estimated Practice Left and its daily/minimum/stretch scenarios receive the strongest size increase because they were difficult to read on mobile.
+- The active `#gameScreen` is explicitly excluded from this typography pass: question, answer, HUD, timer, feedback and gameplay layout remain calibrated exactly as before.
+- Core learning logic and progress storage are unchanged.
