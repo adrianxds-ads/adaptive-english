@@ -427,3 +427,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - `make + object + bare infinitive` now uses Aretha Franklin, `(You Make Me Feel Like) A Natural Woman`, replacing the Britney Spears anchor. The compact cue is `MAKE/MADE → NO TO · MAKE ME FEEL`, matching the user's strongest spontaneous retrieval hook.
 - Inter-question pacing is shortened by about another 11%: correct 625→555 ms; normal wrong 1190→1060 ms; fast-wrong 1350→1200 ms; timeout 1230→1095 ms. Feedback visibility is shortened proportionally.
 - This is a pacing/Memory Echo layer only. The 15-question round, fixed 10-second answering clock, scheduler, mastery and adaptive scoring are unchanged.
+
+
+## v3.7 · Campaign ETA
+- My Coach adds a rolling `CAMPAIGN 2 ETA` expressed as approximate days at today's learning pace, with a range rather than false precision.
+- The forecast combines graduation distance with mastery, breadth, sub-40% weak skills, due-review load, recent learning velocity, and today's Focus Time. It identifies the current main gate (retention, weakest skills, mastery, breadth, or stability).
+- ETA is motivational/observational only and cannot unlock Campaign 2. Graduation remains a separate evidence gate.
+- The adaptive engine, 15-question rounds, fixed 10-second clock, scheduler and storage key are unchanged.
