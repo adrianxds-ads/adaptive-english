@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="3.17">
-<title>Adaptive English - Campaign 1 - v3.17</title>
+<meta name="ae-version" content="3.18">
+<title>Adaptive English - Campaign 1 - v3.18</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -504,6 +504,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
       <div class="card"><b id="startFluency">—</b><span>AE rating</span></div>
       <div class="card"><b id="startAccuracy">—</b><span>Recent accuracy</span></div>
       <div class="card"><b id="startAvg">—</b><span>Avg response</span></div>
+      <div class="card"><b id="startAllAccuracy">—</b><span>All-time accuracy</span></div>
       <div class="card"><b id="startAuto">—</b><span>Automatic</span></div>
       <div class="card"><b id="startMastered">0/25</b><span>Keys mastered</span></div>
       <div class="card"><b id="startTotal">0</b><span>Total answers</span></div>
@@ -543,7 +544,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 15</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
-    <div class="grid"><div class="card"><b id="statsCoverage">0%</b><span>Coverage</span></div><div class="card"><b id="statsMastery">0%</b><span>Mastery</span></div><div class="card"><b id="statsAccuracy">0%</b><span>Recent accuracy</span></div><div class="card"><b id="statsAutomatic">0%</b><span>Automatic</span></div><div class="card"><b id="statsAvg">0.0s</b><span>Avg response</span></div><div class="card"><b id="statsTotal">0</b><span>Total answers</span></div><div class="card study-time-card"><b id="statsStudyTime">0s</b><span>Active training time</span></div></div>
+    <div class="grid"><div class="card"><b id="statsCoverage">0%</b><span>Coverage</span></div><div class="card"><b id="statsMastery">0%</b><span>Mastery</span></div><div class="card"><b id="statsAccuracy">0%</b><span>Recent accuracy</span></div><div class="card"><b id="statsAllAccuracy">0%</b><span>All-time accuracy</span></div><div class="card"><b id="statsAutomatic">0%</b><span>Automatic</span></div><div class="card"><b id="statsAvg">0.0s</b><span>Avg response</span></div><div class="card"><b id="statsTotal">0</b><span>Total answers</span></div><div class="card study-time-card"><b id="statsStudyTime">0s</b><span>Active training time</span></div></div>
     <section id="statsFocusPanel" class="focus-panel stats-focus-panel"></section>
     <div class="charts stats-charts"><div class="section score-section"><div class="chart-title-row"><h3>Correct answers · /15</h3><button id="scoreExpandBtn" class="ghost small">EXPAND</button></div><div id="statsAccuracyChart"></div></div><div class="section learning-trend"><h3>Learning Curve · long-term</h3><div id="statsLearningChart"></div></div></div>
     <div class="section target-stats-section"><h3>Target performance</h3><div class="grid target-grid"><div class="card"><b id="targetAvg">—</b><span>Avg target /15</span></div><div class="card"><b id="targetActualAvg">—</b><span>Avg actual /15</span></div><div class="card"><b id="targetDeltaAvg">—</b><span>Avg vs target</span></div><div class="card"><b id="targetHitRate">—</b><span>Targets met</span></div></div><div id="targetBreakdown" class="statusbox"></div></div>
@@ -654,16 +655,16 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 
 <section id="missionOverlay" class="mission-overlay hidden" aria-hidden="true"><div class="mission-card"><div id="missionBody"></div><div id="missionCount" class="mission-count"></div></div></section>
 <div id="particles" class="particles" aria-hidden="true"></div>
-<script src="./adrian-visual-system.js?v=3.17"></script>
-<script src="./lessons.js?v=3.17"></script>
-<script src="./keys.js?v=3.17"></script>
-<script src="./error-coach.js?v=3.17"></script>
-<script src="./app.js?v=3.17"></script>
+<script src="./adrian-visual-system.js?v=3.18"></script>
+<script src="./lessons.js?v=3.18"></script>
+<script src="./keys.js?v=3.18"></script>
+<script src="./error-coach.js?v=3.18"></script>
+<script src="./app.js?v=3.18"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   let aeReloading=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(aeReloading)return;aeReloading=true;location.reload();});
-  navigator.serviceWorker.register('./service-worker.js?v=3.17',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  navigator.serviceWorker.register('./service-worker.js?v=3.18',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 }
 </script>
 </body>
