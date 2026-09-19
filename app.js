@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.12";
+const APP_VERSION = "3.13";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -860,16 +860,21 @@ function renderLevelLesson(records){
   box.classList.remove("hidden");
 }
 
+function practiceEstimateMiniHtml(estimate=campaignPracticeEstimate()){
+  if(estimate.completed)return `<b>CAMPAIGN CLEARED</b>`;
+  if(estimate.eligible)return `<b>FINAL CHALLENGE READY</b>`;
+  const h=estimate.hours<10?estimate.hours.toFixed(1):Math.round(estimate.hours),hl=estimate.hoursLow<10?estimate.hoursLow.toFixed(1):Math.round(estimate.hoursLow),hh=estimate.hoursHigh<10?estimate.hoursHigh.toFixed(1):Math.round(estimate.hoursHigh);
+  return `<strong>~${h} h</strong><span>estimated focused practice left</span><b>${Math.round(estimate.dailyPlan.recommended.minutes)} min/day → ~${estimate.dailyPlan.recommended.days} days</b><small>minimum ${Math.round(estimate.dailyPlan.minimum.minutes)}m → ${estimate.dailyPlan.minimum.days}d · stretch ${Math.round(estimate.dailyPlan.stretch.minutes)}m → ${estimate.dailyPlan.stretch.days}d${estimate.dailyPlan.today?` · today ${Math.round(estimate.dailyPlan.today.minutes)}m → ${estimate.dailyPlan.today.days}d`:""}<br>learning progress ${Math.round(estimate.learningProgress*100)}% · range ${hl}–${hh} h · hour driver ${escapeHtml(estimate.hourDriver)}${estimate.calendarFloor?` · calendar floor ${estimate.calendarFloor}d`:""}</small>`;
+}
+function renderPracticeEstimateMini(id,estimate=campaignPracticeEstimate()){
+  const el=$(id);if(el)el.innerHTML=practiceEstimateMiniHtml(estimate);
+}
 function renderCampaign2Readiness(){
   const r=campaign2Readiness(),estimate=campaignPracticeEstimate(),score=pct(r.score),fill=$("campaign2Fill"),box=$("campaign2Box");
   if(box){
     $("campaign2Score").textContent=`${score}%`;paintText("campaign2Score",r.score);fill.style.width=`${score}%`;paintFill("campaign2Fill",r.score);$("campaign2Stage").textContent=r.stage;
     $("campaign2Status").textContent=r.ready?"Graduation gate achieved. The final challenge still decides Campaign 1 completion.":`${r.blockers.slice(0,2).join(" · ") || "Keep training to build stronger evidence."}`;
-    const estimateEl=$("campaign2PracticeEstimate");
-    if(estimateEl){
-      const h=estimate.hours<10?estimate.hours.toFixed(1):Math.round(estimate.hours),hl=estimate.hoursLow<10?estimate.hoursLow.toFixed(1):Math.round(estimate.hoursLow),hh=estimate.hoursHigh<10?estimate.hoursHigh.toFixed(1):Math.round(estimate.hoursHigh);
-      estimateEl.innerHTML=estimate.completed?`<b>CAMPAIGN CLEARED</b>`:estimate.eligible?`<b>FINAL CHALLENGE READY</b>`:`<strong>~${h} h</strong><span>estimated focused practice left</span><b>${Math.round(estimate.dailyPlan.recommended.minutes)} min/day → ~${estimate.dailyPlan.recommended.days} days</b><small>minimum ${Math.round(estimate.dailyPlan.minimum.minutes)}m → ${estimate.dailyPlan.minimum.days}d · stretch ${Math.round(estimate.dailyPlan.stretch.minutes)}m → ${estimate.dailyPlan.stretch.days}d${estimate.dailyPlan.today?` · today ${Math.round(estimate.dailyPlan.today.minutes)}m → ${estimate.dailyPlan.today.days}d`:""}<br>learning progress ${Math.round(estimate.learningProgress*100)}% · range ${hl}–${hh} h · hour driver ${estimate.hourDriver}${estimate.calendarFloor?` · calendar floor ${estimate.calendarFloor}d`:""}</small>`;
-    }
+    renderPracticeEstimateMini("campaign2PracticeEstimate",estimate);
     $("campaign2Copy").classList.toggle("hidden",!r.ready);box.classList.toggle("ready",r.ready);
   }
   const end=$("campaign2End");if(end){const show=r.ready||r.score>=.60;end.classList.toggle("hidden",!show);if(show)end.textContent=r.ready?`GRADUATION GATE ACHIEVED · Readiness ${score}% · Final challenge remains.`:`CAMPAIGN 2 IS GETTING CLOSE · Readiness ${score}% · Keep consolidating Campaign 1.`;}
@@ -941,7 +946,7 @@ function renderGrowthTree(){
   host.innerHTML=`<div class="growth-tree-canvas" data-tree-stage="${stage}"><svg viewBox="0 0 420 300" role="img" aria-label="Practice tree, growth stage ${stage} of 200"><defs><linearGradient id="treeTrunk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5d3827"/><stop offset=".55" stop-color="#76503a"/><stop offset="1" stop-color="#957258"/></linearGradient></defs><ellipse class="tree-ground" cx="210" cy="282" rx="78" ry="7"/> <g class="tree-branches" fill="none" stroke="url(#treeTrunk)" stroke-linecap="round" stroke-linejoin="round">${branch}</g><g class="tree-leaves">${leaf}</g></svg></div><div class="growth-tree-count"><b>${level.toLocaleString()}</b><span>LEVEL</span></div>`;
 }
 
-const RELEASE_NOTES=["v3.12 increases typography throughout dashboards, statistics, coach, league, review and campaign-planning views for easier reading; the calibrated game panel is deliberately untouched","Time estimates, daily-plan scenarios, Focus Time details, chart metadata and secondary labels are now substantially larger on mobile and desktop","v3.11 adds a stable DAILY PLAN: recommended minutes/day → estimated practice days, plus minimum, stretch and today-at-this-pace scenarios","The recommended daily minutes come from the existing adaptive Focus target, so weak skills/review load can raise the prescription and fatigue can lower it","Estimated practice days are now anchored to the recommended plan instead of changing all day as today’s accumulated minutes rise","v3.10 separates GRADUATION READINESS from LEARNING PROGRESS so the percentage is no longer mistaken for time completed","Estimated Practice Left is now derived from observed in-app progress per practice hour for learning progress, mastery and coverage; the slowest learning gate sets the hour estimate","Calendar/retention requirements remain separate from practice hours, and the estimate now shows its hour driver and a confidence range","The Campaign 2 forecast is now named ESTIMATED PRACTICE LEFT across the dashboard, My Coach and the coach export","Restored the Local Coach narrative after the v3.9 hours update so My Coach renders both the practice estimate and the longitudinal report","Estimated Practice Left now shows focused practice hours plus equivalent days at today's pace, directly on the main dashboard and in My Coach","The estimate separates practice-time remaining from mandatory calendar/retention time, with a modeled hour range and confidence label","v3.8.1 cache isolation remains active so Adaptive English cannot delete caches belonging to other apps on the same origin","Full audit/recalibration: Campaign 2 readiness now follows the real graduation gate instead of the older permissive handoff thresholds","Graduation now requires near-complete coverage, 85% global mastery, every skill at 70%+, 14 real days, enough spaced-review evidence, retention, stability and a modest automaticity/fluency signal before the final challenge","The practice estimate was recalibrated to the stricter graduation gates and uses the actual Learning Curve","KEY DIARY keeps the 25 base Keys and adds open-ended discovery cards; #026 is GOTYE, and cards now use Anki-style tap once to flip, tap again to advance","Core 3,000-question bank, scheduler, 15-question levels, fixed 10-second clock and STORAGE_KEY are unchanged"];
+const RELEASE_NOTES=["v3.13 adds a fleeting Skill League label to every answer transition, using the exact same grammar-skill name on correct and wrong answers without changing any transition timing","Estimated Practice Left now appears on the level-results back cover as well as the dashboard","Statistics, League Study, My Coach and Error Lab now have an immediate DASHBOARD button at the top, and League Study is included explicitly in the screen router","v3.12 increases typography throughout dashboards, statistics, coach, league, review and campaign-planning views for easier reading; the calibrated game panel is deliberately untouched","Time estimates, daily-plan scenarios, Focus Time details, chart metadata and secondary labels are now substantially larger on mobile and desktop","v3.11 adds a stable DAILY PLAN: recommended minutes/day → estimated practice days, plus minimum, stretch and today-at-this-pace scenarios","The recommended daily minutes come from the existing adaptive Focus target, so weak skills/review load can raise the prescription and fatigue can lower it","Estimated practice days are now anchored to the recommended plan instead of changing all day as today’s accumulated minutes rise","v3.10 separates GRADUATION READINESS from LEARNING PROGRESS so the percentage is no longer mistaken for time completed","Estimated Practice Left is now derived from observed in-app progress per practice hour for learning progress, mastery and coverage; the slowest learning gate sets the hour estimate","Calendar/retention requirements remain separate from practice hours, and the estimate now shows its hour driver and a confidence range","The Campaign 2 forecast is now named ESTIMATED PRACTICE LEFT across the dashboard, My Coach and the coach export","Restored the Local Coach narrative after the v3.9 hours update so My Coach renders both the practice estimate and the longitudinal report","Estimated Practice Left now shows focused practice hours plus equivalent days at today's pace, directly on the main dashboard and in My Coach","The estimate separates practice-time remaining from mandatory calendar/retention time, with a modeled hour range and confidence label","v3.8.1 cache isolation remains active so Adaptive English cannot delete caches belonging to other apps on the same origin","Full audit/recalibration: Campaign 2 readiness now follows the real graduation gate instead of the older permissive handoff thresholds","Graduation now requires near-complete coverage, 85% global mastery, every skill at 70%+, 14 real days, enough spaced-review evidence, retention, stability and a modest automaticity/fluency signal before the final challenge","The practice estimate was recalibrated to the stricter graduation gates and uses the actual Learning Curve","KEY DIARY keeps the 25 base Keys and adds open-ended discovery cards; #026 is GOTYE, and cards now use Anki-style tap once to flip, tap again to advance","Core 3,000-question bank, scheduler, 15-question levels, fixed 10-second clock and STORAGE_KEY are unchanged"];
 function renderReleaseInfo(){const host=$("releaseInfo");if(!host)return;host.innerHTML=`<details class="release-info"><summary><b>Adaptive English v${APP_VERSION}</b><span>WHAT’S NEW</span></summary><ul>${RELEASE_NOTES.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></details>`;}
 function renderStart(){
   ensureDailyKey();
@@ -973,7 +978,7 @@ function renderStart(){
   renderReleaseInfo();
   renderFocusWidgets();
 }
-function showScreen(id){["startScreen","statsScreen","coachScreen","gameScreen","endScreen","errorsScreen"].forEach(x=>$(x).classList.toggle("hidden",x!==id));window.scrollTo(0,0);}
+function showScreen(id){["startScreen","statsScreen","leagueScreen","coachScreen","gameScreen","endScreen","errorsScreen"].forEach(x=>$(x).classList.toggle("hidden",x!==id));window.scrollTo(0,0);}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 function missionOverlay(show=true){const el=$("missionOverlay");if(!el)return null;el.classList.toggle("hidden",!show);el.setAttribute("aria-hidden",show?"false":"true");return el;}
 async function showLevelIntro(finalMode,target){
@@ -1050,9 +1055,9 @@ function nextQuestion(){
   current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=view.options[i];b.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"){e.preventDefault();answer(i,false);}});b.addEventListener("click",()=>answer(i,false));wrap.appendChild(b);});
   $("timerText").textContent="10.0";$("timer").classList.remove("urgent");renderSegments(10);startTimer();
 }
-function feedback(ok,type,sec,correct,appearance,patternAppearance,phraseCorrect=0,phraseWrong=0){
-  const f=$("feedback");f.className="feedback "+(ok?"ok":"no");
-  f.innerHTML=`<div class="feedback-record" aria-label="${phraseCorrect} correctas y ${phraseWrong} incorrectas"><span class="record-good"><i>✓</i><b>${phraseCorrect}</b></span><span class="record-bad"><i>✕</i><b>${phraseWrong}</b></span><small>${appearance} intentos · ${sec.toFixed(2)}s</small></div>`;
+function feedback(ok,type,sec,correct,appearance,patternAppearance,phraseCorrect=0,phraseWrong=0,cat=""){
+  const f=$("feedback"),skill=skillLabel(cat);f.className="feedback "+(ok?"ok":"no");
+  f.innerHTML=`<div class="feedback-record" aria-label="${phraseCorrect} correctas y ${phraseWrong} incorrectas"><span class="record-good"><i>V</i><b>${phraseCorrect}</b></span><span class="record-bad"><i>?</i><b>${phraseWrong}</b></span><small>${appearance} intentos · ${sec.toFixed(2)}s</small></div>${skill?`<div class="feedback-skill-tag">${escapeHtml(skill)}</div>`:""}`;
   requestAnimationFrame(()=>f.classList.add("show"));
   const hold=ok?510:(type==="fast-wrong"?1165:type==="timeout"?1060:1020);setTimeout(()=>f.classList.remove("show"),hold);
 }
@@ -1073,7 +1078,7 @@ function answer(pos,timeout=false){
   try{flashGrammarFocus(shownQuestion,rec.correctAnswer,current.visibleFocus||current.focus||[]);}catch(e){console.error("Grammar focus flash failed",e);}
   state.history.push(rec);state.history=state.history.slice(-12000);state.activeTrainingMs=(state.activeTrainingMs||0)+rec.ms;state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
   const answeredIndex=session.index,delay=ok?555:(type==="fast-wrong"?1200:type==="timeout"?1095:1060);setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
-  try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance,phraseCorrect,phraseWrong);}catch(e){console.error("Feedback failed",e);}
+  try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance,phraseCorrect,phraseWrong,current.cat);}catch(e){console.error("Feedback failed",e);}
 }
 async function finishSession(){
   clearInterval(timerHandle);
@@ -1099,6 +1104,7 @@ function renderEnd(s,before){
   $("endAiConfidence").textContent=`AI Valoration · evidencia ${Math.round(ai.confidence*100)}%`;paintText("endAiConfidence",ai.confidence);
   $("aiLegend").innerHTML=aiLegendHtml(ai.level);
   renderCampaign2Readiness();
+  renderPracticeEstimateMini("endCampaignPracticeEstimate");
   $("endKicker").textContent=s.mode==="final"?"FINAL CHALLENGE":`LEVEL ${s.level} COMPLETE`;
   const targetHit=s.target==null?null:s.correct>=s.target,targetDelta=s.target==null?null:s.correct-s.target;
   $("endScore").textContent=`${s.correct}/${s.total} · ${pct(s.accuracy)}%`;$("endScore").style.color=valueTextColor(s.accuracy);
@@ -1171,6 +1177,7 @@ async function boot(){
   $("statsBackBtn").onclick=()=>{renderStart();showScreen("startScreen");};
   $("leagueBackBtn").onclick=()=>{renderStatsScreen();showScreen("statsScreen");};
   $("coachGenerateBtn").onclick=generateCoachPrompt;$("coachPromptCopy").onclick=copyCoachPrompt;$("coachBackBtn").onclick=()=>{renderStart();showScreen("startScreen");};
+  for(const id of ["statsTopDashboardBtn","leagueTopDashboardBtn","coachTopDashboardBtn","errorsTopDashboardBtn"]){const b=$(id);if(b)b.onclick=()=>{renderStart();showScreen("startScreen");};}
   const continueFromEnd=async()=>{await ensureAudio();if(state.completed){renderStart();showScreen("startScreen");}else await startSession(false);};$("continueBtn").onclick=continueFromEnd;$("topContinueBtn").onclick=continueFromEnd;
   const finalFromEnd=async()=>{await ensureAudio();await startSession(true);};$("finalBtn").onclick=finalFromEnd;$("topFinalBtn").onclick=finalFromEnd;
   $("soundBtn").onclick=async()=>{soundOn=!soundOn;if(soundOn){await ensureAudio();tone(760,.06,.025,'sine');}refreshSoundButton();};

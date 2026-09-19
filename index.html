@@ -469,6 +469,13 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
   .league-note span{font-size:12px}.league-note small{font-size:9px}
 }
 </style>
+
+<style id="v313-style">
+/* v3.13 · transient grammar label + fast dashboard exits. Existing answer-transition durations are unchanged. */
+#gameScreen .feedback .feedback-skill-tag{grid-column:1/-1;width:100%;margin:0;padding:5px 9px 4px;border-top:1px solid rgba(255,255,255,.16);font-size:clamp(11px,3.1vw,14px);line-height:1.18;font-weight:950;letter-spacing:.035em;text-align:center;color:rgba(255,255,255,.88);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none}
+.top-dashboard-nav{display:flex;justify-content:flex-start;margin:0 0 13px}.top-dashboard-nav .ghost{min-height:42px;padding:9px 13px;font-size:14px;font-weight:950;letter-spacing:.04em}.end-campaign-estimate{margin:14px 0 16px}
+@media(max-width:520px){#gameScreen .feedback .feedback-skill-tag{font-size:11px;padding:4px 6px 3px}.top-dashboard-nav{margin-bottom:11px}.top-dashboard-nav .ghost{font-size:14px;padding:9px 12px}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -524,6 +531,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 
 <section id="statsScreen" class="screen dashboard-screen hidden">
   <div class="panel">
+    <div class="top-dashboard-nav"><button id="statsTopDashboardBtn" class="ghost">DASHBOARD</button></div>
     <div class="resulttitle"><div class="kicker">DASHBOARD · v3.0</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 15</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
@@ -541,6 +549,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 
 <section id="leagueScreen" class="screen dashboard-screen hidden">
   <div class="panel">
+    <div class="top-dashboard-nav"><button id="leagueTopDashboardBtn" class="ghost">DASHBOARD</button></div>
     <div class="resulttitle league-study-hero"><div class="kicker">SKILL LEAGUE · v3.0</div><h1>League Study</h1><p>La clasificación completa y el movimiento de las últimas 8 jornadas, con espacio para leer cada cambio con claridad.</p></div>
     <div id="leagueStudyBody"></div>
     <p class="league-study-explain"><b>Cómo leerla:</b> ▲/▼ indica movimiento de puestos en la liga. No significa por sí solo que el mastery haya mejorado o empeorado: una skill también puede cambiar de posición porque otras la adelantan.</p>
@@ -549,6 +558,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 </section>
 <section id="coachScreen" class="screen dashboard-screen hidden">
   <div class="panel">
+    <div class="top-dashboard-nav"><button id="coachTopDashboardBtn" class="ghost">DASHBOARD</button></div>
     <div class="resulttitle"><div class="kicker">MY COACH · LIVE</div><h1>Study file</h1><p>What the algorithm thinks you should review right now.</p></div>
     <div id="localCoachReport" class="local-coach-report"></div>
     <div id="coachIntro" class="statusbox"></div>
@@ -588,6 +598,8 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
     </div>
     <div class="end-quick-actions" aria-label="Quick result actions"><button id="topContinueBtn" class="primary">NEXT LEVEL</button><button id="topHomeBtn" class="secondary">DASHBOARD · PORTADA</button><button id="topErrorsBtn" class="secondary hidden">REVIEW ERRORS</button><button id="topFinalBtn" class="secondary hidden">FINAL CHALLENGE</button></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="endAiLevel">— / 15</b><small id="endAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
+    <div id="endCampaignPracticeEstimate" class="campaign-eta-mini end-campaign-estimate"></div>
+
     <div class="grid">
       <div class="card"><b id="eAvg">0.0s</b><span>Avg time</span><div id="dTime"></div></div>
       <div class="card"><b id="eAuto">0%</b><span>Automatic</span></div>
@@ -622,6 +634,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 </section>
 <section id="errorsScreen" class="screen review hidden">
   <div class="panel">
+    <div class="top-dashboard-nav"><button id="errorsTopDashboardBtn" class="ghost">DASHBOARD</button></div>
     <div class="resulttitle error-lab-hero"><div class="kicker">ERROR LAB · v3.0</div><h1>Latest mistakes</h1><p id="errorsCount"></p><small>Solo contiene los errores del nivel que acabas de terminar.</small></div>
     <div id="errorsFull" class="errors"></div>
     <div class="actions"><button id="errorsBackBtn" class="primary">BACK TO RESULTS</button></div>

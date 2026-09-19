@@ -489,3 +489,11 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Estimated Practice Left and its daily/minimum/stretch scenarios receive the strongest size increase because they were difficult to read on mobile.
 - The active `#gameScreen` is explicitly excluded from this typography pass: question, answer, HUD, timer, feedback and gameplay layout remain calibrated exactly as before.
 - Core learning logic and progress storage are unchanged.
+
+
+## v3.13 · Grammar flash + fast navigation
+- Every answer transition now flashes the exact Skill League grammar label (for both correct and wrong answers). Transition hold/advance timings are unchanged.
+- The level-results screen now repeats Estimated Practice Left, recommended minutes/day, estimated days, range and learning-progress context from the dashboard.
+- Statistics, League Study, My Coach and Error Lab get a top-of-screen Dashboard button so long panels never require scrolling to the bottom to escape.
+- League Study is explicitly included in `showScreen()` routing.
+- No changes to the 3,000-question bank, scheduler, scoring/mastery, 15-question level size, 10-second clock, or answer-transition timing.
