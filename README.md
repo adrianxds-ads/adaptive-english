@@ -504,3 +504,12 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - The 3,000-question source bank is not rewritten; its loaded skill/rule/trigger metadata is normalized at runtime, preserving question IDs, answers, fingerprints, scheduler state and progress compatibility.
 - KEY DIARY adds discovery #027: `RATHER BE` — `MISMO → INFINITIVO SIN TO · OTRO → PASADO`, with `I'd rather GO` vs `I'd rather YOU WENT`.
 - Internal technical uses of the word `base` (baseline scores, base Keys, hash bases, Focus Time base minutes) are intentionally unchanged because they are not grammar terminology.
+
+
+## v3.15 · Final Study Freeze / universal AI handoff
+- End of every level now builds one self-contained `ADAPTIVE_ENGLISH_GLOBAL_PLUS_SESSION_V1` payload: global longitudinal coach snapshot + latest level + per-skill session summary + every error + grouped error diagnostics + historical fingerprints.
+- The app makes a best-effort automatic clipboard write at level completion. Browser/PWA clipboard security can reject writes outside an active tap, so the result screen always exposes a one-tap fallback and reports whether auto-copy succeeded.
+- The handoff is provider-neutral and embeds its own analysis contract, so it can be pasted into ChatGPT, Gemini or another capable AI without a project-specific prompt.
+- Contrastive coaching is explicit: for conceptual errors, test Spanish-L1 transfer/calques (`Spanish mental pattern → English pattern`); do not force an L1 explanation for speed, attention or reading-load slips. Learner-facing terminology stays `infinitivo sin to`.
+- My Coach now provides a direct `COPY GLOBAL JSON`; Error Lab provides `COPY SESSION ERRORS JSON` while preserving one-error JSON exports.
+- Final interface audit kept the gameplay panel, 10-second timer, 15-question levels, scheduler/mastery logic, transitions and audio unchanged. The point of this build is reducing friction, not creating another redesign loop.
