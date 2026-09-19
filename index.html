@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10271d">
-<meta name="ae-version" content="2.12">
-<title>Adaptive English - Campaign 1 - v2.12</title>
+<meta name="ae-version" content="3.16">
+<title>Adaptive English - Campaign 1 - v3.16</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -531,6 +531,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
     <section class="daily-key-section"><div id="dailyKeyHost"></div></section>
     <section class="growth-tree-section"><div id="growthTreeHost"></div></section>
     <div id="releaseInfo"></div>
+    <div id="buildVersion" class="footerline">ONLINE BUILD · checking version…</div>
   </div>
 </section>
 
@@ -636,7 +637,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
     </div>
-    <div class="footerline">Adaptive English v3.0 · Campaign 1 requires the knowledge gates + KEY JOURNEY 25/25.</div>
+    <div id="endBuildVersion" class="footerline">Adaptive English · checking version…</div>
   </div>
 </section>
 <section id="errorsScreen" class="screen review hidden">
@@ -653,13 +654,17 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 
 <section id="missionOverlay" class="mission-overlay hidden" aria-hidden="true"><div class="mission-card"><div id="missionBody"></div><div id="missionCount" class="mission-count"></div></div></section>
 <div id="particles" class="particles" aria-hidden="true"></div>
-<script src="./adrian-visual-system.js"></script>
-<script src="./lessons.js"></script>
-<script src="./keys.js"></script>
-<script src="./error-coach.js"></script>
-<script src="./app.js"></script>
+<script src="./adrian-visual-system.js?v=3.16"></script>
+<script src="./lessons.js?v=3.16"></script>
+<script src="./keys.js?v=3.16"></script>
+<script src="./error-coach.js?v=3.16"></script>
+<script src="./app.js?v=3.16"></script>
 <script>
-if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  let aeReloading=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(aeReloading)return;aeReloading=true;location.reload();});
+  navigator.serviceWorker.register('./service-worker.js?v=3.16',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+}
 </script>
 </body>
 </html>
