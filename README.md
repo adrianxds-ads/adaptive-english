@@ -497,3 +497,10 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Statistics, League Study, My Coach and Error Lab get a top-of-screen Dashboard button so long panels never require scrolling to the bottom to escape.
 - League Study is explicitly included in `showScreen()` routing.
 - No changes to the 3,000-question bank, scheduler, scoring/mastery, 15-question level size, 10-second clock, or answer-transition timing.
+
+
+## v3.14 · Infinitivo sin to + RATHER discovery
+- Learner-facing terminology now uses `INFINITIVO SIN TO` instead of `base verb`, `verbo base`, `verbo desnudo` or `bare infinitive` where those expressions mean the uninflected verb after structures such as `would`, `used to`, `make`, and `had better`.
+- The 3,000-question source bank is not rewritten; its loaded skill/rule/trigger metadata is normalized at runtime, preserving question IDs, answers, fingerprints, scheduler state and progress compatibility.
+- KEY DIARY adds discovery #027: `RATHER BE` — `MISMO → INFINITIVO SIN TO · OTRO → PASADO`, with `I'd rather GO` vs `I'd rather YOU WENT`.
+- Internal technical uses of the word `base` (baseline scores, base Keys, hash bases, Focus Time base minutes) are intentionally unchanged because they are not grammar terminology.

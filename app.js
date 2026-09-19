@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.13";
+const APP_VERSION = "3.14";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -87,14 +87,26 @@ const MEMORY_ECHOES={
   despite:{title:"I'm Still Standing",artist:"Elton John",cue:"DESPITE + NOUN / -ING"},
   look_forward:{title:"I Can't Wait",artist:"Nu Shooz",cue:"LOOK FORWARD TO + -ING"},
   get_used_to:{title:"Getting Used to You",artist:"Selena",cue:"GET USED TO + -ING"},
-  used_to:{title:"Somebody That I Used to Know",artist:"Gotye",cue:"USED TO + BASE VERB"},
+  used_to:{title:"Somebody That I Used to Know",artist:"Gotye",cue:"USED TO + INFINITIVO SIN TO"},
   make_bare:{title:"(You Make Me Feel Like) A Natural Woman",artist:"Aretha Franklin",cue:"MAKE/MADE → NO TO · MAKE ME FEEL"},
   whose:{title:"Whose Bed Have Your Boots Been Under?",artist:"Shania Twain",cue:"WHOSE + NOUN"},
   second_conditional:{title:"If I Were a Boy",artist:"Beyoncé",cue:"IF + PAST → WOULD"},
-  had_better:{title:"You Better Run",artist:"Pat Benatar",cue:"HAD BETTER + BASE VERB"}
+  had_better:{title:"You Better Run",artist:"Pat Benatar",cue:"HAD BETTER + INFINITIVO SIN TO"}
 };
+function learningTerminology(text){
+  return String(text??"")
+    .replace(/\bBASE VERB\b/g,"INFINITIVO SIN TO")
+    .replace(/\bbase verb\b/gi,"infinitivo sin to")
+    .replace(/\bbare infinitive\b/gi,"infinitivo sin to")
+    .replace(/\bbase form of the verb\b/gi,"infinitivo sin to")
+    .replace(/\bbase form\b/gi,"infinitivo sin to")
+    .replace(/\bforma base\b/gi,"infinitivo sin to")
+    .replace(/\bverbo base\b/gi,"infinitivo sin to")
+    .replace(/\bverbo desnudo\b/gi,"infinitivo sin to");
+}
 const DISCOVERY_CARDS=[
-  {number:26,id:"gotye_used_to",releasedOn:"2026-09-19",title:"GOTYE",front:"used to or be/get used to?",back:"GOTYE → CORTO · BE/GET → -ING",formula:"used to + BASE | be/get used to + -ING",cue:"I used to know him. · I'm used to working here.",echoCat:"used_to"}
+  {number:26,id:"gotye_used_to",releasedOn:"2026-09-19",title:"GOTYE",front:"used to or be/get used to?",back:"GOTYE → CORTO · BE/GET → -ING",formula:"used to + INFINITIVO SIN TO | be/get used to + -ING",cue:"I used to know him. · I'm used to working here.",echoCat:"used_to"},
+  {number:27,id:"rather_same_other",releasedOn:"2026-09-19",title:"RATHER BE",front:"would rather → ¿MISMO sujeto u OTRO?",back:"MISMO → INFINITIVO SIN TO · OTRO → PASADO",formula:"I'd rather GO. | I'd rather YOU WENT.",cue:"RATHER BE = mismo/corto · RATHER YOU = otro/pasado.",echoCat:"would_rather"}
 ];
 function unlockedDiscoveryCards(){const today=localDateKey();return DISCOVERY_CARDS.filter(x=>!x.releasedOn||x.releasedOn<=today);}
 function memoryEchoFor(cat,correctAnswer=""){
@@ -594,19 +606,19 @@ function paintScore(id,score,max=15){const el=$(id);if(el)el.style.color=scoreTe
 function paintDelta(id,value,goodUp=true){const el=$(id);if(el)el.style.color=semanticDeltaColor(value,goodUp);}
 
 function rankedSkills(){
-  return CAMPAIGN.skills.map(s=>({...s,m:state.metrics[s.id],mastery:metricMastery(state.metrics[s.id])})).sort((a,b)=>b.mastery-a.mastery||b.m.attempts-a.m.attempts||a.name.localeCompare(b.name));
+  return CAMPAIGN.skills.map(s=>({...s,name:learningTerminology(s.name),m:state.metrics[s.id],mastery:metricMastery(state.metrics[s.id])})).sort((a,b)=>b.mastery-a.mastery||b.m.attempts-a.m.attempts||a.name.localeCompare(b.name));
 }
 function skillRankPositions(){const out={};rankedSkills().forEach((x,i)=>out[x.id]=i+1);return out;}
 function latestRankMoves(){const s=[...state.sessionHistory].reverse().find(x=>x&&x.rankMoves);return s?.rankMoves||{};}
-function leagueEvents(before,after){const out=[];for(const s of CAMPAIGN.skills){const a=before?.[s.id],b=after?.[s.id];if(!a||!b)continue;if(a>3&&b<=3)out.push(`▲ NEW TOP 3 · ${s.name}`);else if(a>=23&&b<23)out.push(`▲ ESCAPED BOTTOM 3 · ${s.name}`);}return out;}
-function skillLabel(cat){const s=CAMPAIGN.skills.find(x=>x.id===cat);return s?.name||cat;}
+function leagueEvents(before,after){const out=[];for(const s of CAMPAIGN.skills){const a=before?.[s.id],b=after?.[s.id];if(!a||!b)continue;if(a>3&&b<=3)out.push(`▲ NEW TOP 3 · ${skillLabel(s.id)}`);else if(a>=23&&b<23)out.push(`▲ ESCAPED BOTTOM 3 · ${skillLabel(s.id)}`);}return out;}
+function skillLabel(cat){const s=CAMPAIGN.skills.find(x=>x.id===cat);return learningTerminology(s?.name||cat);}
 function coachPriority(cat){
   const m=state.metrics[cat],mastery=metricMastery(m),rows=state.history.filter(r=>r.cat===cat).slice(-30);
   const wrongRate=rows.length?rows.filter(r=>!r.correct).length/rows.length:1,autoRate=rows.length?rows.filter(r=>r.type==="automatic").length/rows.length:0;
   return .55*(1-mastery)+.35*wrongRate+.10*(1-autoRate);
 }
 function coachSkillStats(){
-  return CAMPAIGN.skills.map(s=>{const m=state.metrics[s.id],mastery=metricMastery(m),rows=state.history.filter(r=>r.cat===s.id).slice(-30),wrong=rows.filter(r=>!r.correct).length,wrongRate=rows.length?wrong/rows.length:1;return {...s,m,mastery,rows,wrong,wrongRate,priority:coachPriority(s.id)};}).sort((a,b)=>b.priority-a.priority||a.mastery-b.mastery);
+  return CAMPAIGN.skills.map(s=>{const m=state.metrics[s.id],mastery=metricMastery(m),rows=state.history.filter(r=>r.cat===s.id).slice(-30),wrong=rows.filter(r=>!r.correct).length,wrongRate=rows.length?wrong/rows.length:1;return {...s,name:learningTerminology(s.name),m,mastery,rows,wrong,wrongRate,priority:coachPriority(s.id)};}).sort((a,b)=>b.priority-a.priority||a.mastery-b.mastery);
 }
 function typicalLearnerStats(){
   const actual=learningScoreStats().current,attempts=Math.max(0,state.totalAttempts||0);
@@ -652,7 +664,7 @@ function skillRowsHtml(rows,ascending=false){
 function leagueWindowStats(window=8){
   const levels=state.sessionHistory.filter(x=>x?.mode==="training").slice(-window),net={},ranks=skillRankPositions();
   for(const row of levels)for(const [id,delta] of Object.entries(row.rankMoves||{}))net[id]=(net[id]||0)+Number(delta||0);
-  const entries=CAMPAIGN.skills.map(s=>{const current=ranks[s.id]||25,delta=net[s.id]||0,prior=clamp(current+delta,1,25);return {id:s.id,name:s.name,current,prior,delta};});
+  const entries=CAMPAIGN.skills.map(s=>{const current=ranks[s.id]||25,delta=net[s.id]||0,prior=clamp(current+delta,1,25);return {id:s.id,name:learningTerminology(s.name),current,prior,delta};});
   const climbers=entries.filter(x=>x.delta>0).sort((a,b)=>b.delta-a.delta||a.current-b.current),drops=entries.filter(x=>x.delta<0).sort((a,b)=>a.delta-b.delta||b.current-a.current);
   const podium=entries.filter(x=>x.current<=3&&x.prior>3).sort((a,b)=>a.current-b.current),escaped=entries.filter(x=>x.current<23&&x.prior>=23).sort((a,b)=>b.delta-a.delta);
   return {window:levels.length,entries,climber:climbers[0]||null,drop:drops[0]||null,podium:podium[0]||null,escaped:escaped[0]||null};
@@ -777,7 +789,7 @@ function renderCoachScreen(){
   const focus=coachSkillStats(),top=focus.slice(0,5),mistakes=commonMistakeGroups(8),worst=[...rankedSkills()].reverse();applyRatingTheme(overallStats().rating);applyAiTheme(aiValorationStats());
   const weak40=focus.filter(x=>x.mastery<.40).length;$("coachIntro").textContent=`Based on ${(state.totalAttempts||0).toLocaleString()} answers, your coach is prioritising ${top.map(x=>x.name).slice(0,3).join(", ")||"more evidence"}. ${weak40} key${weak40===1?"":"s"} are still below 40% mastery.`;
   $("coachFocus").innerHTML=top.map(x=>{const l=(window.AE_LESSONS||{})[x.id]||{},recent=x.rows.length?`${pct(x.wrongRate)}% errors in last ${x.rows.length} attempts`:"Not enough recent evidence";return `<div class="coach-card"><div class="coach-head"><h3>${escapeHtml(x.name)}</h3><span class="coach-score" style="color:${valueTextColor(x.mastery)}">${pct(x.mastery)}%</span></div><p>${escapeHtml(recent)} · ${x.m.attempts||0} total attempts</p><p>${escapeHtml(l.es||"Keep identifying the grammar pattern before choosing the form.")}</p>${l.formula?`<div class="formula">${escapeHtml(l.formula)}</div>`:""}${l.cue?`<p>💡 ${escapeHtml(l.cue)}</p>`:""}</div>`;}).join("")||'<p class="meta">Complete a few levels to build your study file.</p>';
-  $("coachMistakes").innerHTML=mistakes.map(g=>{const r=g.record,l=(window.AE_LESSONS||{})[g.cat]||{};return `<div class="mistake-card"><b>${escapeHtml(skillLabel(g.cat))} · ${g.count} recent miss${g.count===1?"":"es"}</b><p>${escapeHtml(r.question||r.originalQuestion||"")}</p><div class="mistake-choice"><div><b>You</b><br>${escapeHtml(r.userAnswer)}</div><div class="correct"><b>Correct</b><br>${escapeHtml(r.correctAnswer)}</div></div><p><b>Rule:</b> ${escapeHtml(r.rule||l.es||"Review the structure and contrast it with the correct form.")}${l.cue?`<br><b>Coach:</b> ${escapeHtml(l.cue)}`:""}</p></div>`;}).join("")||'<p class="meta">No recurring mistakes yet.</p>';
+  $("coachMistakes").innerHTML=mistakes.map(g=>{const r=g.record,l=(window.AE_LESSONS||{})[g.cat]||{};return `<div class="mistake-card"><b>${escapeHtml(skillLabel(g.cat))} · ${g.count} recent miss${g.count===1?"":"es"}</b><p>${escapeHtml(r.question||r.originalQuestion||"")}</p><div class="mistake-choice"><div><b>You</b><br>${escapeHtml(r.userAnswer)}</div><div class="correct"><b>Correct</b><br>${escapeHtml(r.correctAnswer)}</div></div><p><b>Rule:</b> ${escapeHtml(learningTerminology(r.rule||l.es||"Review the structure and contrast it with the correct form."))}${l.cue?`<br><b>Coach:</b> ${escapeHtml(l.cue)}`:""}</p></div>`;}).join("")||'<p class="meta">No recurring mistakes yet.</p>';
   $("coachSkills").innerHTML=skillRowsHtml(worst);
 }
 function levelErrorGroups(records){
@@ -801,9 +813,9 @@ const MISCONCEPTION_RULES={
   ],
   make_bare:[{id:"MAKE_TO_INFINITIVE",label:"make + object + to-infinitive",test:(w,c)=>/^to\s+/.test(w)&&!/^to\s+/.test(c)},{id:"MAKE_GERUND",label:"make + object + -ing",test:(w,c)=>/ing\b/.test(w)&&! /ing\b/.test(c)}],
   used_to:[{id:"USED_TO_INFLECTED",label:"used to + inflected verb",test:(w,c)=>/\b(ing|ed)\b/.test(w)||/ing$|ed$/.test(w)}],
-  get_used_to:[{id:"USED_TO_BASE_INSTEAD_OF_ING",label:"be/get used to + base verb",test:(w,c)=>! /ing\b/.test(w)&&/ing\b/.test(c)}],
-  look_forward:[{id:"LOOK_FORWARD_TO_BASE",label:"look forward to + base verb",test:(w,c)=>! /ing\b/.test(w)&&/ing\b/.test(c)}],
-  allow_to:[{id:"ALLOW_BARE_INFINITIVE",label:"allow + object + bare infinitive",test:(w,c)=>isExactBareOf(w,c)},{id:"ALLOW_GERUND_INSTEAD_OF_TO",label:"allow + object + -ing instead of to-infinitive",test:(w,c)=>isIngOf(w,c)}],
+  get_used_to:[{id:"USED_TO_BASE_INSTEAD_OF_ING",label:"be/get used to + infinitivo sin to",test:(w,c)=>! /ing\b/.test(w)&&/ing\b/.test(c)}],
+  look_forward:[{id:"LOOK_FORWARD_TO_BASE",label:"look forward to + infinitivo sin to",test:(w,c)=>! /ing\b/.test(w)&&/ing\b/.test(c)}],
+  allow_to:[{id:"ALLOW_BARE_INFINITIVE",label:"allow + object + infinitivo sin to",test:(w,c)=>isExactBareOf(w,c)},{id:"ALLOW_GERUND_INSTEAD_OF_TO",label:"allow + object + -ing instead of to-infinitive",test:(w,c)=>isIngOf(w,c)}],
   despite:[{id:"DESPITE_CLAUSE",label:"despite + finite clause",test:(w,c)=>/\b(although|though|even though)\b/.test(c)&&/\bdespite\b/.test(w)}],
   so_such:[{id:"SO_SUCH_SWAP",label:"so / such swap",test:(w,c)=>/\b(so|such)\b/.test(w)&&/\b(so|such)\b/.test(c)&&w!==c}],
   too_enough:[{id:"TOO_ENOUGH_SWAP",label:"too / enough swap",test:(w,c)=>/\b(too|enough)\b/.test(w)&&/\b(too|enough)\b/.test(c)&&w!==c}],
@@ -946,7 +958,7 @@ function renderGrowthTree(){
   host.innerHTML=`<div class="growth-tree-canvas" data-tree-stage="${stage}"><svg viewBox="0 0 420 300" role="img" aria-label="Practice tree, growth stage ${stage} of 200"><defs><linearGradient id="treeTrunk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5d3827"/><stop offset=".55" stop-color="#76503a"/><stop offset="1" stop-color="#957258"/></linearGradient></defs><ellipse class="tree-ground" cx="210" cy="282" rx="78" ry="7"/> <g class="tree-branches" fill="none" stroke="url(#treeTrunk)" stroke-linecap="round" stroke-linejoin="round">${branch}</g><g class="tree-leaves">${leaf}</g></svg></div><div class="growth-tree-count"><b>${level.toLocaleString()}</b><span>LEVEL</span></div>`;
 }
 
-const RELEASE_NOTES=["v3.13 adds a fleeting Skill League label to every answer transition, using the exact same grammar-skill name on correct and wrong answers without changing any transition timing","Estimated Practice Left now appears on the level-results back cover as well as the dashboard","Statistics, League Study, My Coach and Error Lab now have an immediate DASHBOARD button at the top, and League Study is included explicitly in the screen router","v3.12 increases typography throughout dashboards, statistics, coach, league, review and campaign-planning views for easier reading; the calibrated game panel is deliberately untouched","Time estimates, daily-plan scenarios, Focus Time details, chart metadata and secondary labels are now substantially larger on mobile and desktop","v3.11 adds a stable DAILY PLAN: recommended minutes/day → estimated practice days, plus minimum, stretch and today-at-this-pace scenarios","The recommended daily minutes come from the existing adaptive Focus target, so weak skills/review load can raise the prescription and fatigue can lower it","Estimated practice days are now anchored to the recommended plan instead of changing all day as today’s accumulated minutes rise","v3.10 separates GRADUATION READINESS from LEARNING PROGRESS so the percentage is no longer mistaken for time completed","Estimated Practice Left is now derived from observed in-app progress per practice hour for learning progress, mastery and coverage; the slowest learning gate sets the hour estimate","Calendar/retention requirements remain separate from practice hours, and the estimate now shows its hour driver and a confidence range","The Campaign 2 forecast is now named ESTIMATED PRACTICE LEFT across the dashboard, My Coach and the coach export","Restored the Local Coach narrative after the v3.9 hours update so My Coach renders both the practice estimate and the longitudinal report","Estimated Practice Left now shows focused practice hours plus equivalent days at today's pace, directly on the main dashboard and in My Coach","The estimate separates practice-time remaining from mandatory calendar/retention time, with a modeled hour range and confidence label","v3.8.1 cache isolation remains active so Adaptive English cannot delete caches belonging to other apps on the same origin","Full audit/recalibration: Campaign 2 readiness now follows the real graduation gate instead of the older permissive handoff thresholds","Graduation now requires near-complete coverage, 85% global mastery, every skill at 70%+, 14 real days, enough spaced-review evidence, retention, stability and a modest automaticity/fluency signal before the final challenge","The practice estimate was recalibrated to the stricter graduation gates and uses the actual Learning Curve","KEY DIARY keeps the 25 base Keys and adds open-ended discovery cards; #026 is GOTYE, and cards now use Anki-style tap once to flip, tap again to advance","Core 3,000-question bank, scheduler, 15-question levels, fixed 10-second clock and STORAGE_KEY are unchanged"];
+const RELEASE_NOTES=["v3.14 standardizes the learner-facing grammar term as INFINITIVO SIN TO instead of base verb / bare infinitive throughout skill labels, lessons, Keys, diagnostics and new question metadata","KEY DIARY discovery #027 adds RATHER BE: MISMO → INFINITIVO SIN TO · OTRO → PASADO, with the contrast I’d rather GO / I’d rather YOU WENT","Internal category IDs and learning logic remain unchanged; this is a terminology/readability change plus one discovery card","v3.13 adds a fleeting Skill League label to every answer transition, using the exact same grammar-skill name on correct and wrong answers without changing any transition timing","Estimated Practice Left now appears on the level-results back cover as well as the dashboard","Statistics, League Study, My Coach and Error Lab now have an immediate DASHBOARD button at the top, and League Study is included explicitly in the screen router","v3.12 increases typography throughout dashboards, statistics, coach, league, review and campaign-planning views for easier reading; the calibrated game panel is deliberately untouched","Time estimates, daily-plan scenarios, Focus Time details, chart metadata and secondary labels are now substantially larger on mobile and desktop","v3.11 adds a stable DAILY PLAN: recommended minutes/day → estimated practice days, plus minimum, stretch and today-at-this-pace scenarios","The recommended daily minutes come from the existing adaptive Focus target, so weak skills/review load can raise the prescription and fatigue can lower it","Estimated practice days are now anchored to the recommended plan instead of changing all day as today’s accumulated minutes rise","v3.10 separates GRADUATION READINESS from LEARNING PROGRESS so the percentage is no longer mistaken for time completed","Estimated Practice Left is now derived from observed in-app progress per practice hour for learning progress, mastery and coverage; the slowest learning gate sets the hour estimate","Calendar/retention requirements remain separate from practice hours, and the estimate now shows its hour driver and a confidence range","The Campaign 2 forecast is now named ESTIMATED PRACTICE LEFT across the dashboard, My Coach and the coach export","Restored the Local Coach narrative after the v3.9 hours update so My Coach renders both the practice estimate and the longitudinal report","Estimated Practice Left now shows focused practice hours plus equivalent days at today's pace, directly on the main dashboard and in My Coach","The estimate separates practice-time remaining from mandatory calendar/retention time, with a modeled hour range and confidence label","v3.8.1 cache isolation remains active so Adaptive English cannot delete caches belonging to other apps on the same origin","Full audit/recalibration: Campaign 2 readiness now follows the real graduation gate instead of the older permissive handoff thresholds","Graduation now requires near-complete coverage, 85% global mastery, every skill at 70%+, 14 real days, enough spaced-review evidence, retention, stability and a modest automaticity/fluency signal before the final challenge","The practice estimate was recalibrated to the stricter graduation gates and uses the actual Learning Curve","KEY DIARY keeps the 25 base Keys and adds open-ended discovery cards; #026 is GOTYE, and cards now use Anki-style tap once to flip, tap again to advance","Core 3,000-question bank, scheduler, 15-question levels, fixed 10-second clock and STORAGE_KEY are unchanged"];
 function renderReleaseInfo(){const host=$("releaseInfo");if(!host)return;host.innerHTML=`<details class="release-info"><summary><b>Adaptive English v${APP_VERSION}</b><span>WHAT’S NEW</span></summary><ul>${RELEASE_NOTES.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></details>`;}
 function renderStart(){
   ensureDailyKey();
@@ -1165,6 +1177,8 @@ async function boot(){
   CAMPAIGN=await loadCampaign();
   const before=CAMPAIGN.questions.length;
   CAMPAIGN.questions=CAMPAIGN.questions.filter(validQuestion);
+  for(const skill of CAMPAIGN.skills)skill.name=learningTerminology(skill.name);
+  for(const q of CAMPAIGN.questions){q.skill=learningTerminology(q.skill);q.rule=learningTerminology(q.rule);q.trigger=learningTerminology(q.trigger);}
   if(CAMPAIGN.questions.length!==before)console.warn(`Adaptive English skipped ${before-CAMPAIGN.questions.length} invalid question(s) with duplicate/broken options.`);
   BANK=CAMPAIGN.questions;state=loadState();startFocusTracking();save();
   const seg=$("segments");for(let i=0;i<10;i++){const d=document.createElement("div");d.className="seg";seg.appendChild(d);}
