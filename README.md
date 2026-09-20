@@ -513,3 +513,9 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Contrastive coaching is explicit: for conceptual errors, test Spanish-L1 transfer/calques (`Spanish mental pattern → English pattern`); do not force an L1 explanation for speed, attention or reading-load slips. Learner-facing terminology stays `infinitivo sin to`.
 - My Coach now provides a direct `COPY GLOBAL JSON`; Error Lab provides `COPY SESSION ERRORS JSON` while preserving one-error JSON exports.
 - Final interface audit kept the gameplay panel, 10-second timer, 15-question levels, scheduler/mastery logic, transitions and audio unchanged. The point of this build is reducing friction, not creating another redesign loop.
+
+
+## v3.19 · Average hits /15
+- Main dashboard and Statistics show the lifetime mean correct answers per completed training level on the 0–15 scale.
+- This is the simple longitudinal controller requested: e.g. `8.5 /15`; as it rises, average level performance is improving.
+- Coach JSON now also exports `avgHitsPerLevel` and `completedTrainingLevels`.
