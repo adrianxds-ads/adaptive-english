@@ -516,7 +516,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
     </div>
     <section id="startFocusPanel" class="focus-panel"></section>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER · PACE</span><b id="startPeerDelta" class="peer-delta neutral">—</b></div><small id="startPeerStatus">Model-based typical range · not measured users</small></div>
-    <div id="campaign2Box" class="next-campaign-box"><div class="next-campaign-head"><div><span>GRADUATION READINESS</span><b id="campaign2Score">0%</b></div><em id="campaign2Stage">Building foundation</em></div><div class="track"><div id="campaign2Fill" class="fill" style="width:0%"></div></div><p id="campaign2Status">Keep training to build evidence.</p><div id="campaign2PracticeEstimate" class="campaign-eta-mini"></div><button id="campaign2Copy" class="ghost small hidden">COPY HANDOFF FOR CHATGPT</button></div>
+    <div id="campaign2Box" class="next-campaign-box"><div class="next-campaign-head"><div><span>GRADUATION READINESS</span><b id="campaign2Score">0%</b></div><em id="campaign2Stage">Building foundation</em></div><div class="track"><div id="campaign2Fill" class="fill" style="width:0%"></div></div><p id="campaign2Status">Keep training to build evidence.</p><div id="campaign2PracticeEstimate" class="campaign-eta-mini"></div><button id="campaign2Copy" class="ghost small hidden">COPY PROGRESS JSON</button></div>
     <div id="campaignStatus" class="statusbox"></div>
     <div class="actions"><button id="startBtn" class="primary">START</button></div>
     <div class="dashboard-menu">
@@ -524,7 +524,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
       <button id="coachBtn" class="secondary menu-btn"><b>MY COACH</b><span>Focus · common mistakes · rules</span></button>
     </div>
     <div class="actions">
-      <button id="exportBtn" class="ghost small">Export progress</button>
+      <button id="exportBtn" class="ghost small">Download progress backup</button>
       <button id="importBtn" class="ghost small">Import progress</button>
       <button id="resetBtn" class="ghost small">Reset</button>
       <input id="importFile" type="file" accept="application/json">
@@ -605,7 +605,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
       <p id="endSub"></p><div id="endTarget" class="target-result hidden"></div>
     </div>
     <div class="end-quick-actions" aria-label="Quick result actions"><button id="topContinueBtn" class="primary">NEXT LEVEL</button><button id="topHomeBtn" class="secondary">DASHBOARD · PORTADA</button><button id="topErrorsBtn" class="secondary hidden">REVIEW ERRORS</button><button id="topFinalBtn" class="secondary hidden">FINAL CHALLENGE</button></div>
-    <div id="endAiHandoff" class="ai-handoff-card" aria-live="polite"><div><span>AI HANDOFF · GLOBAL + SESSION</span><b id="endHandoffStatus">PREPARING JSON…</b><small id="endHandoffMeta">Global progress + this level + session errors.</small></div><button id="endCopyHandoffBtn" class="secondary">COPY GLOBAL + SESSION JSON</button></div>
+    <div id="endAiHandoff" class="ai-handoff-card" aria-live="polite"><div><span>PROGRESS JSON · OPTIONAL</span><b id="endHandoffStatus">PROGRESS JSON READY · OPTIONAL</b><small id="endHandoffMeta">Learning progress + this level + session errors. Nothing is copied automatically.</small></div><button id="endCopyHandoffBtn" class="secondary">COPY PROGRESS JSON</button></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="endAiLevel">— / 15</b><small id="endAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
     <div id="endCampaignPracticeEstimate" class="campaign-eta-mini end-campaign-estimate"></div>
 
@@ -667,6 +667,6 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   navigator.serviceWorker.register('./service-worker.js?v=3.18',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 }
 </script>
-<script src="https://adrianxds-ads.github.io/adrian-core/components/hub-nav.js?v=3"></script>
+<script src="https://adrianxds-ads.github.io/adrian-core/components/hub-nav.js?v=4"></script>
 </body>
 </html>
