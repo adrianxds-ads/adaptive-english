@@ -519,3 +519,9 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Main dashboard and Statistics show the lifetime mean correct answers per completed training level on the 0–15 scale.
 - This is the simple longitudinal controller requested: e.g. `8.5 /15`; as it rises, average level performance is improving.
 - Coach JSON now also exports `avgHitsPerLevel` and `completedTrainingLevels`.
+
+
+## v3.20 · Discovery #028 · Detective / Madre
+- Adds a Key Diary discovery card for the persistent MUST HAVE vs SHOULD HAVE confusion.
+- Cue: `DETECTIVE → MUST HAVE · MADRE REGAÑANDO → SHOULD HAVE`.
+- Compression: `MUST = misterio resuelto · SHOULD = sermón`.
