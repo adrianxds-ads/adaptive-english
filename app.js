@@ -1,10 +1,10 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.23";
+const APP_VERSION = "3.24";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
-const TIME_LIMIT = 10;
+const TIME_LIMIT = 15;
 const HISTORY_LIMIT = 6000;
 const SESSION_HISTORY_LIMIT = 1000;
 const VISUAL_SYSTEM=window.ADRIAN_VISUAL_SYSTEM||null;
@@ -18,6 +18,11 @@ let audioCtx=null, soundOn=true, lastTickShown=TIME_LIMIT+1, lastUrgentBeat=-1;
 let focusLastActivityTs=Date.now(),focusLastTickTs=Date.now(),focusSaveMs=0,focusTimerHandle=null;
 
 const $=id=>document.getElementById(id);
+function shuffledAnswerColorClasses(){
+  const a=["option-c1","option-c2","option-c3","option-c4"];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
 function applyVisualSystemTokens(){const r=document.documentElement;AVS_RANKS.forEach((x,i)=>{r.style.setProperty(`--rank-${i+1}`,x.color);r.style.setProperty(`--rank-${i+1}-surface`,x.surface||x.color);r.style.setProperty(`--rank-${i+1}-band`,x.band||x.color);r.style.setProperty(`--rank-${i+1}-text`,x.text||x.color);});r.style.setProperty("--reward-gold",COLOR_BANDS_15[14]);r.style.setProperty("--reward-gold-text",AVS_TEXT_BANDS_15[14]);r.style.setProperty("--elite-violet",COLOR_BANDS_15[13]);r.style.setProperty("--negative-wine",COLOR_BANDS_15[3]);}
 function storedGlobalLevel(){try{return Math.max(1,Math.floor(Number(localStorage.getItem(GLOBAL_LEVEL_KEY))||1));}catch(e){return 1;}}
 function syncGlobalLevel(level){const n=Math.max(1,Math.floor(Number(level)||1),storedGlobalLevel());try{localStorage.setItem(GLOBAL_LEVEL_KEY,String(n));}catch(e){}return n;}
@@ -1147,9 +1152,9 @@ function nextQuestion(){
   $("qTotal").textContent="/ "+session.plan.length+(rewardSpecial?" · "+rewardSpecial:"");
   const view=visibleCard(current);current.visibleQuestion=view.question;current.visibleOptions=view.options;current.visibleFocus=view.focus;current.visibleNames=view.names;
   $("questionText").classList.remove("focus-active");$("questionText").textContent=view.question;
-  const wrap=$("answers");wrap.innerHTML="";
-  current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=view.options[i];b.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"){e.preventDefault();answer(i,false);}});b.addEventListener("click",()=>answer(i,false));wrap.appendChild(b);});
-  $("timerText").textContent="10.0";$("timer").classList.remove("urgent");renderSegments(10);startTimer();
+  const wrap=$("answers");wrap.innerHTML="";const answerColors=shuffledAnswerColorClasses();
+  current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer "+answerColors[i];b.textContent=view.options[i];b.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"){e.preventDefault();answer(i,false);}});b.addEventListener("click",()=>answer(i,false));wrap.appendChild(b);});
+  $("timerText").textContent=TIME_LIMIT.toFixed(1);$("timer").classList.remove("urgent");renderSegments(TIME_LIMIT);startTimer();
 }
 function feedback(ok,type,sec,correct,appearance,patternAppearance,phraseCorrect=0,phraseWrong=0,cat=""){
   const f=$("feedback"),skill=skillLabel(cat),rewardBits=[session?.lastReward,session?.combo>=2?`COMBO ×${session.combo}`:""].filter(Boolean).join(" · ");f.className="feedback "+(ok?"ok":"no");
