@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.22";
+const APP_VERSION = "3.23";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -1108,7 +1108,7 @@ async function startSession(finalMode=false){
   applyRatingTheme(overallStats().rating);
   const raw=finalMode?buildFinalPlan():buildTrainingPlan();
   const target=finalMode?null:adaptiveLevelTarget(raw),abortSnapshot=JSON.stringify(state);
-  session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),target,plan:raw.map(shuffleOptions),abortSnapshot,rankBefore:skillRankPositions()};
+  session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),target,plan:raw.map(shuffleOptions),abortSnapshot,rankBefore:skillRankPositions(),combo:0,bestCombo:0,recovered:0,masteredRewards:0,learningXp:0,lastReward:""};
   $("sessionLevel").innerHTML=finalMode?"FINAL":`L${state.level}<small class="level-target">TARGET ${target.toFixed(1)}</small>`;
   await showLevelIntro(finalMode,target);showScreen("gameScreen");nextQuestion();
 }
@@ -1142,7 +1142,9 @@ function nextQuestion(){
   if(session.index>=session.plan.length){finishSession();return;}
   current=session.plan[session.index];
   if(!current||!Array.isArray(current.display)||current.display.length!==4||!Number.isInteger(current.correctPos)||current.correctPos<0||current.correctPos>3){console.error("Skipping invalid question",current);session.index++;setTimeout(nextQuestion,0);return;}
-  $("qIndex").textContent=session.index+1;$("qTotal").textContent="/ "+session.plan.length;
+  $("qIndex").textContent=session.index+1;
+  const rewardPrior=state.seen[current.fingerprint]||null,rewardGap=rewardPrior?state.level-rewardPrior.lastLevel:null,rewardSpecial=rewardPrior?.lapses>0&&!rewardPrior.masteredRewarded&&rewardPrior.lastCorrect===true&&rewardPrior.count>=2&&rewardGap>=2?"MASTER CHANCE":rewardPrior?.lapses>0&&rewardPrior.lastCorrect===false?"RECOVERY":rewardPrior?"SPACED REVIEW":session.index===session.plan.length-1?"FINAL":"";
+  $("qTotal").textContent="/ "+session.plan.length+(rewardSpecial?" · "+rewardSpecial:"");
   const view=visibleCard(current);current.visibleQuestion=view.question;current.visibleOptions=view.options;current.visibleFocus=view.focus;current.visibleNames=view.names;
   $("questionText").classList.remove("focus-active");$("questionText").textContent=view.question;
   const wrap=$("answers");wrap.innerHTML="";
@@ -1150,8 +1152,8 @@ function nextQuestion(){
   $("timerText").textContent="10.0";$("timer").classList.remove("urgent");renderSegments(10);startTimer();
 }
 function feedback(ok,type,sec,correct,appearance,patternAppearance,phraseCorrect=0,phraseWrong=0,cat=""){
-  const f=$("feedback"),skill=skillLabel(cat);f.className="feedback "+(ok?"ok":"no");
-  f.innerHTML=`<div class="feedback-record" aria-label="${phraseCorrect} correctas y ${phraseWrong} incorrectas"><span class="record-good"><i>V</i><b>${phraseCorrect}</b></span><span class="record-bad"><i>?</i><b>${phraseWrong}</b></span><small>${appearance} intentos · ${sec.toFixed(2)}s</small></div>${skill?`<div class="feedback-skill-tag">${escapeHtml(skill)}</div>`:""}`;
+  const f=$("feedback"),skill=skillLabel(cat),rewardBits=[session?.lastReward,session?.combo>=2?`COMBO ×${session.combo}`:""].filter(Boolean).join(" · ");f.className="feedback "+(ok?"ok":"no");
+  f.innerHTML=`<div class="feedback-record" aria-label="${phraseCorrect} correctas y ${phraseWrong} incorrectas"><span class="record-good"><i>V</i><b>${phraseCorrect}</b></span><span class="record-bad"><i>?</i><b>${phraseWrong}</b></span><small>${appearance} intentos · ${sec.toFixed(2)}s</small></div>${skill||rewardBits?`<div class="feedback-skill-tag">${escapeHtml([skill,rewardBits].filter(Boolean).join(" · "))}</div>`:""}`;
   requestAnimationFrame(()=>f.classList.add("show"));
   const hold=ok?510:(type==="fast-wrong"?1165:type==="timeout"?1060:1020);setTimeout(()=>f.classList.remove("show"),hold);
 }
@@ -1162,17 +1164,19 @@ function answer(pos,timeout=false){
   const buttons=[...$("answers").children];
   buttons.forEach((b,i)=>{b.disabled=true;b.classList.remove("good","bad","dim");if(i===current.correctPos)b.classList.add("good");else b.classList.add("dim");});
   if(!ok&&pos>=0){buttons[pos].classList.remove("dim");buttons[pos].classList.add("bad");}
-  const previousSeen=state.seen[current.fingerprint]||null,previousTemplate=state.templateSeen[current.templateId]||null,speedScore=updateMetric(current,ok,sec,type),info=previousSeen||{count:0,lastLevel:-99,lapses:0};
+  const previousSeen=state.seen[current.fingerprint]||null,previousTemplate=state.templateSeen[current.templateId]||null,speedScore=updateMetric(current,ok,sec,type),info=previousSeen||{count:0,lastLevel:-99,lapses:0},gapLevels=previousSeen?state.level-previousSeen.lastLevel:null;
+  const masteredReward=ok&&previousSeen?.lapses>0&&!previousSeen.masteredRewarded&&previousSeen.lastCorrect===true&&previousSeen.count>=2&&gapLevels>=2,recoveredReward=ok&&!masteredReward&&previousSeen?.lapses>0&&previousSeen.lastCorrect===false;
+  session.lastReward="";if(ok){session.combo=(session.combo||0)+1;session.bestCombo=Math.max(session.bestCombo||0,session.combo);let rewardXp=10+(type==="automatic"?2:0)+(previousSeen?2:0);if(masteredReward){session.masteredRewards++;rewardXp+=12;session.lastReward="MASTERED ✦";}else if(recoveredReward){session.recovered++;rewardXp+=6;session.lastReward="RECOVERED";}const comboBonus={3:3,5:5,10:10,15:20}[session.combo]||0;if(comboBonus){rewardXp+=comboBonus;if(!session.lastReward)session.lastReward=`COMBO ×${session.combo}`;}session.learningXp+=rewardXp;}else session.combo=0;
   const appearance=info.count+1,patternAppearance=(previousTemplate?.count||0)+1,lapses=(info.lapses||0)+(ok?0:1),priorPhraseRows=state.history.filter(x=>x.qid===current.id),phraseCorrect=priorPhraseRows.filter(x=>x.correct).length+(ok?1:0),phraseWrong=priorPhraseRows.filter(x=>!x.correct).length+(ok?0:1);
   const now=Date.now(),intervalDays=reviewIntervalDays(previousSeen,type);
-  state.seen[current.fingerprint]={count:appearance,lastLevel:state.level,lastTs:now,lastCorrect:ok,lapses,intervalDays,nextDueTs:now+intervalDays*86400000};state.templateLast[current.templateId]=state.level;state.templateSeen[current.templateId]={count:patternAppearance,lastLevel:state.level,lastTs:now};
+  state.seen[current.fingerprint]={count:appearance,lastLevel:state.level,lastTs:now,lastCorrect:ok,lapses,intervalDays,nextDueTs:now+intervalDays*86400000,masteredRewarded:!!(previousSeen?.masteredRewarded||masteredReward)};state.templateLast[current.templateId]=state.level;state.templateSeen[current.templateId]={count:patternAppearance,lastLevel:state.level,lastTs:now};
   const shownQuestion=current.visibleQuestion||current.q,shownOptions=current.visibleOptions||current.display,load=promptLoadMeta(shownQuestion);
   const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,occurrence:appearance,patternOccurrence:patternAppearance,review:!!previousSeen,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:shownQuestion,originalQuestion:current.q,userAnswer:pos>=0?shownOptions[pos]:"No answer",correctAnswer:shownOptions[current.correctPos],rule:current.rule,promptWords:load.words,promptChars:load.chars,readingLoad:load.band,targetTimeSec:current.targetTime||3.6,timeLimitSec:TIME_LIMIT,sessionMode:session.mode};
   if(!ok){hideCorrectReveal();showMemoryEcho(current.cat,rec.correctAnswer);}else hideCorrectReveal();
   try{flashGrammarFocus(shownQuestion,rec.correctAnswer,current.visibleFocus||current.focus||[]);}catch(e){console.error("Grammar focus flash failed",e);}
   state.history.push(rec);state.history=state.history.slice(-12000);state.activeTrainingMs=(state.activeTrainingMs||0)+rec.ms;state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
   const answeredIndex=session.index,delay=ok?555:(type==="fast-wrong"?1200:type==="timeout"?1095:1060);setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
-  try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance,phraseCorrect,phraseWrong,current.cat);}catch(e){console.error("Feedback failed",e);}
+  try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();if(ok&&session.lastReward==="MASTERED ✦"){tone(1046.5,.07,.010,"sine",.18);tone(1567.98,.10,.010,"sine",.24);}else if(ok&&session.lastReward==="RECOVERED"){tone(659.25,.055,.008,"triangle",.17);tone(987.77,.075,.009,"sine",.22);}else if(ok&&[3,5,10,15].includes(session.combo)){tone(session.combo>=10?987.77:740,.065,.008,"triangle",.18);}}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance,phraseCorrect,phraseWrong,current.cat);}catch(e){console.error("Feedback failed",e);}
 }
 async function finishSession(){
   clearInterval(timerHandle);
@@ -1181,7 +1185,8 @@ async function finishSession(){
   state.sessions++;if(session.mode==="training"){state.level++;syncGlobalLevel(state.level);}
   let st=overallStats();
   const rankAfter=skillRankPositions(),rankMoves={};for(const s of CAMPAIGN.skills){const beforeRank=session.rankBefore?.[s.id]||rankAfter[s.id],afterRank=rankAfter[s.id],delta=beforeRank-afterRank;if(delta)rankMoves[s.id]=delta;}
-  const snap={level:completedLevel,ts:Date.now(),mode:session.mode,correct:session.correct,total:n,accuracy,avgMs,automatic:auto,mastery:st.mastery,coverage:st.coverage,fluency:st.fluency,rating:st.rating,target:session.target,targetDelta:session.target==null?null:session.correct-session.target,targetHit:session.target==null?null:session.correct>=session.target,rankMoves,leagueEvents:leagueEvents(session.rankBefore,rankAfter)};
+  state.learningRewardXp=(state.learningRewardXp||0)+(session.learningXp||0);
+  const snap={level:completedLevel,ts:Date.now(),mode:session.mode,correct:session.correct,total:n,accuracy,avgMs,automatic:auto,mastery:st.mastery,coverage:st.coverage,fluency:st.fluency,rating:st.rating,target:session.target,targetDelta:session.target==null?null:session.correct-session.target,targetHit:session.target==null?null:session.correct>=session.target,rankMoves,leagueEvents:leagueEvents(session.rankBefore,rankAfter),learningXp:session.learningXp||0,bestCombo:session.bestCombo||0,recovered:session.recovered||0,masteredRewards:session.masteredRewards||0,lifetimeLearningXp:state.learningRewardXp};
   state.sessionHistory.push(snap);
   const aiNow=aiValorationStats();snap.aiScore=aiNow.score;snap.aiLevel=aiNow.level;snap.aiConfidence=aiNow.confidence;
   state.personalBestFluency=Math.max(state.personalBestFluency||0,st.rating);
@@ -1205,7 +1210,7 @@ function renderEnd(s,before){
   const targetHit=s.target==null?null:s.correct>=s.target,targetDelta=s.target==null?null:s.correct-s.target;
   $("endScore").textContent=`${s.correct}/${s.total} · ${pct(s.accuracy)}%`;$("endScore").style.color=valueTextColor(s.accuracy);
   const targetEl=$("endTarget");if(targetEl){targetEl.className=`target-result ${targetHit==null?"hidden":targetHit?"hit":"miss"}`;targetEl.innerHTML=targetHit==null?"":`<span>TARGET ${s.target.toFixed(1)}</span><b>${targetDelta>=0?"+":""}${targetDelta.toFixed(1)}</b><small>${targetHit?"TARGET BEATEN":"TARGET MISSED"}</small>`;}
-  $("endSub").textContent=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Object.keys(state.seen).length.toLocaleString()}/${BANK.length.toLocaleString()} explored`;
+  $("endSub").textContent=`AE RATING ${pct(st.rating)} · ${rb.name} · ${sg.name} · ${Object.keys(state.seen).length.toLocaleString()}/${BANK.length.toLocaleString()} explored · +${s.learningXp||0} XP · COMBO ×${s.bestCombo||0}${s.recovered?` · ${s.recovered} RECOVERED`:""}${s.masteredRewards?` · ${s.masteredRewards} MASTERED`:""}`;
   $("eAvg").textContent=fmtSec(s.avgMs);$("eAuto").textContent=pct(s.automatic)+"%";paintText("eAuto",s.automatic);$("eFluency").textContent=pct(st.rating);paintText("eFluency",st.rating);
   $("eCoverage").textContent=pct(st.coverage)+"%";paintText("eCoverage",st.coverage);$("eMastery").textContent=pct(st.mastery)+"%";paintText("eMastery",st.mastery);$("eMastered").textContent=`${st.mastered}/${CAMPAIGN.skills.length}`;paintText("eMastered",st.mastered/CAMPAIGN.skills.length);
   $("dAcc").innerHTML=before?deltaText((s.accuracy-before.accuracy)*100,true," pts"):'<span class="delta neutral">First level</span>';
