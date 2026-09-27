@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#10271d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="ae-version" content="3.25">
-<title>Adaptive English - Campaign 1 - v3.25</title>
+<meta name="ae-version" content="3.26">
+<title>Adaptive English - Campaign 1 - v3.26</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -688,7 +688,9 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 <script src="./lessons.js?v=3.22"></script>
 <script src="./keys.js?v=3.22"></script>
 <script src="./error-coach.js?v=3.22"></script>
-<script src="./app.js?v=3.25"></script>
+<script>window.LANGUAGE_POINTS_CONFIG={appId:"english",timeLimit:15};</script>
+<script src="./language-points.js?v=1.0.0"></script>
+<script src="./app.js?v=3.26"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   navigator.serviceWorker.register('./service-worker.js?v=3.22',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});

@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.25";
+const APP_VERSION = "3.26";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -1115,6 +1115,7 @@ async function startSession(finalMode=false){
   const target=finalMode?null:adaptiveLevelTarget(raw),abortSnapshot=JSON.stringify(state);
   session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),target,plan:raw.map(shuffleOptions),abortSnapshot,rankBefore:skillRankPositions(),combo:0,bestCombo:0,recovered:0,masteredRewards:0,learningXp:0,lastReward:""};
   $("sessionLevel").innerHTML=finalMode?"FINAL":`L${state.level}<small class="level-target">TARGET ${target.toFixed(1)}</small>`;
+  window.LanguagePoints?.beginLevel?.({target,level:state.level});
   await showLevelIntro(finalMode,target);showScreen("gameScreen");nextQuestion();
 }
 function abortSession(){
@@ -1180,6 +1181,7 @@ function answer(pos,timeout=false){
   if(!ok){hideCorrectReveal();const echoCat=current.cat,echoAnswer=rec.correctAnswer;setTimeout(()=>{if(session)showMemoryEcho(echoCat,echoAnswer);},260);}else hideCorrectReveal();
   try{flashGrammarFocus(shownQuestion,rec.correctAnswer,current.visibleFocus||current.focus||[]);}catch(e){console.error("Grammar focus flash failed",e);}
   state.history.push(rec);state.history=state.history.slice(-12000);state.activeTrainingMs=(state.activeTrainingMs||0)+rec.ms;state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
+  window.LanguagePoints?.recordAnswer?.({correct:ok,sec,timeLimit:TIME_LIMIT});
   const answeredIndex=session.index,delay=ok?555:(type==="fast-wrong"?1200:type==="timeout"?1095:1060);setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
   try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();if(ok&&session.lastReward==="MASTERED ✦"){tone(1046.5,.07,.010,"sine",.18);tone(1567.98,.10,.010,"sine",.24);}else if(ok&&session.lastReward==="RECOVERED"){tone(659.25,.055,.008,"triangle",.17);tone(987.77,.075,.009,"sine",.22);}else if(ok&&[3,5,10,15].includes(session.combo)){tone(session.combo>=10?987.77:740,.065,.008,"triangle",.18);}}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance,phraseCorrect,phraseWrong,current.cat);}catch(e){console.error("Feedback failed",e);}
 }
@@ -1199,7 +1201,7 @@ async function finishSession(){
     state.finalAttempts=(state.finalAttempts||0)+1;
     if(accuracy>=.85&&avgMs<=6000)state.completed=true;
   }
-  save();lastSessionHandoffText=sessionHandoffJsonText(snap,session?.records||[]);renderEnd(snap,before);setEndHandoffStatus(false,false);await showLevelResolution(snap,before);showScreen("endScreen");
+  save();lastSessionHandoffText=sessionHandoffJsonText(snap,session?.records||[]);renderEnd(snap,before);setEndHandoffStatus(false,false);await showLevelResolution(snap,before);await window.LanguagePoints?.awardLevel?.({correct:snap.correct,total:snap.total,target:snap.target,recovered:snap.recovered||0,mastered:snap.masteredRewards||0,level:completedLevel});showScreen("endScreen");
 }
 function renderEnd(s,before){
   renderMedalSummary();
