@@ -35,6 +35,8 @@ button{font:inherit}.app{width:min(760px,100%);margin:0 auto;min-height:100dvh}.
 .skillrow{display:grid;grid-template-columns:minmax(120px,1fr) 1fr 40px;gap:9px;align-items:center;margin:8px 0;font-size:12px}.skillrow .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e7f0ea;font-weight:800}.skillrow .track{height:7px}.skillrow .pct{text-align:right;font-weight:900}.errors details{margin:6px 0;border-top:1px solid rgba(255,255,255,.06);padding-top:7px}.errors summary{cursor:pointer;font-size:13px;font-weight:800}.errors p{font-size:12px;line-height:1.45;color:#d7e5dc;margin:6px 0 0}.footerline{font-size:11px;color:#9fb5a8;text-align:center;margin-top:12px}input[type=file]{display:none}
 @media(max-width:520px){.screen{padding:12px 10px 20px}.panel{padding:18px 14px;border-radius:14px}.grid{grid-template-columns:repeat(2,1fr)}.top{min-height:92px}.toprow{grid-template-columns:74px 1fr 74px}.timer{width:64px;height:64px}.timer strong{font-size:20px}.qnum b{font-size:42px}.playfield{justify-content:center;padding-bottom:14px;transform:translateY(-6vh)}.question{min-height:88px;padding:13px 12px}.answer{min-height:96px;padding:12px 9px}}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.phrasegrid{grid-template-columns:repeat(3,1fr);margin-top:10px}.charts .section{margin-top:0}.chart{height:108px}.chartmeta{display:flex;justify-content:space-between;gap:8px;margin-top:7px;font-size:11px;color:var(--muted);font-weight:800}.review{justify-content:flex-start}.review .panel{min-height:calc(100dvh - 36px)}.review .resulttitle{text-align:left}.review .resulttitle h1{font-size:clamp(38px,9vw,58px)}.errors details{margin:8px 0;border-top:1px solid rgba(255,255,255,.08);padding-top:10px}.errors summary{font-size:14px;line-height:1.35}.errors p{font-size:13px;line-height:1.55}@media(max-width:520px){.charts{grid-template-columns:1fr}.phrasegrid{grid-template-columns:repeat(3,1fr);gap:6px}.phrasegrid .card{padding:10px 5px}.phrasegrid .card b{font-size:22px}.phrasegrid .card span{font-size:8px}}
+/* Keep mobile layout viewport stable during fixed-overlay transitions. */
+html,body{overflow-x:clip}
 </style>
 <style id="v13-style">
 button,.answer{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
@@ -691,10 +693,10 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 <script>window.LANGUAGE_POINTS_CONFIG={appId:"english",timeLimit:15};</script>
 <script src="./language-points.js?v=1.2.0"></script>
 <script src="./hub-path-game.js?v=1.0.0"></script>
-<script src="./app.js?v=3.30"></script>
+<script src="./app.js?v=3.31"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  navigator.serviceWorker.register('./service-worker.js?v=3.30',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  navigator.serviceWorker.register('./service-worker.js?v=3.31',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 }
 </script>
 <script src="https://adrianxds-ads.github.io/adrian-core/components/hub-nav.js?v=9"></script>

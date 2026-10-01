@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.30";
+const APP_VERSION = "3.31";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -202,12 +202,16 @@ function validProgressState(s){
     (s.sessionHistory==null||Array.isArray(s.sessionHistory))&&(s.seen==null||typeof s.seen==="object");
 }
 function normaliseProgressState(s){
+  const validRow=r=>r!==null&&typeof r==="object"&&!Array.isArray(r);
+  if([s.history,s.sessionHistory].some(rows=>Array.isArray(rows)&&rows.some(r=>!validRow(r)))){
+    try{localStorage.setItem(STORAGE_KEY+"_recovery_"+Date.now(),JSON.stringify(s));}catch(e){console.warn("Recovery backup unavailable",e);}
+  }
   s.level=syncGlobalLevel(s.level);
   for(const skill of CAMPAIGN.skills){const seed=seedMetric(skill.id),old=s.metrics[skill.id];const m=old&&typeof old==="object"&&!Array.isArray(old)?{...seed,...old}:seed;for(const [key,value] of Object.entries(seed))if(typeof value==="number"&&!Number.isFinite(m[key]))m[key]=value;m.domains=m.domains&&typeof m.domains==="object"&&!Array.isArray(m.domains)?m.domains:{};s.metrics[skill.id]=m;}
-  s.history=Array.isArray(s.history)?s.history.slice(-HISTORY_LIMIT):[];
+  s.history=Array.isArray(s.history)?s.history.filter(validRow).slice(-HISTORY_LIMIT):[];
   if(!Number.isFinite(s.activeTrainingMs))s.activeTrainingMs=s.history.reduce((sum,r)=>sum+(Number.isFinite(r?.ms)?r.ms:0),0);
   s.focusTimeByDate=s.focusTimeByDate&&typeof s.focusTimeByDate==="object"?s.focusTimeByDate:{};s.focusTargetsByDate=s.focusTargetsByDate&&typeof s.focusTargetsByDate==="object"?s.focusTargetsByDate:{};if(!Number.isFinite(s.focusTrackingStartedAt))s.focusTrackingStartedAt=Date.now();
-  s.sessionHistory=Array.isArray(s.sessionHistory)?s.sessionHistory.slice(-SESSION_HISTORY_LIMIT):[];
+  s.sessionHistory=Array.isArray(s.sessionHistory)?s.sessionHistory.filter(validRow).slice(-SESSION_HISTORY_LIMIT):[];
   s.seen=s.seen&&typeof s.seen==="object"?s.seen:{};s.templateLast=s.templateLast&&typeof s.templateLast==="object"?s.templateLast:{};s.templateSeen=s.templateSeen&&typeof s.templateSeen==="object"?s.templateSeen:{};
   s.dailyKey=s.dailyKey&&typeof s.dailyKey==="object"?s.dailyKey:{date:"",cat:""};s.keyring=Array.isArray(s.keyring)?s.keyring.filter(x=>x&&typeof x.cat==="string").slice(0,25):[];const firstKeyDate=s.keyring.map(x=>x.firstDate).filter(Boolean).sort()[0]||s.dailyKey.date||"";s.keyJourneyStart=typeof s.keyJourneyStart==="string"&&s.keyJourneyStart?s.keyJourneyStart:firstKeyDate;s.keyring.forEach((x,i)=>x.number=i+1);const rebuildTemplateSeen=!Object.keys(s.templateSeen).length;
   for(const skill of CAMPAIGN.skills){const m=s.metrics[skill.id];if(!Number.isFinite(m.intervalDays))m.intervalDays=1;if(!Number.isFinite(m.lastTs))m.lastTs=0;}
