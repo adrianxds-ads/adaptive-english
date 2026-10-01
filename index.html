@@ -691,12 +691,13 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 <script>window.LANGUAGE_POINTS_CONFIG={appId:"english",timeLimit:15};</script>
 <script src="./language-points.js?v=1.2.0"></script>
 <script src="./hub-path-game.js?v=1.0.0"></script>
-<script src="./app.js?v=3.27"></script>
+<script src="./app.js?v=3.28"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  navigator.serviceWorker.register('./service-worker.js?v=3.22',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  navigator.serviceWorker.register('./service-worker.js?v=finishfix1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 }
 </script>
 <script src="https://adrianxds-ads.github.io/adrian-core/components/hub-nav.js?v=9"></script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!sessionStorage.getItem('finishfix1_reload')){sessionStorage.setItem('finishfix1_reload','1');location.reload();}});}</script>
 </body>
 </html>
