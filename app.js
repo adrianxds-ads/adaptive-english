@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.28";
+const APP_VERSION = "3.29";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -1147,7 +1147,7 @@ function startTimer(){
 }
 function nextQuestion(){
   locked=false;hideCorrectReveal();
-  if(session.index>=session.plan.length){finishSession();return;}
+  if(session.index>=session.plan.length){finishSessionSafe();return;}
   current=session.plan[session.index];
   if(!current||!Array.isArray(current.display)||current.display.length!==4||!Number.isInteger(current.correctPos)||current.correctPos<0||current.correctPos>3){console.error("Skipping invalid question",current);session.index++;setTimeout(nextQuestion,0);return;}
   $("qIndex").textContent=session.index+1;
@@ -1187,6 +1187,7 @@ function answer(pos,timeout=false){
   const answeredIndex=session.index,delay=ok?555:(type==="fast-wrong"?1200:type==="timeout"?1095:1060);setTimeout(()=>{if(!session||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
   try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();if(ok&&session.lastReward==="MASTERED ✦"){tone(1046.5,.07,.010,"sine",.18);tone(1567.98,.10,.010,"sine",.24);}else if(ok&&session.lastReward==="RECOVERED"){tone(659.25,.055,.008,"triangle",.17);tone(987.77,.075,.009,"sine",.22);}else if(ok&&[3,5,10,15].includes(session.combo)){tone(session.combo>=10?987.77:740,.065,.008,"triangle",.18);}}catch(e){console.error("Audio failed",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance,phraseCorrect,phraseWrong,current.cat);}catch(e){console.error("Feedback failed",e);}
 }
+function finishSessionSafe(){Promise.resolve().then(()=>finishSession()).catch(e=>{console.error("Session finish recovered",e);try{missionOverlay(false);}catch(_){}try{const total=session?.records?.length||SESSION_SIZE,score=session?.correct||0;if($("endKicker"))$("endKicker").textContent=`LEVEL ${state?.level||""} COMPLETE`;if($("endScore"))$("endScore").textContent=`${score}/${total}`;if($("endSub"))$("endSub").textContent="Resultado guardado ? cierre recuperado autom?ticamente";showScreen("endScreen");}catch(_){}locked=false;});}
 async function finishSession(){
   clearInterval(timerHandle);
   const completedLevel=state.level,n=session.records.length,accuracy=session.correct/n,avgMs=Math.round(mean(session.records.map(r=>r.ms))),auto=session.automatic/n;
