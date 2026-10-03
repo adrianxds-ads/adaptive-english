@@ -1,5 +1,5 @@
 const CACHE_PREFIX='ae-campaign1-';
-const CACHE='ae-campaign1-v3.32-loadfix3';
+const CACHE='ae-campaign1-v3.32-loadfix4';
 const ASSETS=['./','./index.html','./adrian-visual-system.js','./adrian-achievements.js','./lessons.js','./keys.js','./error-coach.js','./language-points.js','./hub-path-game.js','./app.js','./campaign-01.json','./manifest.webmanifest','./icon.svg'];
 const CORE_RE=/\.(?:html|js|css|json|webmanifest)$/i;
 function withTimeout(req,ms,init={}){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(req,{...init,signal:c.signal}).finally(()=>clearTimeout(t));}
