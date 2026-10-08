@@ -8,8 +8,8 @@
 <meta name="theme-color" content="#10271d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="ae-version" content="3.34.7">
-<title>Adaptive English - Campaign 1 - v3.34.7</title>
+<meta name="ae-version" content="3.34.8">
+<title>Adaptive English - Campaign 1 - v3.34.8</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -536,6 +536,16 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 @media(max-width:520px){#startScreen .panel{padding:20px 16px!important}#startScreen .dashboard-menu{grid-template-columns:1fr!important}#startScreen .primary{min-width:0!important;width:100%}}
 
 </style>
+<style id="end-collapsible-style">
+/* Presentation only: end-screen grouping. No reward/medal colours touched. */
+#endScreen .end-collapsible{margin:14px 0;border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:0 14px}
+#endScreen .end-collapsible>summary{cursor:pointer;min-height:48px;display:flex;align-items:center;font-size:15px;font-weight:850;line-height:1.3;color:#f3f7f8}
+#endScreen .end-collapsible[open]{padding-bottom:12px}
+#endScreen .end-collapsible>.ai-handoff-card{margin-top:4px}
+#endScreen .end-collapsible>.actions{margin-top:4px}
+#endScreen .end-collapsible>summary:focus-visible{outline:3px solid #4aa7c8;outline-offset:3px}
+@media(max-width:520px){#endScreen .end-collapsible{padding:0 12px}#endScreen .end-collapsible>summary{font-size:14px}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -665,8 +675,10 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
       <p id="endSub"></p><div id="endTarget" class="target-result hidden"></div>
     </div>
     <div class="end-quick-actions" aria-label="Quick result actions"><button id="topContinueBtn" class="primary">NEXT LEVEL</button><button id="topHomeBtn" class="secondary">DASHBOARD · PORTADA</button><button id="topErrorsBtn" class="secondary hidden">REVIEW ERRORS</button><button id="topFinalBtn" class="secondary hidden">FINAL CHALLENGE</button></div>
+    <details class="end-collapsible end-ai-group"><summary>AI · opcional · progress JSON + valoración</summary>
     <div id="endAiHandoff" class="ai-handoff-card" aria-live="polite"><div><span>PROGRESS JSON · OPTIONAL</span><b id="endHandoffStatus">PROGRESS JSON READY · OPTIONAL</b><small id="endHandoffMeta">Learning progress + this level + session errors. Nothing is copied automatically.</small></div><button id="endCopyHandoffBtn" class="secondary">COPY PROGRESS JSON</button></div>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="endAiLevel">— / 15</b><small id="endAiConfidence">Estimación adaptativa</small></div><em>AI</em></div>
+    </details>
     <div id="endCampaignPracticeEstimate" class="campaign-eta-mini end-campaign-estimate"></div>
 
     <div class="grid">
@@ -681,10 +693,12 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
     <div id="campaign2End" class="statusbox next-campaign-end hidden"></div>
     <section id="levelLesson" class="level-lesson hidden"></section>
     <button id="endErrorLabToggle" class="error-lab-toggle hidden" type="button"><span>ERROR LAB</span><b id="endErrorLabToggleMeta">Errores del último nivel</b><em>OPEN →</em></button>
+    <details class="end-collapsible end-history" open><summary>Historial · gráficos</summary>
     <div class="charts">
       <div class="section"><h3>Accuracy · all levels</h3><div id="accuracyChart"></div></div>
       <div class="section learning-trend"><h3>Learning Curve · long-term</h3><div id="learningTrendChart"></div></div>
     </div>
+    </details>
     <div class="grid phrasegrid">
       <div class="card"><b id="ePhrasesDone">0</b><span>Unique phrases done</span></div>
       <div class="card"><b id="eRepeats">0</b><span>Repeated phrases</span></div>
@@ -692,12 +706,14 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
     </div>
     <div class="section"><h3>Skill League · current ranking</h3><div id="weakSkills"></div></div>
     <div class="ai-legend-wrap"><span>CÓDIGO DE COLOR · 1 BAJO → 15 MÁXIMO</span><div id="aiLegend" class="ai-legend"></div></div>
+    <details class="end-collapsible end-more-actions"><summary>More actions</summary>
     <div class="actions">
       <button id="continueBtn" class="primary">NEXT LEVEL</button>
       <button id="homeBtn" class="secondary">DASHBOARD · PORTADA</button>
       <button id="errorsBtn" class="secondary hidden">REVIEW ERRORS</button>
       <button id="finalBtn" class="secondary hidden">FINAL CHALLENGE</button>
     </div>
+    </details>
     <div id="endBuildVersion" class="footerline">Adaptive English · checking version…</div>
   </div>
 </section>
@@ -722,10 +738,10 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 <script src="./keys.js?v=3.22"></script>
 <script src="./error-coach.js?v=3.22"></script>
 <script>window.LANGUAGE_POINTS_CONFIG={appId:"english",timeLimit:15};</script>
-<script src="./language-points.js?v=3.34.7"></script>
+<script src="./language-points.js?v=3.34.8"></script>
 
-<script src="./campaign-01.js?v=3.34.7"></script>
-<script src="./app.js?v=3.34.7-oca2"></script>
+<script src="./campaign-01.js?v=3.34.8"></script>
+<script src="./app.js?v=3.34.8-oca2"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   navigator.serviceWorker.register('./service-worker.js?v=performance-20261006b',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
