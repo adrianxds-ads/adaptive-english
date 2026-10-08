@@ -1,7 +1,7 @@
 importScripts('./build-assets.js','./sw-integrity.js');
 const CACHE_PREFIX='ae-campaign1-';
 const CACHE='ae-campaign1-'+self.AdrianRelease.build;
-const ASSETS=['./quiz-polish.css','./progress-storage.js','./','./index.html','/adrian-core/design/adrian-visual-system.js','/adrian-core/components/adrian-achievements.js','/adrian-core/components/adrian-performance.js?v=1.0.1-20261006','./lessons.js','./keys.js','./error-coach.js','./language-points.js','/adrian-core/components/hub-path-game.js','./app.js','./performance-adapter.js?v=1.0.0-20261006','./campaign-01.json','./campaign-01.js','./manifest.webmanifest','./icon.svg'];
+const ASSETS=['./quiz-polish.css','./progress-storage.js','./','./index.html','/adrian-core/design/adrian-visual-system.js','/adrian-core/components/adrian-achievements.js','/adrian-core/components/adrian-performance.js?v=1.0.1-20261006','./lessons.js','./keys.js','./error-coach.js','./language-points.js','./app.js','./performance-adapter.js?v=1.0.0-20261006','./campaign-01.json','./campaign-01.js','./manifest.webmanifest','./icon.svg'];
 const CORE_RE=/\.(?:html|js|css|json|webmanifest)$/i;
 function withTimeout(req,ms,init={}){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return releaseFetch(req,{...init,signal:c.signal}).finally(()=>clearTimeout(t));}
 async function installCore(list){
