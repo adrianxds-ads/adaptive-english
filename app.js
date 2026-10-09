@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.35.2";
+const APP_VERSION = "3.35.3";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -249,27 +249,30 @@ function restoreHistory(s){
  return s;
 }
 function loadState(){
-  let raw=null;try{raw=localStorage.getItem(STORAGE_KEY);const s=restoreHistory(JSON.parse(raw||"null"));if(validProgressState(s))return normaliseProgressState(s);if(raw)localStorage.setItem(STORAGE_KEY+"_recovery_"+Date.now(),raw);if(s&&s.campaignId===CAMPAIGN.campaignId&&s.schemaVersion===1){const recovered={...newState(),...s};for(const key of ["level","sessions","totalAttempts"])if(!Number.isFinite(recovered[key]))recovered[key]=key==="level"?storedGlobalLevel():0;recovered.metrics=s.metrics&&typeof s.metrics==="object"&&!Array.isArray(s.metrics)?s.metrics:{};return normaliseProgressState(recovered);}return newState();}
-  catch(e){try{if(raw)localStorage.setItem(STORAGE_KEY+"_recovery_"+Date.now(),raw);}catch(_){}return newState();}
+  // Fail closed: an unreadable saved campaign must NEVER be silently replaced by a new campaign.
+  const raw=localStorage.getItem(STORAGE_KEY);
+  if(!raw)return newState();
+  const s=restoreHistory(JSON.parse(raw));
+  if(validProgressState(s))return normaliseProgressState(s);
+  if(s&&s.campaignId===CAMPAIGN.campaignId&&s.schemaVersion===1){
+    const recovered={...newState(),...s};
+    for(const key of ["level","sessions","totalAttempts"])
+      if(!Number.isFinite(recovered[key]))recovered[key]=key==="level"?storedGlobalLevel():0;
+    recovered.metrics=s.metrics&&typeof s.metrics==="object"&&!Array.isArray(s.metrics)?s.metrics:{};
+    return normaliseProgressState(recovered);
+  }
+  throw Error("El progreso guardado no se puede validar. No se ha borrado ni sobrescrito.");
 }
 function save(){
   state.updatedAt=Date.now();
   state.history=QuizLearning.retain(state.history,HISTORY_LIMIT,STORAGE_KEY+":answers");
   state.sessionHistory=QuizLearning.preserve(state.sessionHistory,STORAGE_KEY+":sessions");
-  const ordinary=JSON.stringify(state);
-  // Prevent the Android WebView/localStorage quota from silently stopping level completion.
-  // Small histories retain their original interoperable JSON layout.
-  if(ordinary.length<2200000){
-    try{localStorage.setItem(STORAGE_KEY,ordinary);return;}
-    catch(e){console.warn("Plain progress storage full; preserving all records in compressed form",e);}
-  }
-  try{
-    const tail=state.history.slice(-75),older=state.history.slice(0,-75);
-    const packed={...state,history:tail,historyPackV1:{
-      codec:HISTORY_PACK_FORMAT,count:older.length,data:encodeHistory(older)
-    }};
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(packed));
-  }catch(e){console.error("Progress save failed, data retained in running session; export a backup",e);throw e;}
+  // progress-storage.js ALREADY gzip-compresses this storage key transparently.
+  // Do not double-compress or duplicate archives. Keep a normal JSON object for exports/sync.
+  const payload=JSON.stringify(state);
+  localStorage.setItem(STORAGE_KEY,payload);
+  const check=localStorage.getItem(STORAGE_KEY);
+  if(check!==payload)throw Error("Progress verification failed; no new session should be acknowledged");
 }
 
 function formatStudyTime(ms){const total=Math.max(0,Math.round((ms||0)/1000)),h=Math.floor(total/3600),m=Math.floor((total%3600)/60),s=total%60;return h?`${h}h ${String(m).padStart(2,"0")}m`:m?`${m}m ${String(s).padStart(2,"0")}s`:`${s}s`;}
@@ -1074,7 +1077,7 @@ function renderGrowthTree(){
   host.innerHTML=`<div class="growth-tree-canvas" data-tree-stage="${stage}"><svg viewBox="0 0 420 300" role="img" aria-label="Practice tree, growth stage ${stage} of 200"><defs><linearGradient id="treeTrunk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5d3827"/><stop offset=".55" stop-color="#76503a"/><stop offset="1" stop-color="#957258"/></linearGradient></defs><ellipse class="tree-ground" cx="210" cy="282" rx="78" ry="7"/> <g class="tree-branches" fill="none" stroke="url(#treeTrunk)" stroke-linecap="round" stroke-linejoin="round">${branch}</g><g class="tree-leaves">${leaf}</g></svg></div>`;
 }
 
-const RELEASE_NOTES=["v3.35.2: storage safety for large histories, completed-level persistence, and accurate emergency result screen","Compresses historical answers losslessly when localStorage is near capacity; the session log remains readable and medal counts remain unchanged","v3.20 KEY DIARY discovery #028 adds the MUST HAVE vs SHOULD HAVE memory scene: DETECTIVE → MUST HAVE; MADRE REGAÑANDO → SHOULD HAVE","The compact retrieval cue is MUST = misterio resuelto · SHOULD = sermón, and the coach JSON records this as a new hook to test rather than a consolidated rule","No gameplay, scheduler, timing, sound or question-bank logic changed","v3.19 changes the lifetime dashboard controller to AVG HITS /15: mean correct answers per completed training level since Campaign 1 began","The same lifetime /15 mean appears in Statistics and is exported as avgHitsPerLevel; higher is better and the familiar 15-question scale is preserved","The previous all-time accuracy percentage remains available internally/JSON; no learning-engine, timing, sound or scheduler behavior changed","v3.18 adds ALL-TIME ACCURACY to the main dashboard and Statistics: total correct answers divided by total attempts since Campaign 1 began","All-time accuracy is computed from permanent per-skill counters, so it remains exact beyond the rolling history window; Recent accuracy stays separate and unchanged","The coach JSON now exports allTimeAccuracyPct and allTimeCorrect for longitudinal analysis; no mastery, rating, scheduler, progress or gameplay logic changed","v3.17 SCORE SOUND LADDER adds 15 coherent end-of-level sound grades: low scores use darker descending motifs, middle scores become neutral/ascending, high scores become increasingly triumphant, and 15/15 gets the full victory fanfare","The sound grade follows the actual score out of 15, independently of the adaptive target; question sounds, the fixed 10-second clock, progress, scheduler and learning algorithms are unchanged","v3.16 CONTENT VALIDITY AUDIT rewrites ambiguous or semantically weak question families while preserving every question ID, fingerprint, template ID, category, stored progress record and adaptive scheduling state","IF/UNLESS and DESPITE/ALTHOUGH now measure clean two-way contrasts; mixed-conditionals, modal deduction and relative-pronoun feedback are item-aware; should have, needn't have, backshift and several templated grammar families now use clearer natural contexts; the 10-second clock and adaptive algorithms are unchanged","v3.15 FINAL STUDY FREEZE adds a universal AI handoff: after each level the app prepares GLOBAL + SESSION JSON and makes a best-effort automatic clipboard copy, with a one-tap fallback when the browser blocks background clipboard writes","The handoff contains the full longitudinal coach snapshot, latest-level skill summary, every session error, grouped errors, misconception/error fingerprints and an explicit Spanish-L1 contrastive analysis contract usable with ChatGPT, Gemini or another AI","My Coach now copies a clean GLOBAL JSON directly; Error Lab adds COPY SESSION ERRORS JSON while retaining per-error JSON","No scheduler, mastery, 3,000-question bank, 15-question level, fixed 10-second clock, transition timing or calibrated gameplay layout changes are included; audio is deliberately left unchanged after the final interface audit","v3.14 standardizes the learner-facing grammar term as INFINITIVO SIN TO instead of base verb / bare infinitive throughout skill labels, lessons, Keys, diagnostics and new question metadata","KEY DIARY discovery #027 adds RATHER BE: MISMO → INFINITIVO SIN TO · OTRO → PASADO, with the contrast I’d rather GO / I’d rather YOU WENT","Internal category IDs and learning logic remain unchanged; this is a terminology/readability change plus one discovery card","v3.13 adds a fleeting Skill League label to every answer transition, using the exact same grammar-skill name on correct and wrong answers without changing any transition timing","Estimated Practice Left now appears on the level-results back cover as well as the dashboard","Statistics, League Study, My Coach and Error Lab now have an immediate DASHBOARD button at the top, and League Study is included explicitly in the screen router","v3.12 increases typography throughout dashboards, statistics, coach, league, review and campaign-planning views for easier reading; the calibrated game panel is deliberately untouched","Time estimates, daily-plan scenarios, Focus Time details, chart metadata and secondary labels are now substantially larger on mobile and desktop","v3.11 adds a stable DAILY PLAN: recommended minutes/day → estimated practice days, plus minimum, stretch and today-at-this-pace scenarios","The recommended daily minutes come from the existing adaptive Focus target, so weak skills/review load can raise the prescription and fatigue can lower it","Estimated practice days are now anchored to the recommended plan instead of changing all day as today’s accumulated minutes rise","v3.10 separates GRADUATION READINESS from LEARNING PROGRESS so the percentage is no longer mistaken for time completed","Estimated Practice Left is now derived from observed in-app progress per practice hour for learning progress, mastery and coverage; the slowest learning gate sets the hour estimate","Calendar/retention requirements remain separate from practice hours, and the estimate now shows its hour driver and a confidence range","The Campaign 2 forecast is now named ESTIMATED PRACTICE LEFT across the dashboard, My Coach and the coach export","Restored the Local Coach narrative after the v3.9 hours update so My Coach renders both the practice estimate and the longitudinal report","Estimated Practice Left now shows focused practice hours plus equivalent days at today's pace, directly on the main dashboard and in My Coach","The estimate separates practice-time remaining from mandatory calendar/retention time, with a modeled hour range and confidence label","v3.8.1 cache isolation remains active so Adaptive English cannot delete caches belonging to other apps on the same origin","Full audit/recalibration: Campaign 2 readiness now follows the real graduation gate instead of the older permissive handoff thresholds","Graduation now requires near-complete coverage, 85% global mastery, every skill at 70%+, 14 real days, enough spaced-review evidence, retention, stability and a modest automaticity/fluency signal before the final challenge","The practice estimate was recalibrated to the stricter graduation gates and uses the actual Learning Curve","KEY DIARY keeps the 25 base Keys and adds open-ended discovery cards; #026 is GOTYE, and cards now use Anki-style tap once to flip, tap again to advance","Core 3,000-question bank, scheduler, 15-question levels, fixed 10-second clock and STORAGE_KEY are unchanged"];
+const RELEASE_NOTES=["v3.35.3: single verified GZIP store, safe failure on invalid progress, native Android backup sharing and manual JSON copy","Old compressed records remain readable; no gameplay, clock or lesson changes","v3.35.2: storage safety for large histories, completed-level persistence, and accurate emergency result screen","Compresses historical answers losslessly when localStorage is near capacity; the session log remains readable and medal counts remain unchanged","v3.20 KEY DIARY discovery #028 adds the MUST HAVE vs SHOULD HAVE memory scene: DETECTIVE → MUST HAVE; MADRE REGAÑANDO → SHOULD HAVE","The compact retrieval cue is MUST = misterio resuelto · SHOULD = sermón, and the coach JSON records this as a new hook to test rather than a consolidated rule","No gameplay, scheduler, timing, sound or question-bank logic changed","v3.19 changes the lifetime dashboard controller to AVG HITS /15: mean correct answers per completed training level since Campaign 1 began","The same lifetime /15 mean appears in Statistics and is exported as avgHitsPerLevel; higher is better and the familiar 15-question scale is preserved","The previous all-time accuracy percentage remains available internally/JSON; no learning-engine, timing, sound or scheduler behavior changed","v3.18 adds ALL-TIME ACCURACY to the main dashboard and Statistics: total correct answers divided by total attempts since Campaign 1 began","All-time accuracy is computed from permanent per-skill counters, so it remains exact beyond the rolling history window; Recent accuracy stays separate and unchanged","The coach JSON now exports allTimeAccuracyPct and allTimeCorrect for longitudinal analysis; no mastery, rating, scheduler, progress or gameplay logic changed","v3.17 SCORE SOUND LADDER adds 15 coherent end-of-level sound grades: low scores use darker descending motifs, middle scores become neutral/ascending, high scores become increasingly triumphant, and 15/15 gets the full victory fanfare","The sound grade follows the actual score out of 15, independently of the adaptive target; question sounds, the fixed 10-second clock, progress, scheduler and learning algorithms are unchanged","v3.16 CONTENT VALIDITY AUDIT rewrites ambiguous or semantically weak question families while preserving every question ID, fingerprint, template ID, category, stored progress record and adaptive scheduling state","IF/UNLESS and DESPITE/ALTHOUGH now measure clean two-way contrasts; mixed-conditionals, modal deduction and relative-pronoun feedback are item-aware; should have, needn't have, backshift and several templated grammar families now use clearer natural contexts; the 10-second clock and adaptive algorithms are unchanged","v3.15 FINAL STUDY FREEZE adds a universal AI handoff: after each level the app prepares GLOBAL + SESSION JSON and makes a best-effort automatic clipboard copy, with a one-tap fallback when the browser blocks background clipboard writes","The handoff contains the full longitudinal coach snapshot, latest-level skill summary, every session error, grouped errors, misconception/error fingerprints and an explicit Spanish-L1 contrastive analysis contract usable with ChatGPT, Gemini or another AI","My Coach now copies a clean GLOBAL JSON directly; Error Lab adds COPY SESSION ERRORS JSON while retaining per-error JSON","No scheduler, mastery, 3,000-question bank, 15-question level, fixed 10-second clock, transition timing or calibrated gameplay layout changes are included; audio is deliberately left unchanged after the final interface audit","v3.14 standardizes the learner-facing grammar term as INFINITIVO SIN TO instead of base verb / bare infinitive throughout skill labels, lessons, Keys, diagnostics and new question metadata","KEY DIARY discovery #027 adds RATHER BE: MISMO → INFINITIVO SIN TO · OTRO → PASADO, with the contrast I’d rather GO / I’d rather YOU WENT","Internal category IDs and learning logic remain unchanged; this is a terminology/readability change plus one discovery card","v3.13 adds a fleeting Skill League label to every answer transition, using the exact same grammar-skill name on correct and wrong answers without changing any transition timing","Estimated Practice Left now appears on the level-results back cover as well as the dashboard","Statistics, League Study, My Coach and Error Lab now have an immediate DASHBOARD button at the top, and League Study is included explicitly in the screen router","v3.12 increases typography throughout dashboards, statistics, coach, league, review and campaign-planning views for easier reading; the calibrated game panel is deliberately untouched","Time estimates, daily-plan scenarios, Focus Time details, chart metadata and secondary labels are now substantially larger on mobile and desktop","v3.11 adds a stable DAILY PLAN: recommended minutes/day → estimated practice days, plus minimum, stretch and today-at-this-pace scenarios","The recommended daily minutes come from the existing adaptive Focus target, so weak skills/review load can raise the prescription and fatigue can lower it","Estimated practice days are now anchored to the recommended plan instead of changing all day as today’s accumulated minutes rise","v3.10 separates GRADUATION READINESS from LEARNING PROGRESS so the percentage is no longer mistaken for time completed","Estimated Practice Left is now derived from observed in-app progress per practice hour for learning progress, mastery and coverage; the slowest learning gate sets the hour estimate","Calendar/retention requirements remain separate from practice hours, and the estimate now shows its hour driver and a confidence range","The Campaign 2 forecast is now named ESTIMATED PRACTICE LEFT across the dashboard, My Coach and the coach export","Restored the Local Coach narrative after the v3.9 hours update so My Coach renders both the practice estimate and the longitudinal report","Estimated Practice Left now shows focused practice hours plus equivalent days at today's pace, directly on the main dashboard and in My Coach","The estimate separates practice-time remaining from mandatory calendar/retention time, with a modeled hour range and confidence label","v3.8.1 cache isolation remains active so Adaptive English cannot delete caches belonging to other apps on the same origin","Full audit/recalibration: Campaign 2 readiness now follows the real graduation gate instead of the older permissive handoff thresholds","Graduation now requires near-complete coverage, 85% global mastery, every skill at 70%+, 14 real days, enough spaced-review evidence, retention, stability and a modest automaticity/fluency signal before the final challenge","The practice estimate was recalibrated to the stricter graduation gates and uses the actual Learning Curve","KEY DIARY keeps the 25 base Keys and adds open-ended discovery cards; #026 is GOTYE, and cards now use Anki-style tap once to flip, tap again to advance","Core 3,000-question bank, scheduler, 15-question levels, fixed 10-second clock and STORAGE_KEY are unchanged"];
 function renderReleaseInfo(){const host=$("releaseInfo"),online=location.protocol.startsWith("http"),build=`${online?"ONLINE":"LOCAL"} BUILD · v${APP_VERSION} · BANK ${CAMPAIGN?.version||"—"}`;if(host)host.innerHTML=`<details class="release-info"><summary><b>Adaptive English v${APP_VERSION}</b><span>WHAT’S NEW</span></summary><ul>${RELEASE_NOTES.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></details>`;if($("buildVersion"))$("buildVersion").textContent=build;if($("endBuildVersion"))$("endBuildVersion").textContent=build;const meta=document.querySelector('meta[name="ae-version"]');if(meta)meta.setAttribute("content",APP_VERSION);document.title=`Adaptive English - Campaign 1 - v${APP_VERSION}`;}
 function medalCounts(){const rows=(state.sessionHistory||[]).filter(x=>!x.mode||x.mode==="training");return window.AdrianAchievements?.countsFromHistory?.(rows)||{blue:0,violet:0,gold:0};}
 function renderMedalSummary(latest=null){const strip=window.AdrianAchievements?.medalStripHtml?.(medalCounts(),{context:"summary"})||"",badge=latest?window.AdrianAchievements?.badgeHtml?.(latest.correct,latest.total||SESSION_SIZE,medalCounts())||"":"";const a=$("startMedals"),b=$("endMedals");if(a)a.innerHTML=strip;if(b)b.innerHTML=strip+badge;}
@@ -1355,9 +1358,39 @@ function renderEnd(s,before){
   if(state.completed)$("endSub").textContent="CAMPAIGN 1 COMPLETE";
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
-function exportProgress(){
-  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`adaptive-english-progress-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href);
+function showBackupPanel(payload,filename,message=""){
+  let panel=document.getElementById("backupRecoveryPanel");
+  if(!panel){panel=document.createElement("section");panel.id="backupRecoveryPanel";panel.style.cssText="position:relative;z-index:1001;margin:14px auto;max-width:760px;padding:18px;background:#19382b;border:2px solid #e7bf57;border-radius:16px;color:#fff;font:16px/1.5 system-ui";
+    (document.querySelector("#startScreen .panel")||document.body).prepend(panel);}
+  panel.replaceChildren();
+  const h=document.createElement("h2");h.textContent="Copia de seguridad · Grammar Quest";
+  const p=document.createElement("p");p.textContent=message||"Guarda este archivo con Compartir, o copia el JSON. No borres los datos del navegador.";
+  const row=document.createElement("div");row.style.cssText="display:flex;flex-wrap:wrap;gap:10px";
+  const copy=document.createElement("button");copy.textContent="COPIAR JSON";copy.type="button";copy.style.cssText="padding:12px 14px;min-height:48px;background:#e7bf57;color:#1c2f23;border:0;border-radius:8px;font-weight:bold";
+  const show=document.createElement("button");show.textContent="VER JSON PARA COPIAR";show.type="button";show.style.cssText="padding:12px 14px;min-height:48px;border:1px solid #e7bf57;border-radius:8px;background:transparent;color:white";
+  const area=document.createElement("textarea");area.value=payload;area.readOnly=true;area.hidden=true;area.style.cssText="width:100%;height:190px;margin-top:10px;font:12px monospace";
+  const status=document.createElement("p");status.setAttribute("role","status");status.style.color="#f4d889";
+  copy.onclick=async()=>{try{await navigator.clipboard.writeText(payload);status.textContent="JSON copiado. Pégalo y guárdalo en una nota o documento.";}catch(e){area.hidden=false;area.focus();area.select();status.textContent="Selecciona el texto para copiarlo.";}};
+  show.onclick=()=>{area.hidden=false;area.focus();area.select();};
+  row.append(copy,show);panel.append(h,p,row,status,area);panel.scrollIntoView({block:"start",behavior:"instant"});return panel;
+}
+async function shareBackup(payload,filename){
+ const blob=new Blob([payload],{type:"application/json"}),file=new File([blob],filename,{type:"application/json"});
+ if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
+  try{await navigator.share({files:[file],title:"Copia de Grammar Quest"});return "shared";}
+  catch(e){if(e.name==="AbortError")return "cancelled";console.warn("Native file share unavailable",e);}
+ }
+ try{
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=filename;a.textContent="GUARDAR ARCHIVO JSON";a.style.cssText="display:block;margin:12px;padding:14px;background:#e7bf57;color:#142b1f;border-radius:9px";
+  const panel=showBackupPanel(payload,filename,"Si tu navegador no descarga el archivo, pulsa COPIAR JSON y guarda el texto.");
+  panel.append(a);a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);return "download";
+ }catch(e){showBackupPanel(payload,filename,"No ha funcionado la descarga. Puedes copiar el JSON íntegro desde aquí.");return "manual";}
+}
+async function exportProgress(){
+ const filename=`adaptive-english-progress-${new Date().toISOString().slice(0,10)}.json`;
+ const text=JSON.stringify(state,null,2);
+ await shareBackup(text,filename);
 }
 function importProgress(file){
   const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);if(!validProgressState(s))throw Error("Invalid progress schema");state=normaliseProgressState(s);save();renderStart();alert("Progress imported.");}catch(e){console.error("Progress import rejected",e);alert("This progress file is not valid for Campaign 1.");}};r.readAsText(file);
@@ -1374,6 +1407,8 @@ function validQuestion(q){
 }
 
 async function boot(){
+  // The shared GZIP layer must load before touching a potentially large saved campaign.
+  if(!window.pako?.gzip||!window.pako?.ungzip)throw Error("Protección del historial no disponible. Vuelve a cargar cuando haya conexión.");
   applyVisualSystemTokens();
   CAMPAIGN=await loadCampaign();
   const before=CAMPAIGN.questions.length;
@@ -1409,4 +1444,22 @@ async function boot(){
   $("errorsBackBtn").onclick=()=>showScreen("endScreen");
   renderStart();showScreen("startScreen");
 }
-boot().catch(err=>{console.error(err);document.body.innerHTML='<div style="padding:30px;color:white;font-family:system-ui"><h1>Adaptive English</h1><p>Could not load Campaign 1.</p></div>';});
+boot().catch(err=>{
+ console.error("Grammar Quest stopped safely; stored progress was not overwritten",err);
+ const raw=(()=>{try{return Storage.prototype.getItem.call(localStorage,STORAGE_KEY)||"";}catch{return "";}})();
+ const container=document.createElement("main");container.style.cssText="min-height:80vh;margin:20px auto;max-width:740px;padding:22px;color:#fff;font:18px/1.5 system-ui";
+ const h=document.createElement("h1");h.textContent="Grammar Quest · recuperación segura";
+ const p=document.createElement("p");p.textContent="La aplicación no ha podido abrirse. No hemos reiniciado ni borrado tu progreso. Guarda una copia antes de volver a intentarlo.";
+ const detail=document.createElement("p");detail.style.cssText="font-size:13px;color:#f2cf83;overflow-wrap:anywhere";detail.textContent=String(err?.message||"Error de carga");
+ const actions=document.createElement("div");actions.style.cssText="display:flex;flex-wrap:wrap;gap:12px";
+ const backup=document.createElement("button");backup.textContent="GUARDAR COPIA DEL PROGRESO";backup.style.cssText="padding:14px;border-radius:10px;min-height:48px;background:#e7bf57;color:#182b20;font-weight:800";
+ const retry=document.createElement("button");retry.textContent="VOLVER A INTENTAR";retry.style.cssText="padding:14px;border-radius:10px;min-height:48px;background:#234833;color:#fff";
+ backup.onclick=()=>{
+  if(!raw){alert("No se encuentra un registro principal en este navegador.");return;}
+  const text=JSON.stringify({schema:"XDS_GRAMMAR_RECOVERY_RAW_V1",key:STORAGE_KEY,raw,capturedAt:new Date().toISOString()},null,2);
+  void shareBackup(text,"grammar-quest-rescate-"+new Date().toISOString().slice(0,10)+".json");
+ };
+ retry.onclick=()=>location.reload();
+ actions.append(backup,retry);container.append(h,p,detail,actions);
+ document.body.replaceChildren(container);
+});
