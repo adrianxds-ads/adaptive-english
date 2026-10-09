@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.35.0";
+const APP_VERSION = "3.35.1";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -412,6 +412,7 @@ function hideCorrectReveal(){const el=$("correctReveal");if(!el)return;el.classN
 function showCorrectReveal(answer,pos){/* Feedback stays on the answer tiles. */}
 
 function qScore(q,sessionCats,sessionTemplates,mode){
+  if(mode==="assessment")mode="review";
   const info=seenInfo(q),isNew=!info,m=state.metrics[q.cat];
   let s=Math.random()*.10;
   if(mode==="focus")s+=catPriority(q.cat)*1.65;
@@ -450,8 +451,8 @@ function chooseOne(pool,chosen,sessionCats,sessionTemplates,mode,allowedCats=nul
   if(allowedCats) cand=cand.filter(q=>allowedCats.has(q.cat));
   if(state.sessions<40){const short=cand.filter(q=>q.q.trim().split(/\s+/).length<=12);if(short.length)cand=short;}
   cand=cand.filter(q=>(sessionCats[q.cat]||0)<2 && (sessionTemplates[q.templateId]||0)<1);
-  const eligible=cand.filter(q=>!seenInfo(q)||QuizLearning.ready(seenInfo(q),state.level));
-  if(eligible.length)cand=eligible;else if(mode!=="wild")return null;
+  if(mode!=="assessment"){const eligible=cand.filter(q=>!seenInfo(q)||QuizLearning.ready(seenInfo(q),state.level));
+  if(eligible.length)cand=eligible;else if(mode!=="wild")return null;}
   if(!cand.length)return null;
   cand=cand.map(q=>({q,score:qScore(q,sessionCats,sessionTemplates,mode)})).sort((a,b)=>b.score-a.score).map(x=>x.q);
   return cand[Math.floor(Math.random()*Math.min(5,cand.length))];
@@ -528,7 +529,7 @@ function buildFinalPlan(){
     const pool=BANK.filter(q=>q.cat===s.id).sort((a,b)=>(seenInfo(a)?.lastLevel||-999)-(seenInfo(b)?.lastLevel||-999));
     if(pool[0])result.push(pool[0]);
   }
-  while(result.length<30){const q=chooseOne(BANK,result,{},{},"review");if(!q)break;result.push(q);}
+  while(result.length<30){const q=chooseOne(BANK,result,{},{},"assessment");if(!q)break;result.push(q);}
   return result.slice(0,30);
 }
 function shuffleOptions(q){
