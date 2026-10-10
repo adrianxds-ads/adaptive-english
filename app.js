@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.35.5";
+const APP_VERSION = "3.35.6";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -248,6 +248,29 @@ function restoreHistory(s){
  delete s.historyPackV1;
  return s;
 }
+async function loadStateDurable(){
+  // Prefer the most recent valid snapshot. Never erase the original local record.
+  let local,localError,localPresent=false;
+  try{localPresent=localStorage.getItem(STORAGE_KEY)!==null;local=loadState();}
+  catch(e){localError=e;}
+  if(window.GrammarProgressDB){
+    try{
+      const raw=await window.GrammarProgressDB.get(STORAGE_KEY);
+      if(raw){
+        const recovered=restoreHistory(JSON.parse(raw));
+        if(!validProgressState(recovered))throw Error('Invalid IndexedDB progress state');
+        if(!local||!localPresent||Number(recovered.updatedAt||0)>Number(local.updatedAt||0))
+          return normaliseProgressState(recovered);
+      }
+    }catch(e){
+      // Failing closed prevents an older local snapshot from overwriting newer progress.
+      console.error('Durable progress could not be verified; original records remain intact',e);
+      throw e;
+    }
+  }
+  if(localError)throw localError;
+  return local;
+}
 function loadState(){
   // Fail closed: an unreadable saved campaign must NEVER be silently replaced by a new campaign.
   const raw=localStorage.getItem(STORAGE_KEY);
@@ -270,9 +293,18 @@ function save(){
   // progress-storage.js ALREADY gzip-compresses this storage key transparently.
   // Do not double-compress or duplicate archives. Keep a normal JSON object for exports/sync.
   const payload=JSON.stringify(state);
-  localStorage.setItem(STORAGE_KEY,payload);
-  const check=localStorage.getItem(STORAGE_KEY);
-  if(check!==payload)throw Error("Progress verification failed; no new session should be acknowledged");
+  try{
+    localStorage.setItem(STORAGE_KEY,payload);
+    const check=localStorage.getItem(STORAGE_KEY);
+    if(check!==payload)throw Error('Progress verification failed; no new session should be acknowledged');
+  }catch(e){
+    const quota=e?.name==='QuotaExceededError'||e?.code===22||e?.code===1014;
+    if(!quota||!window.GrammarProgressDB)throw e;
+    // Save the exact same JSON to IndexedDB, with a serialized verified transaction.
+    const pending=window.GrammarProgressDB.put(STORAGE_KEY,payload);
+    pending.catch(err=>console.error('Progress persistence failed in IndexedDB',err));
+    return pending;
+  }
 }
 
 function formatStudyTime(ms){const total=Math.max(0,Math.round((ms||0)/1000)),h=Math.floor(total/3600),m=Math.floor((total%3600)/60),s=total%60;return h?`${h}h ${String(m).padStart(2,"0")}m`:m?`${m}m ${String(s).padStart(2,"0")}s`:`${s}s`;}
@@ -1310,7 +1342,7 @@ async function finishSession(){
     state.finalAttempts=(state.finalAttempts||0)+1;
     if(accuracy>=.85&&avgMs<=6000)state.completed=true;
   }
-  save();
+  await save();
   // AI handoff is optional: a reporting failure must never invalidate a completed level.
   try{lastSessionHandoffText=sessionHandoffJsonText(snap,session?.records||[]);}
   catch(e){lastSessionHandoffText="";console.error("Optional AI handoff unavailable; level remains saved",e);}
@@ -1432,7 +1464,10 @@ async function boot(){
   for(const skill of CAMPAIGN.skills)skill.name=learningTerminology(skill.name);
   for(const q of CAMPAIGN.questions){q.skill=learningTerminology(q.skill);q.rule=learningTerminology(q.rule);q.trigger=learningTerminology(q.trigger);}
   if(CAMPAIGN.questions.length!==before)console.warn(`Adaptive English skipped ${before-CAMPAIGN.questions.length} invalid question(s) with duplicate/broken options.`);
-  BANK=CAMPAIGN.questions;state=loadState();startFocusTracking();save();
+  BANK=CAMPAIGN.questions;state=await loadStateDurable();startFocusTracking();
+  // A full localStorage quota must not prevent the existing campaign from opening.
+  // Keep the original data intact; never reset or overwrite progress on failure.
+  await save();
   renderSegments(TIME_LIMIT);
   $("startBtn").onclick=async()=>{await ensureAudio();await startSession(false);};
   if($("readFirstToggle")){$("readFirstToggle").onclick=toggleReadFirstMode;syncReadFirstButton();}
