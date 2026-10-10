@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.35.6";
+const APP_VERSION = "3.35.7";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -14,12 +14,21 @@ const SURFACE_BANDS_15=AVS_RANKS.map(x=>x.surface||x.color);
 const GRAPH_BANDS_15=AVS_RANKS.map(x=>x.band||x.color);
 const AVS_TEXT_BANDS_15=AVS_RANKS.map(x=>x.text||x.color);
 let CAMPAIGN=null, BANK=[], state=null, session=null, timerHandle=null, revealHandle=null, deadline=0, current=null, locked=false, currentPreReadMs=0;
+let revealEarlyOnTap=null;
 let audioCtx=null, soundOn=true, lastTickShown=TIME_LIMIT+1, lastUrgentBeat=-1;
 let focusLastActivityTs=Date.now(),focusLastTickTs=Date.now(),focusSaveMs=0,focusTimerHandle=null;
 
 const $=id=>document.getElementById(id);
 const READ_FIRST_KEY="adaptive_english_read_first_v1";
 let readFirstMode=(()=>{try{return localStorage.getItem(READ_FIRST_KEY)!=="0";}catch(e){return true;}})();
+
+// During READ_FIRST, tapping the non-interactive game area reveals answers early.
+document.addEventListener('pointerdown', event=>{
+  if(!(revealEarlyOnTap && session && !locked))return;
+  if(event.target.closest('button,a,input,textarea,select,[role="button"],[contenteditable="true"]'))return;
+  if(event.cancelable)event.preventDefault();
+  const reveal=revealEarlyOnTap; reveal(); if(soundOn)tone(900,.028,.007,'sine');
+},true);
 function readFirstDelayMs(text){
   const words=String(text||"").trim().split(/\s+/).filter(Boolean).length;
   return Math.round(Math.max(3000,Math.min(4800,3000+Math.max(0,words-8)*90)));
@@ -1242,7 +1251,7 @@ function startTimer(){
 }
 function nextQuestion(){
   QuizLearning.clear();
-  clearTimeout(revealHandle);revealHandle=null;currentPreReadMs=0;
+  clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;currentPreReadMs=0;
   locked=false;hideCorrectReveal();
   if(session.index>=session.plan.length){finishSessionSafe();return;}
   current=session.plan[session.index];
@@ -1257,16 +1266,21 @@ function nextQuestion(){
   $("timerText").textContent=TIME_LIMIT.toFixed(1);$("timer").classList.remove("urgent");renderSegments(TIME_LIMIT);
   if(readFirstMode){
     currentPreReadMs=readFirstDelayMs(view.question);
-    const expectedSession=session,expectedIndex=session.index;
-    revealHandle=setTimeout(()=>{
+    const expectedSession=session,expectedIndex=session.index,readingStartedAt=performance.now();
+    const revealChoices=()=>{
       if(session!==expectedSession||session.index!==expectedIndex||locked)return;
-      wrap.classList.remove("read-first-hidden");[...wrap.children].forEach(b=>b.disabled=false);revealHandle=null;startTimer();
-    },currentPreReadMs);
-  }else startTimer();
+      clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;
+      currentPreReadMs=Math.round(performance.now()-readingStartedAt);
+      wrap.classList.remove("read-first-hidden");[...wrap.children].forEach(b=>b.disabled=false);
+      startTimer();
+    };
+    revealEarlyOnTap=revealChoices;
+    revealHandle=setTimeout(revealChoices,currentPreReadMs);
+  }else{revealEarlyOnTap=null;startTimer();}
 }
 function feedback(ok,type,sec,correct,appearance,patternAppearance,phraseCorrect=0,phraseWrong=0,cat=""){/* Feedback stays on the answer tiles. */}
 function answer(pos,timeout=false){
-  if(locked)return;locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;
+  if(locked)return;locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;
   const sec=timeout?TIME_LIMIT:Math.max(.05,(TIME_LIMIT*1000-(deadline-performance.now()))/1000);
   const ok=pos===current.correctPos&&!timeout,type=outcomeType(ok,sec,current.targetTime||3.6,timeout);
   const buttons=[...$("answers").children];
