@@ -1,40 +1,40 @@
 /* Grammar Quest focus view. Engine, banks and measured time are unchanged. */
-body[data-grammar-focus="true"]{background:#000!important;color:#EAF0F5!important}
-body[data-grammar-focus="true"] :is(.adrian-tools,.adrian-menu-host,.nucleo-progress,.nucleo-progress-fill){display:none!important}
-body[data-grammar-focus="true"]{--nucleo-top-offset:0px!important;--adrian-toolbar-height:0px!important}
-body[data-grammar-focus="true"] .app{min-height:100dvh!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden){min-height:100dvh!important;height:auto!important;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))!important;justify-content:center!important;overflow:visible!important;animation:none!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) :is(.top,.timer,.segments,#abortSessionBtn){display:none!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) .playfield{flex:0 0 auto!important;width:100%!important;max-width:640px!important;margin:auto!important;padding:0!important;transform:none!important;position:relative!important;display:flex!important;flex-direction:column!important;justify-content:center!important;gap:16px!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) .question{min-height:96px!important;margin:0!important;padding:16px!important;background:transparent!important;border:0!important;box-shadow:none!important;display:flex!important;justify-content:center!important;align-items:center!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) .question h2{font-family:Roboto,"Segoe UI",Arial,sans-serif!important;font-size:clamp(22px,5.8vw,28px)!important;line-height:1.35!important;color:#EAF0F5!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) .answer-stage{position:relative!important;min-height:0!important;height:auto!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important;transform:none!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options .answer{width:100%!important;min-height:64px!important;height:auto!important;padding:14px 16px!important;font-family:Roboto,"Segoe UI",Arial,sans-serif!important;font-size:22px!important;line-height:1.35!important;border:1px solid #454B53!important;border-radius:10px!important;background:transparent!important;color:#EAF0F5!important;box-shadow:none!important;transform:none!important;transition:none!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options .answer:focus-visible{outline:2px solid #4AA7C8!important;outline-offset:3px!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options .answer.good{background:#173823!important;border-color:#8FCA93!important;outline:2px solid #8FCA93!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options .answer.bad{background:#3D1E22!important;border-color:#F3A1A6!important;outline:2px solid #F3A1A6!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options .answer.dim{opacity:.65!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #correctReveal{position:absolute!important;bottom:calc(100% + 8px)!important;left:0!important;right:0!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #feedback{position:absolute!important;top:calc(100% + 8px)!important;left:0!important;right:0!important;margin:0!important;box-shadow:none!important}
-body[data-grammar-focus="true"]::after,body[data-grammar-focus="true"] #particles{display:none!important}
-@media(max-height:600px){#gameScreen{justify-content:flex-start!important}#gameScreen .playfield{margin:0 auto 140px!important}#gameScreen .question{min-height:64px!important}.nucleo-options .answer{min-height:52px!important}}
+body[data-grammar-focus="true"]{background:#000;color:#EAF0F5}
+body[data-grammar-focus="true"] :is(.adrian-tools,.adrian-menu-host,.nucleo-progress,.nucleo-progress-fill){display:none}
+body[data-grammar-focus="true"]{--nucleo-top-offset:0px;--adrian-toolbar-height:0px}
+body[data-grammar-focus="true"] .app{min-height:100dvh}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden){min-height:100dvh;height:auto;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));justify-content:center;overflow:visible;animation:none}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) :is(.top,.timer,.segments,#abortSessionBtn){display:none}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) .playfield{flex:0 0 auto;width:100%;max-width:640px;margin:auto;padding:0;transform:none;position:relative;display:flex;flex-direction:column;justify-content:center;gap:16px}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) .question{min-height:96px;margin:0;padding:16px;background:transparent;border:0;box-shadow:none;display:flex;justify-content:center;align-items:center}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) .question h2{font-family:Roboto,"Segoe UI",Arial,sans-serif;font-size:clamp(22px,5.8vw,28px);line-height:1.35;color:#EAF0F5}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) .answer-stage{position:relative;min-height:0;height:auto}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;transform:none}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options .answer{width:100%;min-height:64px;height:auto;padding:14px 16px;font-family:Roboto,"Segoe UI",Arial,sans-serif;font-size:22px;line-height:1.35;border:1px solid #454B53;border-radius:10px;background:transparent;color:#EAF0F5;box-shadow:none;transform:none;transition:none}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options .answer:focus-visible{outline:2px solid #4AA7C8;outline-offset:3px}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options .answer.good{background:#173823;border-color:#8FCA93;outline:2px solid #8FCA93}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options .answer.bad{background:#3D1E22;border-color:#F3A1A6;outline:2px solid #F3A1A6}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options .answer.dim{opacity:.65}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #correctReveal{position:absolute;bottom:calc(100% + 8px);left:0;right:0}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #feedback{position:absolute;top:calc(100% + 8px);left:0;right:0;margin:0;box-shadow:none}
+body[data-grammar-focus="true"]::after,body[data-grammar-focus="true"] #particles{display:none}
+@media(max-height:600px){#gameScreen{justify-content:flex-start}#gameScreen .playfield{margin:0 auto 140px}#gameScreen .question{min-height:64px}.nucleo-options .answer{min-height:52px}}
 
 /* Reading and answering bars use different heights in legacy Core. Neither belongs in focus view. */
-html body[data-grammar-focus="true"] #gameScreen #segments.segments{display:none!important;height:0!important;min-height:0!important;margin:0!important;padding:0!important}
-html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options .answer:disabled{pointer-events:none!important}
+html body[data-grammar-focus="true"] #gameScreen #segments.segments{display:none;height:0;min-height:0;margin:0;padding:0}
+html body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options .answer:disabled{pointer-events:none}
 
 /* Win over injected arcade backgrounds after a populated progress reload. */
-html:root body[data-grammar-focus="true"][data-grammar-focus]{background:#000000!important}
+html:root body[data-grammar-focus="true"][data-grammar-focus]{background:#000000}
 
-html:root body[data-grammar-focus="true"][data-grammar-focus]{transition:none!important;animation:none!important}
+html:root body[data-grammar-focus="true"][data-grammar-focus]{transition:none;animation:none}
 
-html:root body[data-grammar-focus="true"]:has(#gameScreen:not(.hidden)){background:#000!important;transition:none!important;animation:none!important}
+html:root body[data-grammar-focus="true"]:has(#gameScreen:not(.hidden)){background:#000;transition:none;animation:none}
 
 /* Preserve the manual recall layout used by the current engine. */
-html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden){background:#000!important}
-html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden) .focus-header{position:absolute!important;top:0;left:0;right:0}
-html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden) .focus-stack{position:relative!important;transform:none!important;max-width:640px!important;width:100%!important;gap:16px!important;margin:auto!important}
-html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options.read-first-hidden{display:grid!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
-html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden) .focus-reveal-hint{display:block!important;position:absolute!important;top:calc(100% + 12px);left:0;right:0;margin:0!important;visibility:hidden}
+html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden){background:#000}
+html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden) .focus-header{position:absolute;top:0;left:0;right:0}
+html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden) .focus-stack{position:relative;transform:none;max-width:640px;width:100%;gap:16px;margin:auto}
+html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options.read-first-hidden{display:grid;visibility:hidden;opacity:0;pointer-events:none}
+html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden) .focus-reveal-hint{display:block;position:absolute;top:calc(100% + 12px);left:0;right:0;margin:0;visibility:hidden}
 html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden).focus-awaiting .focus-reveal-hint{visibility:visible}
