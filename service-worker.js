@@ -1,7 +1,8 @@
+const APP_VERSION='3.36.0';
 importScripts('./build-assets.js','./sw-integrity.js');
 const CACHE_PREFIX='ae-campaign1-';
 const CACHE='ae-campaign1-'+self.AdrianRelease.build;
-const ASSETS=['./pixel-quiz-layout.css','./nucleo-game-theme.css','./learning-feedback.js','./quiz-polish.css','./progress-storage.js','./progress-indexeddb.js','./','./index.html','/adrian-core/design/adrian-visual-system.js','/adrian-core/components/adrian-achievements.js','/adrian-core/components/adrian-performance.js?v=1.0.1-20261006','./lessons.js','./keys.js','./error-coach.js','./language-points.js','./app.js','./performance-adapter.js?v=1.0.0-20261006','./campaign-01.json','./campaign-01.js','./manifest.webmanifest','./icon.svg'];
+const ASSETS=['./grammar-focus.css?v=3.36.0','./grammar-focus.js?v=3.36.0','./pixel-quiz-layout.css','./nucleo-game-theme.css','./learning-feedback.js','./quiz-polish.css','./progress-storage.js','./progress-indexeddb.js','./','./index.html','/adrian-core/design/adrian-visual-system.js','/adrian-core/components/adrian-achievements.js','/adrian-core/components/adrian-performance.js?v=1.0.1-20261006','./lessons.js','./keys.js','./error-coach.js','./language-points.js','./app.js','./performance-adapter.js?v=1.0.0-20261006','./campaign-01.json','./campaign-01.js','./manifest.webmanifest','./icon.svg'];
 const CORE_RE=/\.(?:html|js|css|json|webmanifest)$/i;
 function withTimeout(req,ms,init={}){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return releaseFetch(req,{...init,signal:c.signal}).finally(()=>clearTimeout(t));}
 async function installCore(list){
@@ -9,8 +10,8 @@ async function installCore(list){
   try{await releaseAll(list.map(async url=>{const req=new Request(new URL(url,self.registration.scope),{cache:'reload'}),r=await withTimeout(req,8000,{cache:'reload'});if(!r||!r.ok)throw new Error(`Core asset failed: ${url}`);await c.put(req,r.clone());}));}
   catch(e){await caches.delete(CACHE);throw e;}
 }
-self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
-self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+self.addEventListener('install',e=>e.waitUntil(installCore(ASSETS).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const key of await caches.keys()){if(key.startsWith(CACHE_PREFIX)&&key!==CACHE)await caches.delete(key);}await self.clients.claim();})()));
 async function network(req,ms=3500){try{return await withTimeout(req,ms,{cache:'no-cache'});}catch(_){return null;}}
 self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin!==self.location.origin)return;
