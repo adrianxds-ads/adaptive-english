@@ -1,129 +1,299 @@
-/* Pixel 10 · Grammar Quest · lectura inmediata
- * Capa visual acotada al quiz: no cambia temporizador, preguntas,
- * puntuacion, orden de respuestas ni gesto Leer primero.
- */
-@media (max-width: 520px) {
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) {
-    padding: 10px 11px 12px !important;
-    gap: 0 !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .top {
-    flex: 0 0 auto !important;
-    min-height: 0 !important;
-    margin: 0 0 10px !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .toprow {
-    display: grid !important;
-    grid-template-columns: minmax(0,1fr) 124px !important;
-    gap: 9px !important;
-    align-items: center !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .timer {
-    width: 50px !important; height: 50px !important;
-    border-width: 3px !important; margin: 0 !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .timer::after {
-    inset: -3px !important; border-width: 3px !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .timer strong {
-    font-size: 19px !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .qnum {
-    display: flex !important; flex-wrap: wrap !important;
-    align-items: baseline !important; justify-content: flex-start !important;
-    gap: 2px 7px !important; min-width: 0 !important;
-    line-height: 1.15 !important; text-align: left !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .qnum b {
-    display: inline !important; font-size: 27px !important;
-    line-height: 1 !important; color: #25282C !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .qnum span:first-child {
-    font-size: 15px !important; font-weight: 850 !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #qTotal {
-    flex: 0 0 100% !important; font-size: 15px !important;
-    line-height: 1.2 !important; text-align: left !important;
-    overflow-wrap: normal !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .hudright {
-    width: auto !important; min-width: 0 !important;
-    max-width: 124px !important; flex-wrap: nowrap !important;
-    align-items: center !important; gap: 6px !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .soundbtn {
-    width: 42px !important; height: 42px !important; min-width: 42px !important;
-    border-radius: 12px !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .leveltag {
-    max-width: 75px !important; font-size: 15px !important;
-    line-height: 1.15 !important; text-align: center !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .level-target {
-    display: block !important; max-width: 100% !important;
-    margin-top: 3px !important; padding: 3px 4px !important;
-    font-size: 13px !important; white-space: normal !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .playfield {
-    flex: 0 1 auto !important;
-    justify-content: flex-start !important;
-    gap: 0 !important; padding: 0 0 5px !important;
-    transform: none !important; overflow: visible !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question {
-    flex: 0 0 auto !important;
-    min-height: 110px !important;
-    margin: 0 0 11px !important; padding: 17px 13px !important;
-    border-radius: 14px !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question h2 {
-    font-family: Roboto,system-ui,sans-serif !important;
-    font-size: clamp(23px,6.3vw,29px) !important;
-    font-weight: 850 !important;
-    line-height: 1.22 !important;
-    letter-spacing: -.012em !important;
-    color: #25282C !important; text-shadow: none !important;
-    text-wrap: pretty !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .answer-stage {
-    flex: 0 0 auto !important; height: auto !important;
-    min-height: 0 !important; width: 100% !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers {
-    display: grid !important;
-    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
-    grid-template-rows: repeat(2, minmax(108px, auto)) !important;
-    height: auto !important; min-height: 0 !important;
-    gap: 9px !important; align-items: stretch !important; align-content: start !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers .answer {
-    height: 108px !important; min-height: 108px !important;
-    padding: 12px 10px !important; border-radius: 12px !important;
-    font-family: Roboto,system-ui,sans-serif !important;
-    font-size: clamp(19px,5.15vw,23px) !important;
-    font-weight: 850 !important; line-height: 1.16 !important;
-    text-wrap: balance !important; overflow-wrap: anywhere !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #segments {
-    flex: 0 0 auto !important; margin: 14px 5px 0 !important;
-    width: calc(100% - 10px) !important;
-  }
+/* Grammar Quest Focus OLED · Pixel 10 · vista de juego exclusiva
+   Modo oscuro de baja luminancia y barras verticales tactiles.
+   Las reglas de aprendizaje, colores de medallas y pantallas externas no cambian. */
+html:has(#gameScreen:not(.hidden)),
+body:has(#gameScreen:not(.hidden)) {
+  background:#08090c!important;
+  color:#edf0f4!important;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
 }
-@media (max-width: 520px) and (max-height: 700px) {
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) {padding-top: 5px !important;}
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .top {margin-bottom: 5px !important;}
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question {
-    min-height: 86px !important; padding: 11px !important; margin-bottom: 7px !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question h2 {
-    font-size: clamp(20px,5.7vw,25px) !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers {
-    grid-template-rows: repeat(2,minmax(89px,auto)) !important; gap: 6px !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers .answer {
-    height: 89px !important; min-height: 89px !important;
-    font-size: clamp(18px,5vw,21px) !important;
-  }
-  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #segments {margin-top: 8px !important;}
+body:has(#gameScreen:not(.hidden)) {
+  touch-action:manipulation!important;
+}
+body:has(#gameScreen:not(.hidden)) :is(.adrian-tools,.nucleo-route-footer) {
+  display:none!important;
+}
+body:has(#gameScreen:not(.hidden)) .app {
+  height:100dvh!important;
+  overflow:hidden!important;
+}
+html body[data-nucleo-game="english"] #gameScreen:not(.hidden) {
+  position:fixed!important;
+  inset:0!important;
+  z-index:50!important;
+  display:flex!important;
+  flex-direction:column!important;
+  height:100dvh!important;
+  min-height:0!important;
+  max-height:100dvh!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  background:#08090c!important;
+  color:#edf0f4!important;
+  overflow:hidden!important;
+  touch-action:manipulation!important;
+}
+#gameScreen .focus-header {
+  flex:0 0 auto;
+  position:relative;
+  z-index:12;
+  width:100%;
+  padding:8px 17px 0;
+  background:#08090c;
+}
+#gameScreen .focus-progress {
+  position:absolute;top:0;left:0;right:0;
+  height:3px;
+  background:#20242b;
+  overflow:hidden;
+}
+#gameScreen .focus-progress-fill {
+  width:0%;height:100%;
+  background:#6aa08d;
+  transition:width .18s ease-out;
+}
+#gameScreen .focus-topline {
+  min-height:50px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+#gameScreen .focus-points {
+  font:800 17px/1.2 Roboto,system-ui,sans-serif;
+  color:#d9e0e7;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.01em;
+}
+#gameScreen .focus-pause {
+  flex:0 0 auto;
+  width:48px;height:48px;
+  display:grid;place-items:center;
+  border:1px solid #454a52;
+  border-radius:14px;
+  background:#15181e;
+  color:#e0e8ee;
+  font-size:23px;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+#gameScreen .focus-pause:focus-visible,
+#gameScreen .focus-sound:focus-visible,
+#gameScreen #answers .answer:focus-visible,
+#gameScreen .focus-modal button:focus-visible {
+  outline:3px solid #8db9ff!important;
+  outline-offset:2px!important;
+}
+html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .playfield {
+  flex:1 1 auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:stretch!important;
+  align-items:stretch!important;
+  overflow:auto!important;
+  min-height:0!important;
+  max-height:100%!important;
+  width:100%!important;
+  padding:8px 19px 18px!important;
+  transform:none!important;
+  scrollbar-width:none;
+}
+#gameScreen .playfield::-webkit-scrollbar{display:none}
+#gameScreen .focus-stack {
+  margin:auto!important;
+  width:100%;
+  max-width:460px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  align-items:stretch;
+  flex:0 0 auto;
+  transform:translateY(-24px);
+}
+html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question {
+  flex:0 0 auto!important;
+  display:block!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:16px 16px 18px!important;
+  border:1px solid #343c48!important;
+  border-radius:18px!important;
+  background:#11141a!important;
+  box-shadow:none!important;
+  text-align:center!important;
+}
+#gameScreen .focus-counter {
+  display:block;
+  margin:0 0 9px;
+  color:#acb9c6!important;
+  font:700 15px/1.2 Roboto,system-ui,sans-serif;
+  letter-spacing:.02em;
+}
+#gameScreen .focus-question-line {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:13px;
+}
+html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question h2 {
+  width:100%!important;
+  margin:0!important;
+  font-family:Roboto,system-ui,sans-serif!important;
+  font-size:clamp(24px,6.1vw,30px)!important;
+  line-height:1.3!important;
+  letter-spacing:-.01em!important;
+  font-weight:780!important;
+  text-align:center!important;
+  color:#f3f5f7!important;
+  text-shadow:none!important;
+  overflow-wrap:anywhere!important;
+}
+html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-sound {
+  width:51px!important;height:48px!important;
+  min-width:51px!important;
+  margin:0!important;padding:0!important;
+  display:grid!important;place-items:center!important;
+  align-self:center!important;
+  border:1px solid #45505c!important;
+  border-radius:13px!important;
+  background:#1a2028!important;
+  color:#e5edf5!important;
+  font-size:22px!important;
+}
+html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .answer-stage {
+  display:block!important;
+  flex:0 0 auto!important;
+  height:auto!important;min-height:0!important;
+  overflow:visible!important;
+}
+html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers {
+  display:flex!important;
+  flex-direction:column!important;
+  gap:10px!important;
+  height:auto!important;
+  width:100%!important;
+  min-height:0!important;
+}
+html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers .answer {
+  --choice-border:#558b86;
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex:0 0 auto!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  min-height:68px!important;
+  height:auto!important;
+  padding:14px 18px!important;
+  border:2px solid var(--choice-border)!important;
+  border-radius:13px!important;
+  background:#101318!important;
+  color:#f2f4f7!important;
+  font:780 clamp(20px,5.25vw,24px)/1.2 Roboto,system-ui,sans-serif!important;
+  letter-spacing:0!important;
+  text-align:center!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  transform:none!important;
+  transition:none!important;animation:none!important;
+  overflow-wrap:anywhere!important;
+}
+#gameScreen #answers .answer:nth-child(1){--choice-border:#9b7753!important}
+#gameScreen #answers .answer:nth-child(2){--choice-border:#4f9a99!important}
+#gameScreen #answers .answer:nth-child(3){--choice-border:#718bc2!important}
+#gameScreen #answers .answer:nth-child(4){--choice-border:#aa708f!important}
+html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers .answer.good {
+  background:#155d3c!important;color:#fff!important;
+  border-color:#5ee0a2!important;
+  animation:none!important;
+  outline:none!important;
+}
+html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers .answer.bad {
+  background:#702a3a!important;color:#fff!important;
+  border-color:#f299a7!important;
+  animation:none!important;
+  outline:none!important;
+}
+html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers .answer.dim {
+  background:#101318!important;color:#acb2ba!important;
+  border-color:#404853!important;
+  opacity:.75!important;
+}
+html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers.read-first-hidden {
+  display:none!important;
+}
+#gameScreen .focus-reveal-hint {
+  display:none;
+  margin:10px 0 0;
+  padding:12px;
+  color:#bbc6d1;
+  font:600 17px/1.35 Roboto,system-ui,sans-serif;
+  text-align:center;
+  letter-spacing:.015em;
+}
+#gameScreen.focus-awaiting .focus-reveal-hint {display:block}
+#gameScreen .focus-modal[hidden]{display:none!important}
+#gameScreen .focus-modal {
+  position:absolute;
+  z-index:100;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:22px;
+  background:rgba(0,0,0,.91);
+}
+#gameScreen .focus-modal-card {
+  width:min(100%,380px);
+  padding:22px 18px;
+  background:#171b22;
+  border:1px solid #454e5c;
+  border-radius:20px;
+  display:flex;
+  flex-direction:column;
+  gap:13px;
+  box-shadow:0 12px 35px #0009;
+}
+#gameScreen .focus-modal-card h2 {
+  margin:0 0 2px;
+  font:800 25px/1.2 Roboto,system-ui,sans-serif;
+  color:#f4f7fa;
+  text-align:center;
+}
+#gameScreen .focus-modal-card p {
+  margin:0;
+  font:500 16px/1.35 Roboto,system-ui,sans-serif;
+  color:#cbd5df;
+  text-align:center;
+}
+#gameScreen .focus-modal-card button {
+  display:block;
+  width:100%;
+  min-height:55px;
+  border:1px solid #667387;
+  border-radius:12px;
+  background:#272e3a;
+  color:#f5f7fa;
+  font:750 17px/1.3 Roboto,system-ui,sans-serif;
+  cursor:pointer;
+}
+#gameScreen .focus-modal-card .focus-resume{
+  border-color:#4baf88;
+  background:#1d483a;
+}
+#gameScreen :is(.top,.toprow,.timer,.leveltag,#segments,.segments-bottom,.quiz-game-footer,.emergency-exit,.memory-echo,.correct-reveal,.feedback) {
+  display:none!important;
+}
+@media(max-height:700px) {
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .playfield {padding:4px 15px 10px!important}
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question {padding:12px 14px!important}
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question h2 {font-size:clamp(20px,5.6vw,26px)!important}
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers .answer {min-height:56px!important;padding:9px 14px!important}
+  #gameScreen .focus-stack {gap:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  #gameScreen .focus-progress-fill,
+  #gameScreen #answers .answer{transition:none!important;animation:none!important}
 }

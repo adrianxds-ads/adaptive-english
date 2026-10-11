@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.35.15";
+const APP_VERSION = "3.35.16";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -15,6 +15,8 @@ const GRAPH_BANDS_15=AVS_RANKS.map(x=>x.band||x.color);
 const AVS_TEXT_BANDS_15=AVS_RANKS.map(x=>x.text||x.color);
 let CAMPAIGN=null, BANK=[], state=null, session=null, timerHandle=null, revealHandle=null, deadline=0, current=null, locked=false, currentPreReadMs=0;
 let revealEarlyOnTap=null;
+let focusAnswerAt=0,focusReadAt=0,focusPausedAt=0,focusAwaiting=false,focusCurrentReadFirst=false;
+
 let audioCtx=null, soundOn=true, lastTickShown=TIME_LIMIT+1, lastUrgentBeat=-1;
 let focusLastActivityTs=Date.now(),focusLastTickTs=Date.now(),focusSaveMs=0,focusTimerHandle=null;
 
@@ -105,7 +107,8 @@ function readFirstDelayMs(text){
 function syncReadFirstButton(){
   const b=$("readFirstToggle");if(!b)return;
   b.setAttribute("aria-pressed",readFirstMode?"true":"false");
-  b.textContent=readFirstMode?"MODO · LEER PRIMERO · SÍ":"MODO · TODO JUNTO · NORMAL";
+  b.textContent=readFirstMode?"MODALIDAD 2 · RECUERDO ACTIVO":"MODALIDAD 1 · VELOCIDAD";
+  const switcher=$("focusModeSwitch");if(switcher)switcher.textContent=readFirstMode?"Cambiar a Velocidad en la próxima pregunta":"Cambiar a Recuerdo activo en la próxima pregunta";
 }
 function toggleReadFirstMode(){
   readFirstMode=!readFirstMode;
@@ -1223,7 +1226,11 @@ function renderStart(){
   renderFocusWidgets();
   renderMedalSummary();
 }
-function showScreen(id){["startScreen","statsScreen","leagueScreen","coachScreen","gameScreen","endScreen","errorsScreen"].forEach(x=>$(x).classList.toggle("hidden",x!==id));window.scrollTo(0,0);}
+function showScreen(id){
+  ["startScreen","statsScreen","leagueScreen","coachScreen","gameScreen","endScreen","errorsScreen"].forEach(x=>$(x).classList.toggle("hidden",x!==id));
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content",id==="gameScreen"?"#08090c":"#EAF0F5");
+  window.scrollTo(0,0);
+}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 async function settleUi(promise,ms,label){let t=null;try{return await Promise.race([Promise.resolve(promise),new Promise(resolve=>{t=setTimeout(()=>{console.warn(label+" timed out; continuing safely");resolve(null);},ms);})]);}catch(e){console.error(label+" failed",e);return null;}finally{if(t)clearTimeout(t);}}
 function missionOverlay(show=true){const el=$("missionOverlay");if(!el)return null;el.classList.toggle("hidden",!show);el.setAttribute("aria-hidden",show?"false":"true");return el;}
@@ -1274,87 +1281,111 @@ async function startSession(finalMode=false){
   session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),target,plan:raw.map(shuffleOptions),abortSnapshot,rankBefore:skillRankPositions(),combo:0,bestCombo:0,recovered:0,masteredRewards:0,learningXp:0,lastReward:""};
   $("sessionLevel").innerHTML=finalMode?"FINAL":`L${state.level}<small class="level-target">TARGET ${target.toFixed(1)}</small>`;
   secondaryEffect(()=>window.LanguagePoints?.beginLevel?.({target,level:state.level}));
-  try{await settleUi(showLevelIntro(finalMode,target),4500,"Session intro");}finally{missionOverlay(false);}showScreen("gameScreen");nextQuestion();
+  missionOverlay(false);
+  showScreen("gameScreen");nextQuestion();
   }finally{sessionStarting=false;}
 }
 function abortSession(){
   if(!session)return;
   clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;deadline=0;locked=true;missionOverlay(false);
+  focusPausedAt=0;focusAwaiting=false;$("focusPausePanel").hidden=true;$("gameScreen").classList.remove("focus-awaiting");
   const focusKeep={times:{...(state.focusTimeByDate||{})},targets:{...(state.focusTargetsByDate||{})},started:state.focusTrackingStartedAt};
   const snapshot=session.abortSnapshot;session=null;current=null;
   const f=$("feedback");if(f)f.classList.remove("show");hideCorrectReveal();document.body.classList.remove("feedback-correct","feedback-wrong");
   if(snapshot){try{const restored=JSON.parse(snapshot);state=validProgressState(restored)?normaliseProgressState(restored):restored;state.focusTimeByDate=focusKeep.times;state.focusTargetsByDate=focusKeep.targets;state.focusTrackingStartedAt=focusKeep.started;save();}catch(e){console.error("Emergency exit rollback failed",e);}}
   locked=false;renderStart();showScreen("startScreen");
 }
-function renderSegments(left=TIME_LIMIT,total=TIME_LIMIT){
-  const host=$("segments");
-  if(!host)return;
-  const duration=Math.max(.001,Number(total)||TIME_LIMIT),seconds=Math.max(1,Math.ceil(duration));
-  if(host.children.length!==seconds||host.dataset.secondsTotal!==String(seconds)){
-    const nodes=Array.from({length:seconds},()=>{const node=document.createElement("i");node.className="seg";return node;});
-    host.replaceChildren(...nodes);
-    host.classList.add("seconds-bar");
-    host.dataset.secondsTotal=String(seconds);
-    host.style.gridTemplateColumns="repeat("+seconds+",minmax(0,1fr))";
-    host.setAttribute("role","progressbar");
-    host.setAttribute("aria-valuemin","0");
-    host.setAttribute("aria-valuemax",String(seconds));
-  }
-  const remaining=Math.max(0,Math.min(duration,Number(left)||0));
-  const elapsed=Math.max(0,Math.min(seconds,Math.floor(duration-remaining+0.000001)));
-  [...host.children].forEach((node,index)=>node.classList.toggle("on",index<elapsed));
-  host.setAttribute("aria-valuenow",String(elapsed));
-  host.setAttribute("aria-valuetext",elapsed+" de "+seconds+" segundos transcurridos");
-}
+// Ghost timer: performance.now() is sampled only for analytics, with no timeout.
 function startTimer(){
-  clearInterval(timerHandle);deadline=performance.now()+TIME_LIMIT*1000;lastTickShown=TIME_LIMIT+1;lastUrgentBeat=-1;
-  timerHandle=setInterval(()=>{
-    const left=Math.max(0,(deadline-performance.now())/1000),shown=Math.ceil(left);
-    $("timerText").textContent=left.toFixed(1);
-    $("timer").style.setProperty("--timer-cut",`${100-left/TIME_LIMIT*100}%`);$("timer").classList.toggle("urgent",left<=3);
-    renderSegments(left);
-    // Give right/wrong a clear arcade signature; only the last two seconds warn.
-    if(left<=2&&left>0){
-      const beat=Math.ceil(left);
-      if(beat!==lastUrgentBeat){lastUrgentBeat=beat;playUrgentTimerPulse(left,beat);}
-    }
-    if(left<=0){clearInterval(timerHandle);answer(-1,true);}
-  },50);
+  clearInterval(timerHandle);timerHandle=null;
+  focusAnswerAt=performance.now();
+}
+function focusUpdateProgress(answered){
+  const total=session?.plan?.length||15;
+  const count=Math.max(0,Math.min(total,answered));
+  const bar=$("focusProgress"),fill=$("focusProgressFill");
+  if(bar){bar.setAttribute("aria-valuemax",String(total));bar.setAttribute("aria-valuenow",String(count));}
+  if(fill)fill.style.width=(100*count/total).toFixed(3)+"%";
+}
+function focusPause(){
+  if(!session||locked||focusPausedAt)return;
+  focusPausedAt=performance.now();
+  $("focusPausePanel").hidden=false;
+  $("focusResumeBtn").focus();
+}
+function focusResume(){
+  if(!focusPausedAt)return;
+  const elapsed=performance.now()-focusPausedAt;
+  if(focusAnswerAt)focusAnswerAt+=elapsed;
+  if(focusReadAt)focusReadAt+=elapsed;
+  focusPausedAt=0;
+  $("focusPausePanel").hidden=true;
+  $("focusPauseBtn").focus();
+}
+function focusSyncPoints(){
+  const source=$("languagePointsHud")?.querySelector(".lp-game-main b");
+  const value=(source?.textContent||"0").trim()+" PTS";
+  if($("focusPoints")?.textContent!==value)$("focusPoints").textContent=value;
 }
 function nextQuestion(){
   QuizLearning.clear();
   clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;NucleoReadFirstSkip.hide();currentPreReadMs=0;
   locked=false;hideCorrectReveal();
+  focusAnswerAt=0;focusReadAt=0;focusPausedAt=0;focusAwaiting=false;
+  $("gameScreen").classList.remove("focus-awaiting");$("focusPausePanel").hidden=true;
   if(session.index>=session.plan.length){finishSessionSafe();return;}
   current=session.plan[session.index];
   if(!current||!Array.isArray(current.display)||current.display.length!==4||!Number.isInteger(current.correctPos)||current.correctPos<0||current.correctPos>3){console.error("Skipping invalid question",current);session.index++;setTimeout(nextQuestion,0);return;}
   $("qIndex").textContent=session.index+1;
+  $("focusQuestionCounter").textContent=(session.index+1)+" / "+session.plan.length;
+  focusUpdateProgress(session.index);
+  focusSyncPoints();
   const rewardPrior=state.seen[current.fingerprint]||null,rewardGap=rewardPrior?state.level-rewardPrior.lastLevel:null,rewardSpecial=rewardPrior?.lapses>0&&!rewardPrior.masteredRewarded&&rewardPrior.lastCorrect===true&&rewardPrior.count>=2&&rewardGap>=2?"MASTER CHANCE":rewardPrior?.lapses>0&&rewardPrior.lastCorrect===false?"RECOVERY":rewardPrior?(QuizLearning.ready(rewardPrior,state.level)?"SPACED REVIEW":"EXTRA PRACTICE"):session.index===session.plan.length-1?"FINAL":"";
   $("qTotal").textContent="/ "+session.plan.length+(rewardSpecial?" · "+rewardSpecial:"");
   const view=visibleCard(current);current.visibleQuestion=view.question;current.visibleOptions=view.options;current.visibleFocus=view.focus;current.visibleNames=view.names;
   $("questionText").classList.remove("focus-active");$("questionText").textContent=view.question;
-  const wrap=$("answers");wrap.innerHTML="";wrap.classList.toggle("read-first-hidden",readFirstMode);const answerColors=shuffledAnswerColorClasses();
-  current.display.forEach((txt,i)=>{const b=document.createElement("button");b.className="answer "+answerColors[i];b.textContent=view.options[i];b.disabled=readFirstMode;b.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"){e.preventDefault();answer(i,false);}});b.addEventListener("click",()=>answer(i,false));wrap.appendChild(b);});
-  $("timerText").textContent=TIME_LIMIT.toFixed(1);$("timer").classList.remove("urgent");renderSegments(TIME_LIMIT);
-  if(readFirstMode){
-    currentPreReadMs=readFirstDelayMs(view.question);wrap.dataset.nucleoReadSeconds=String(currentPreReadMs/1000);window.NucleoQuizBars?.refresh?.();
-    const expectedSession=session,expectedIndex=session.index,readingStartedAt=performance.now();
-    const revealChoices=()=>{
-      if(session!==expectedSession||session.index!==expectedIndex||locked)return;
-      clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;
-      currentPreReadMs=Math.round(performance.now()-readingStartedAt);
-      NucleoReadFirstSkip.hide();wrap.classList.remove("read-first-hidden");[...wrap.children].forEach(b=>b.disabled=false);
+  const wrap=$("answers");
+  wrap.replaceChildren();
+  focusCurrentReadFirst=readFirstMode;
+  wrap.classList.toggle("read-first-hidden",focusCurrentReadFirst);
+  const answerColors=shuffledAnswerColorClasses();
+  current.display.forEach((txt,i)=>{
+    const b=document.createElement("button");
+    b.type="button";b.className="answer "+answerColors[i];b.textContent=view.options[i];
+    b.disabled=focusCurrentReadFirst;
+    b.addEventListener("pointerdown",e=>{
+      if(e.pointerType!=="mouse"){e.preventDefault();answer(i,false);}
+    });
+    b.addEventListener("click",()=>answer(i,false));
+    wrap.appendChild(b);
+  });
+  if(focusCurrentReadFirst){
+    focusAwaiting=true;
+    focusReadAt=performance.now();
+    $("gameScreen").classList.add("focus-awaiting");
+    const expectedSession=session,expectedIndex=session.index;
+    revealEarlyOnTap=()=>{
+      if(!focusAwaiting||focusPausedAt||session!==expectedSession||session.index!==expectedIndex||locked)return;
+      focusAwaiting=false;revealEarlyOnTap=null;
+      currentPreReadMs=Math.max(0,Math.round(performance.now()-focusReadAt));
+      focusReadAt=0;
+      wrap.classList.remove("read-first-hidden");
+      for(const b of wrap.children)b.disabled=false;
+      $("gameScreen").classList.remove("focus-awaiting");
       startTimer();
     };
-    revealEarlyOnTap=revealChoices;
-    NucleoReadFirstSkip.show('questionText',()=>{revealChoices();if(soundOn)tone(900,.028,.007,'sine');});
-    revealHandle=setTimeout(revealChoices,currentPreReadMs);
-  }else{revealEarlyOnTap=null;NucleoReadFirstSkip.hide();startTimer();}
+  }else{
+    focusAwaiting=false;focusReadAt=0;revealEarlyOnTap=null;
+    $("gameScreen").classList.remove("focus-awaiting");
+    startTimer();
+  }
 }
 function feedback(ok,type,sec,correct,appearance,patternAppearance,phraseCorrect=0,phraseWrong=0,cat=""){/* Feedback stays on the answer tiles. */}
 function answer(pos,timeout=false){
-  if(locked)return;locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;
-  const sec=timeout?TIME_LIMIT:Math.max(.05,(TIME_LIMIT*1000-(deadline-performance.now()))/1000);
+  if(locked||focusAwaiting||focusPausedAt)return;
+  locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;
+  const sec=Math.max(.05,(performance.now()-focusAnswerAt)/1000);
+  focusUpdateProgress(session.index+1);
   const ok=pos===current.correctPos&&!timeout,type=outcomeType(ok,sec,current.targetTime||3.6,timeout);
   const buttons=[...$("answers").children];
   buttons.forEach((b,i)=>{b.disabled=true;b.classList.remove("good","bad","dim");if(i===current.correctPos)b.classList.add("good");else b.classList.add("dim");});
@@ -1366,7 +1397,7 @@ function answer(pos,timeout=false){
   const now=Date.now(),intervalDays=reviewIntervalDays(previousSeen,type);
   state.seen[current.fingerprint]={count:appearance,lastLevel:state.level,lastTs:now,lastCorrect:ok,lapses,intervalDays,nextDueTs:now+intervalDays*86400000,masteredRewarded:!!(previousSeen?.masteredRewarded||masteredReward)};state.templateLast[current.templateId]=state.level;state.templateSeen[current.templateId]={count:patternAppearance,lastLevel:state.level,lastTs:now};
   const shownQuestion=current.visibleQuestion||current.q,shownOptions=current.visibleOptions||current.display,load=promptLoadMeta(shownQuestion);
-  const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,occurrence:appearance,patternOccurrence:patternAppearance,review:!!previousSeen,reviewDue:QuizLearning.ready(previousSeen,state.level),delayedRecall:!!previousSeen&&elapsedDays(previousSeen.lastTs)>=1,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:shownQuestion,originalQuestion:current.q,userAnswer:pos>=0?shownOptions[pos]:"No answer",correctAnswer:shownOptions[current.correctPos],rule:current.rule,promptWords:load.words,promptChars:load.chars,readingLoad:load.band,targetTimeSec:current.targetTime||3.6,timeLimitSec:TIME_LIMIT,sessionMode:session.mode,studyMode:readFirstMode?"READ_FIRST":"STANDARD",preReadMs:currentPreReadMs};
+  const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,occurrence:appearance,patternOccurrence:patternAppearance,review:!!previousSeen,reviewDue:QuizLearning.ready(previousSeen,state.level),delayedRecall:!!previousSeen&&elapsedDays(previousSeen.lastTs)>=1,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:shownQuestion,originalQuestion:current.q,userAnswer:pos>=0?shownOptions[pos]:"No answer",correctAnswer:shownOptions[current.correctPos],rule:current.rule,promptWords:load.words,promptChars:load.chars,readingLoad:load.band,targetTimeSec:current.targetTime||3.6,timeLimitSec:null,timingMode:"GHOST_UNLIMITED",sessionMode:session.mode,studyMode:focusCurrentReadFirst?"READ_FIRST":"STANDARD",preReadMs:currentPreReadMs};
   hideCorrectReveal();
   try{flashGrammarFocus(shownQuestion,rec.correctAnswer,current.visibleFocus||current.focus||[]);}catch(e){console.error("Grammar focus flash failed",e);}
   state.history.push(rec);state.history=QuizLearning.retain(state.history,12000,STORAGE_KEY+":answers");state.activeTrainingMs=(state.activeTrainingMs||0)+rec.ms;state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
@@ -1555,7 +1586,6 @@ async function boot(){
   // A full localStorage quota must not prevent the existing campaign from opening.
   // Keep the original data intact; never reset or overwrite progress on failure.
   await save();
-  renderSegments(TIME_LIMIT);
   $("startBtn").onclick=async()=>{await ensureAudio();await startSession(false);};
   if($("readFirstToggle")){$("readFirstToggle").onclick=toggleReadFirstMode;syncReadFirstButton();}
   $("statsBtn").onclick=()=>{renderStatsScreen();showScreen("statsScreen");};
@@ -1572,6 +1602,22 @@ async function boot(){
   const finalFromEnd=async()=>{await ensureAudio();await startSession(true);};$("finalBtn").onclick=finalFromEnd;$("topFinalBtn").onclick=finalFromEnd;
   $("soundBtn").onclick=async()=>{soundOn=!soundOn;if(soundOn){await ensureAudio();tone(760,.06,.025,'sine');}refreshSoundButton();};
   $("abortSessionBtn").onclick=abortSession;
+  $("focusPauseBtn").onclick=focusPause;
+  $("focusResumeBtn").onclick=focusResume;
+  $("focusModeSwitch").onclick=toggleReadFirstMode;
+  $("gameScreen").addEventListener("click",event=>{
+    if(!focusAwaiting||focusPausedAt)return;
+    if(event.target.closest("#soundBtn,#focusPauseBtn,#focusPausePanel"))return;
+    event.preventDefault();
+    revealEarlyOnTap?.();
+  });
+  document.addEventListener("keydown",event=>{
+    if(event.key==="Escape"&&focusPausedAt){event.preventDefault();focusResume();}
+  });
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden&&!$("gameScreen").classList.contains("hidden"))focusPause();
+  });
+  new MutationObserver(focusSyncPoints).observe($("gameScreen"),{subtree:true,childList:true,characterData:true});
   refreshSoundButton();
   $("exportBtn").onclick=exportProgress;$("importBtn").onclick=()=>$("importFile").click();
   $("importFile").onchange=e=>e.target.files[0]&&importProgress(e.target.files[0]);

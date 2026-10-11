@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#EAF0F5">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="ae-version" content="3.35.15">
+<meta name="ae-version" content="3.35.16">
 <title>Grammar Quest</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
@@ -577,7 +577,7 @@ body:has(#gameScreen:not(.hidden)) .adrian-tools .nucleo-arcade-points{display:f
 @media(max-height:740px){#gameScreen:not(.hidden) .question h2{font-size:clamp(20px,4.6vw,29px)!important}#gameScreen:not(.hidden) .answer{font-size:clamp(17px,4.1vw,24px)!important;padding:5px!important}}
 @media(prefers-reduced-motion:reduce){#gameScreen .answer{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="./pixel-quiz-layout.css?v=3.35.15">
+<link rel="stylesheet" href="./pixel-quiz-layout.css?v=3.35.16">
 </head>
 <body data-nucleo-game="english">
 <div class="app">
@@ -586,9 +586,9 @@ body:has(#gameScreen:not(.hidden)) .adrian-tools .nucleo-arcade-points{display:f
     <div id="startKicker" class="kicker">CAMPAIGN 1 · GRAMMAR QUEST</div>
     <div class="level-title-row"><h1 id="startLevel">LEVEL 42</h1><button type="button" class="level-next-shortcut" onclick="document.getElementById('startBtn')?.click()">NEXT LEVEL</button></div>
     <p class="subtitle">Grammar Quest · B2 → C1 Core</p>
-    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · fixed 15-second clock</div>
+    <div class="meta">3,000 exercises · 25 keys · 15 questions per level · tiempo de respuesta registrado</div>
         <div class="actions"><button id="startBtn" class="primary">START</button></div>
-        <div class="read-first-row"><button id="readFirstToggle" class="ghost read-first-toggle" type="button" aria-pressed="true">MODO · LEER PRIMERO · SÍ</button><small>Enunciado primero; el reloj empieza cuando aparecen las cuatro respuestas.</small></div>
+        <div class="read-first-row"><button id="readFirstToggle" class="ghost read-first-toggle" type="button" aria-pressed="true">MODO · LEER PRIMERO · SÍ</button><small>Recuerdo activo: toca para revelar. Velocidad: enunciado y opciones juntos.</small></div>
 <div class="dashboard-menu">
       <button id="statsBtn" class="secondary menu-btn"><b>STATISTICS</b><span>Graphs · progress · keys</span></button>
       <button id="coachBtn" class="secondary menu-btn"><b>MY COACH</b><span>Focus · common mistakes · rules</span></button>
@@ -679,23 +679,44 @@ body:has(#gameScreen:not(.hidden)) .adrian-tools .nucleo-arcade-points{display:f
   </div>
 </section>
 
-<section id="gameScreen" class="screen game hidden">
-  <div id="memoryEcho" class="memory-echo" aria-live="polite" aria-atomic="true"></div>
-  <div class="top">
-    <div class="toprow">
-      <div id="timer" class="timer"><strong id="timerText">10.0</strong></div>
-      <div class="qnum"><span>QUESTION</span><b id="qIndex">1</b><span id="qTotal">/ 15</span></div>
-      <div class="hudright"><button id="soundBtn" class="soundbtn" aria-label="Sound on">🔊</button><div id="sessionLevel" class="leveltag">L42</div></div>
+<section id="gameScreen" class="screen game hidden" aria-label="Grammar Quest · ejercicio">
+  <header class="focus-header">
+    <div id="focusProgress" class="focus-progress" role="progressbar" aria-label="Preguntas respondidas" aria-valuemin="0" aria-valuemax="15" aria-valuenow="0">
+      <div id="focusProgressFill" class="focus-progress-fill"></div>
+    </div>
+    <div class="focus-topline">
+      <span id="focusPoints" class="focus-points" aria-live="polite">0 PTS</span>
+      <button id="focusPauseBtn" class="focus-pause" type="button" aria-label="Pausar y abrir ajustes" aria-haspopup="dialog" aria-controls="focusPausePanel">Ⅱ</button>
+    </div>
+  </header>
+  <span id="sessionLevel" hidden></span>
+  <span id="qIndex" hidden>1</span><span id="qTotal" hidden>/ 15</span>
+  <div class="playfield">
+    <div class="focus-stack">
+      <div class="question">
+        <span id="focusQuestionCounter" class="focus-counter">1 / 15</span>
+        <div class="focus-question-line">
+          <h2 id="questionText"></h2>
+          <button id="soundBtn" class="soundbtn focus-sound" type="button" aria-label="Activar o desactivar sonido">🔊</button>
+        </div>
+      </div>
+      <div class="answer-stage">
+        <div id="answers" class="answers"></div>
+        <div id="feedback" class="feedback" aria-live="polite"></div>
+      </div>
+      <p id="focusRevealHint" class="focus-reveal-hint">Toca la pantalla para ver las cuatro opciones</p>
+    </div>
+    <div id="correctReveal" class="correct-reveal" aria-live="polite"></div>
+  </div>
+  <div id="focusPausePanel" class="focus-modal" role="dialog" aria-modal="true" aria-label="Pausa y ajustes" hidden>
+    <div class="focus-modal-card">
+      <h2>En pausa</h2>
+      <p>El tiempo de esta pregunta se detiene mientras descansas.</p>
+      <button id="focusResumeBtn" class="focus-resume" type="button">Continuar</button>
+      <button id="focusModeSwitch" type="button">Cambiar modalidad</button>
+      <button id="abortSessionBtn" type="button">Salir al panel sin guardar la ronda</button>
     </div>
   </div>
-  <div class="playfield">
-    <div id="correctReveal" class="correct-reveal" aria-live="polite"></div>
-    <div class="question"><h2 id="questionText"></h2></div>
-    <div class="answer-stage"><div id="answers" class="answers"></div>
-      <div id="feedback" class="feedback" aria-live="polite"></div></div>
-    <div id="segments" class="segments segments-bottom"></div>
-  </div>
-    <button id="abortSessionBtn" class="emergency-exit" type="button" aria-label="Exit level without saving progress">↩ EXIT</button>
 </section>
 
 <section id="endScreen" class="screen end hidden">
@@ -773,10 +794,10 @@ body:has(#gameScreen:not(.hidden)) .adrian-tools .nucleo-arcade-points{display:f
 <script src="./language-points.js?v=3.35.132"></script>
 
 <script src="./campaign-01.js?v=3.35.1"></script>
-<script src="./app.js?v=3.35.15-pixel-layout"></script>
+<script src="./app.js?v=3.35.16-focus-oled"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  navigator.serviceWorker.register('./service-worker.js?v=3.35.15-pixel-layout',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  navigator.serviceWorker.register('./service-worker.js?v=3.35.16-focus-oled',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 }
 </script>
 <script src="./performance-adapter.js?v=1.1.0"></script><script src="https://adrianxds-ads.github.io/adrian-core/components/hub-quiz-ux.js?v=20261011-2"></script>
