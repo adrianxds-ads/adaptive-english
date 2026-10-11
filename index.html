@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#EAF0F5">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="ae-version" content="3.35.13">
+<meta name="ae-version" content="3.35.15">
 <title>Grammar Quest</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
@@ -577,6 +577,7 @@ body:has(#gameScreen:not(.hidden)) .adrian-tools .nucleo-arcade-points{display:f
 @media(max-height:740px){#gameScreen:not(.hidden) .question h2{font-size:clamp(20px,4.6vw,29px)!important}#gameScreen:not(.hidden) .answer{font-size:clamp(17px,4.1vw,24px)!important;padding:5px!important}}
 @media(prefers-reduced-motion:reduce){#gameScreen .answer{transition:none!important;animation:none!important}}
 </style>
+<link rel="stylesheet" href="./pixel-quiz-layout.css?v=3.35.15">
 </head>
 <body data-nucleo-game="english">
 <div class="app">
@@ -772,10 +773,10 @@ body:has(#gameScreen:not(.hidden)) .adrian-tools .nucleo-arcade-points{display:f
 <script src="./language-points.js?v=3.35.132"></script>
 
 <script src="./campaign-01.js?v=3.35.1"></script>
-<script src="./app.js?v=3.35.13-arcadefinal20261011"></script>
+<script src="./app.js?v=3.35.15-pixel-layout"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  navigator.serviceWorker.register('./service-worker.js?v=arcadefinal20261011',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  navigator.serviceWorker.register('./service-worker.js?v=3.35.15-pixel-layout',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 }
 </script>
 <script src="./performance-adapter.js?v=1.1.0"></script><script src="https://adrianxds-ads.github.io/adrian-core/components/hub-quiz-ux.js?v=20261011-2"></script>

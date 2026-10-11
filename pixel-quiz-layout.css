@@ -1,0 +1,129 @@
+/* Pixel 10 · Grammar Quest · lectura inmediata
+ * Capa visual acotada al quiz: no cambia temporizador, preguntas,
+ * puntuacion, orden de respuestas ni gesto Leer primero.
+ */
+@media (max-width: 520px) {
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) {
+    padding: 10px 11px 12px !important;
+    gap: 0 !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .top {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    margin: 0 0 10px !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .toprow {
+    display: grid !important;
+    grid-template-columns: minmax(0,1fr) 124px !important;
+    gap: 9px !important;
+    align-items: center !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .timer {
+    width: 50px !important; height: 50px !important;
+    border-width: 3px !important; margin: 0 !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .timer::after {
+    inset: -3px !important; border-width: 3px !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .timer strong {
+    font-size: 19px !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .qnum {
+    display: flex !important; flex-wrap: wrap !important;
+    align-items: baseline !important; justify-content: flex-start !important;
+    gap: 2px 7px !important; min-width: 0 !important;
+    line-height: 1.15 !important; text-align: left !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .qnum b {
+    display: inline !important; font-size: 27px !important;
+    line-height: 1 !important; color: #25282C !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .qnum span:first-child {
+    font-size: 15px !important; font-weight: 850 !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #qTotal {
+    flex: 0 0 100% !important; font-size: 15px !important;
+    line-height: 1.2 !important; text-align: left !important;
+    overflow-wrap: normal !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .hudright {
+    width: auto !important; min-width: 0 !important;
+    max-width: 124px !important; flex-wrap: nowrap !important;
+    align-items: center !important; gap: 6px !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .soundbtn {
+    width: 42px !important; height: 42px !important; min-width: 42px !important;
+    border-radius: 12px !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .leveltag {
+    max-width: 75px !important; font-size: 15px !important;
+    line-height: 1.15 !important; text-align: center !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .level-target {
+    display: block !important; max-width: 100% !important;
+    margin-top: 3px !important; padding: 3px 4px !important;
+    font-size: 13px !important; white-space: normal !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .playfield {
+    flex: 0 1 auto !important;
+    justify-content: flex-start !important;
+    gap: 0 !important; padding: 0 0 5px !important;
+    transform: none !important; overflow: visible !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question {
+    flex: 0 0 auto !important;
+    min-height: 110px !important;
+    margin: 0 0 11px !important; padding: 17px 13px !important;
+    border-radius: 14px !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question h2 {
+    font-family: Roboto,system-ui,sans-serif !important;
+    font-size: clamp(23px,6.3vw,29px) !important;
+    font-weight: 850 !important;
+    line-height: 1.22 !important;
+    letter-spacing: -.012em !important;
+    color: #25282C !important; text-shadow: none !important;
+    text-wrap: pretty !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .answer-stage {
+    flex: 0 0 auto !important; height: auto !important;
+    min-height: 0 !important; width: 100% !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers {
+    display: grid !important;
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+    grid-template-rows: repeat(2, minmax(108px, auto)) !important;
+    height: auto !important; min-height: 0 !important;
+    gap: 9px !important; align-items: stretch !important; align-content: start !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers .answer {
+    height: 108px !important; min-height: 108px !important;
+    padding: 12px 10px !important; border-radius: 12px !important;
+    font-family: Roboto,system-ui,sans-serif !important;
+    font-size: clamp(19px,5.15vw,23px) !important;
+    font-weight: 850 !important; line-height: 1.16 !important;
+    text-wrap: balance !important; overflow-wrap: anywhere !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #segments {
+    flex: 0 0 auto !important; margin: 14px 5px 0 !important;
+    width: calc(100% - 10px) !important;
+  }
+}
+@media (max-width: 520px) and (max-height: 700px) {
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) {padding-top: 5px !important;}
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .top {margin-bottom: 5px !important;}
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question {
+    min-height: 86px !important; padding: 11px !important; margin-bottom: 7px !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question h2 {
+    font-size: clamp(20px,5.7vw,25px) !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers {
+    grid-template-rows: repeat(2,minmax(89px,auto)) !important; gap: 6px !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers .answer {
+    height: 89px !important; min-height: 89px !important;
+    font-size: clamp(18px,5vw,21px) !important;
+  }
+  html body[data-nucleo-game="english"] #gameScreen:not(.hidden) #segments {margin-top: 8px !important;}
+}
