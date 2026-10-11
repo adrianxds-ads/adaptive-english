@@ -1,0 +1,112 @@
+/* Grammar Quest · UX v4.2. Visual overrides only.
+   The quiz engine measures elapsed response time without a deadline. */
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-sound {
+  display:none!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-question-line{
+  gap:0!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-topline{
+  gap:9px!important;min-height:44px!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-time{
+  display:inline-flex!important;align-items:center;justify-content:center;
+  flex:0 0 auto;min-width:85px;min-height:38px;
+  padding:6px 8px;border-radius:999px;border:1px solid #516D7D;
+  background:#1B2228;color:#EAF0F5!important;
+  font:750 16px/1 Roboto,system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-time::before{
+  content:"";width:8px;height:8px;margin-right:7px;flex:none;
+  background:#75C6B2;border-radius:50%;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-time.is-reading::before{background:#9AADC0}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-time.is-paused::before{background:#EAC365}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-stack{
+  gap:8px!important;
+  transform:none!important;
+  margin:auto!important;
+  max-width:520px!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .playfield{
+  padding:5px 12px max(8px,env(safe-area-inset-bottom))!important;
+  overflow-y:auto!important;overscroll-behavior:contain;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question{
+  padding:10px 12px!important;
+  border-radius:13px!important;min-height:0!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question h2{
+  font-size:clamp(20px,5.6vw,28px)!important;
+  line-height:1.3!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-counter{
+  margin-bottom:4px!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers:has(>.answer:nth-child(4):last-child){
+  gap:8px!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers:has(>.answer:nth-child(4):last-child)>.answer{
+  min-height:clamp(84px,14dvh,122px)!important;
+  height:auto!important;padding:10px 8px!important;
+  font-size:clamp(17px,4.5vw,22px)!important;
+  line-height:1.3!important;
+}
+@media(max-height:700px){
+ html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-header{padding-top:4px!important}
+ html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-topline{min-height:42px!important}
+ html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question{padding:8px 10px!important}
+ html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers:has(>.answer:nth-child(4):last-child)>.answer{
+   min-height:78px!important;padding:7px 8px!important;
+ }
+}
+@media(max-height:530px){
+ html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-stack{margin:0 auto!important}
+}
+ /* Coach and mistakes: OLED cards including their nested headings / metadata. */
+html:root body[data-nucleo-game="english"] :is(#coachScreen,#errorsScreen)
+ :is(.coach-card,.coach-narrative,.mistake-card,.local-coach-hero,.error-lab,.error-coach-card,.error-detail,.error-quick,.error-music>div){
+  background:#1B2228!important;background-image:none!important;
+  color:#EAF0F5!important;border:1px solid #414B54!important;
+  box-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] :is(#coachScreen,#errorsScreen)
+ :is(.coach-card,.coach-narrative,.mistake-card,.local-coach-hero,.error-lab,.error-coach-card,.error-detail,.error-quick)
+ :is(h1,h2,h3,h4,p,b,strong,span,small,em,li){
+  color:#EAF0F5!important;opacity:1!important;
+}
+html:root body[data-nucleo-game="english"] :is(#coachScreen,#errorsScreen) :is(.coach-card,.mistake-card,.error-detail) :is(.muted,.subtle,.secondary){
+ color:#B9C5CF!important;
+}
+ /* Key Diary: replace forced cream surfaces and dark-on-dark captions. */
+html:root body[data-nucleo-game="english"] :is(#startScreen,#statsScreen,#endScreen)
+ :is(.daily-key-card,.daily-key-card.locked-card,.daily-key-card.discovery-card,.daily-key-face,.keyring-item,.key-slide,.locked-card){
+  background:#1B2228!important;background-image:none!important;
+  color:#EAF0F5!important;border-color:#414B54!important;box-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] :is(#startScreen,#statsScreen,#endScreen)
+ :is(.daily-key-card,.daily-key-head,.key-slide-meta,.daily-key-face,.keyring-item,.key-carousel-hint)
+ :is(span,small,b,strong,em,p,h2,h3){
+  color:#EAF0F5!important;opacity:1!important;text-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] :is(#startScreen,#statsScreen,#endScreen)
+ :is(.key-slide-meta,.key-carousel-hint,.daily-key-head) :is(small,span){
+  color:#C3CDD6!important;
+}
+html:root body[data-nucleo-game="english"] .daily-key-face .key-highlight{
+ color:#EAC365!important;
+}
+
+/* Coach statistics: legacy summary and skill rows were still bright cards. */
+html:root body[data-nucleo-game="english"] :is(#coachScreen,#errorsScreen)
+ :is(.campaign-eta,.statusbox,.skillrow,.coach-stat,.coach-stats,.coach-summary,.coach-metric){
+ background:#1B2228!important;background-image:none!important;
+ color:#EAF0F5!important;border:1px solid #414B54!important;
+ box-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] :is(#coachScreen,#errorsScreen)
+ :is(.campaign-eta,.statusbox,.skillrow,.coach-stat,.coach-stats,.coach-summary,.coach-metric)
+ :is(h1,h2,h3,h4,p,b,strong,span,small,em){
+ color:#EAF0F5!important;text-shadow:none!important;opacity:1!important;
+}
