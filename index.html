@@ -744,13 +744,14 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 <script src="./language-points.js?v=3.35.1"></script>
 
 <script src="./campaign-01.js?v=3.35.1"></script>
-<script src="./app.js?v=3.35.9"></script>
+<script src="./app.js?v=3.35.10-ux20261011"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  navigator.serviceWorker.register('./service-worker.js?v=fast-boot-20261011',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  navigator.serviceWorker.register('./service-worker.js?v=ux20261011-adaptive-english',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 }
 </script>
-<script src="./performance-adapter.js?v=1.1.0"></script><script src="https://adrianxds-ads.github.io/adrian-core/components/hub-nav.js?v=11-20261011"></script>
+<script src="./performance-adapter.js?v=1.1.0"></script><script src="https://adrianxds-ads.github.io/adrian-core/components/hub-quiz-ux.js?v=20261011-1"></script>
+<script src="https://adrianxds-ads.github.io/adrian-core/components/hub-nav.js?v=11-20261011"></script>
 
 </body>
 </html>
