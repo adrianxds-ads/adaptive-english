@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#EAF0F5">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="ae-version" content="3.35.9">
+<meta name="ae-version" content="3.35.12">
 <title>Grammar Quest</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
@@ -549,6 +549,34 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 @media(max-width:520px){#endScreen .end-collapsible{padding:0 12px}#endScreen .end-collapsible>summary{font-size:14px}}
 </style>
 <link rel="stylesheet" href="./nucleo-game-theme.css?v=1.2.0">
+<style id="nucleo-arcade-stable">
+html:has(#gameScreen:not(.hidden)),body:has(#gameScreen:not(.hidden)){height:100%;overflow:hidden!important;overscroll-behavior:none}
+body:has(#gameScreen:not(.hidden)){position:relative;touch-action:pan-x}
+body:has(#gameScreen:not(.hidden)) .app{height:calc(100dvh - var(--nucleo-topbar-height,56px));min-height:0!important;overflow:hidden}
+body:has(#gameScreen:not(.hidden)) .adrian-tools{flex-wrap:nowrap!important;gap:3px!important;padding-left:4px!important;padding-right:4px!important}
+body:has(#gameScreen:not(.hidden)) .adrian-tools .nucleo-route-nav{flex:1 1 140px!important;gap:3px!important}
+body:has(#gameScreen:not(.hidden)) .adrian-tools .nucleo-route-nav>a,body:has(#gameScreen:not(.hidden)) .adrian-tools .nucleo-route-nav>button{padding:4px 3px!important;font-size:clamp(11px,3.05vw,13px)!important}
+body:has(#gameScreen:not(.hidden)) .adrian-tools .adrian-text-toggle,body:has(#gameScreen:not(.hidden)) .adrian-tools .adrian-tech-button{padding:0 4px!important;min-width:34px!important;font-size:11px!important}
+body:has(#gameScreen:not(.hidden)) .adrian-tools .nucleo-arcade-points{padding:0 5px!important;font-size:12px!important;min-width:67px!important;flex:0 0 auto}
+body.feedback-wrong .game{animation:none!important}
+body:has(#gameScreen:not(.hidden)) .nucleo-route-footer{display:none!important}
+#gameScreen:not(.hidden){min-height:0!important;height:calc(100dvh - var(--nucleo-topbar-height,56px))!important;overflow:hidden!important;overscroll-behavior:contain;display:flex;flex-direction:column;padding-bottom:8px!important}
+#gameScreen:not(.hidden) .playfield{flex:1 1 auto;min-height:0;overflow:hidden;transform:none!important;padding-bottom:4px!important;justify-content:center;gap:0}
+#gameScreen:not(.hidden) .question{flex:0 0 auto}
+#gameScreen:not(.hidden) .answer-stage{min-height:0;flex:1 1 auto}
+#gameScreen:not(.hidden) .answers{height:100%;min-height:0}
+#gameScreen:not(.hidden) .answer{min-height:0!important;transition:filter .10s ease,background-color .10s ease,transform .12s ease!important}
+#gameScreen:not(.hidden) .answer.good{animation:nucleo-arcade-win .19s ease-out both}
+#gameScreen:not(.hidden) .answer.bad{animation:nucleo-arcade-error .18s ease-out both}
+@keyframes nucleo-arcade-win{0%{filter:brightness(1.0);transform:scale(1)}48%{filter:brightness(1.20);transform:scale(1.012)}100%{filter:brightness(1);transform:scale(1)}}
+@keyframes nucleo-arcade-error{0%{filter:brightness(1)}48%{filter:brightness(1.12)}100%{filter:brightness(1)}}
+#gameScreen:not(.hidden) .quiz-game-footer{display:none!important}
+#gameScreen:not(.hidden) .emergency-exit{display:none!important}
+.adrian-tools .nucleo-arcade-points{display:none;align-items:center;justify-content:center;min-height:36px;padding:0 9px;border:1px solid #aebfc9;border-radius:9px;background:#dfeaf1;color:#25485a;font:900 15px/1 Roboto,system-ui,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+body:has(#gameScreen:not(.hidden)) .adrian-tools .nucleo-arcade-points{display:flex}
+@media(max-height:740px){#gameScreen:not(.hidden) .question h2{font-size:clamp(20px,4.6vw,29px)!important}#gameScreen:not(.hidden) .answer{font-size:clamp(17px,4.1vw,24px)!important;padding:5px!important}}
+@media(prefers-reduced-motion:reduce){#gameScreen .answer{transition:none!important;animation:none!important}}
+</style>
 </head>
 <body data-nucleo-game="english">
 <div class="app">
@@ -741,17 +769,18 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
 <script src="./keys.js?v=3.22"></script>
 <script src="./error-coach.js?v=3.22"></script>
 <script>window.LANGUAGE_POINTS_CONFIG={appId:"english",timeLimit:15};</script>
-<script src="./language-points.js?v=3.35.1"></script>
+<script src="./language-points.js?v=3.35.122"></script>
 
 <script src="./campaign-01.js?v=3.35.1"></script>
-<script src="./app.js?v=3.35.11-scopefix20261011"></script>
+<script src="./app.js?v=3.35.12-arcade20261011"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  navigator.serviceWorker.register('./service-worker.js?v=scopefix20261011',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  navigator.serviceWorker.register('./service-worker.js?v=arcade20261011',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 }
 </script>
 <script src="./performance-adapter.js?v=1.1.0"></script><script src="https://adrianxds-ads.github.io/adrian-core/components/hub-quiz-ux.js?v=20261011-2"></script>
-<script src="https://adrianxds-ads.github.io/adrian-core/components/hub-nav.js?v=12-20261011"></script>
+<script src="https://adrianxds-ads.github.io/adrian-core/components/hub-nav.js?v=13-arcade-20261011"></script>
+<script src="./arcade-stability.js?v=1.0.0"></script>
 
 </body>
 </html>

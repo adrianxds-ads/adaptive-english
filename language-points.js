@@ -56,14 +56,17 @@ function ensureHud(){
   const game=document.getElementById("gameScreen");
   if(!game)return null;
   let top=game.querySelector(".quiz-game-footer");
-  if(!top){top=document.createElement("div");top.className="quiz-game-footer";game.appendChild(top);const exit=game.querySelector(".emergency-exit");if(exit)top.appendChild(exit);}
+  if(!top){top=document.createElement("div");top.className="quiz-game-footer";game.appendChild(top);}
   if(!top)return null;
   let el=document.getElementById("languagePointsHud");
   if(!el){
     el=document.createElement("div");el.id="languagePointsHud";el.className="lp-game-score";
     el.innerHTML="<div class='lp-game-label'>PUNTOS DE PARTIDA</div><div class='lp-game-main'><b>0</b><small>PTS</small></div><div class='lp-game-total'>TOTAL <strong>0</strong></div><div class='lp-delta'></div>";
     top.prepend(el);
+    new MutationObserver(()=>{const badge=document.querySelector(".nucleo-arcade-points");if(badge)badge.textContent=(el.querySelector(".lp-game-main b")?.textContent||"0")+" PTS";}).observe(el,{subtree:true,childList:true,characterData:true});
   }
+  const nav=document.querySelector(".adrian-tools");
+  if(nav){let badge=nav.querySelector(".nucleo-arcade-points");if(!badge){badge=document.createElement("span");badge.className="nucleo-arcade-points";badge.setAttribute("aria-label","Puntos de partida");nav.appendChild(badge);}badge.textContent=(el.querySelector(".lp-game-main b")?.textContent||"0")+" PTS";}
   return el;
 }
 function animateNumber(el,from,to,dur=260,onStep){
