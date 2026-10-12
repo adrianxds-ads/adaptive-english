@@ -1,0 +1,424 @@
+/* Grammar Quest · Núcleo Design System pilot 1.0 (2026-10-12).
+ * App-specific adaptation only, after the historical OLED/global layers.
+ * No JS, reward, duration, bank, persistence or engine changes.
+ * This pilot is NOT the source for other apps until regression is approved.
+ */
+html:root body[data-nucleo-game="english"]{
+  --gq-brand:#4A90E2;
+  --gq-bg:#0E1318;
+  --gq-panel:#192229;
+  --gq-edge:#414B54;
+  --gq-ink:#EAF0F5;
+  --gq-muted:#B9C5CE;
+  background-color:var(--gq-bg)!important;
+  background-image:none!important;
+  color:var(--gq-ink)!important;
+  font-family:Roboto,"Segoe UI",Arial,system-ui,sans-serif;
+}
+/* Home: remove competing green/brown atmospheres, without moving widgets. */
+html:root body[data-nucleo-game="english"] #startScreen,
+html:root body[data-nucleo-game="english"] #statsScreen,
+html:root body[data-nucleo-game="english"] #coachScreen,
+html:root body[data-nucleo-game="english"] #leagueScreen{
+  background:var(--gq-bg)!important;
+  background-image:none!important;
+  color:var(--gq-ink)!important;
+}
+html:root body[data-nucleo-game="english"] #startScreen>.panel,
+html:root body[data-nucleo-game="english"] :is(#statsScreen,#coachScreen,#leagueScreen)>.panel{
+  background:var(--gq-panel)!important;
+  background-image:none!important;
+  color:var(--gq-ink)!important;
+  border:1px solid var(--gq-edge)!important;
+  border-top:3px solid var(--gq-brand)!important;
+  border-radius:16px;
+  box-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] #startScreen :is(.kicker,#startKicker),
+html:root body[data-nucleo-game="english"] :is(#statsScreen,#coachScreen,#leagueScreen) .kicker{
+  color:#86BEFA!important;
+}
+html:root body[data-nucleo-game="english"] #startScreen :is(h1,h2,h3,.subtitle),
+html:root body[data-nucleo-game="english"] :is(#statsScreen,#coachScreen,#leagueScreen) :is(h1,h2,h3){
+  color:var(--gq-ink)!important;
+  text-shadow:none!important;
+}
+/* A single corporate CTA instead of the multi-color gradient. */
+html:root body[data-nucleo-game="english"] #startScreen #startBtn,
+html:root body[data-nucleo-game="english"] :is(#statsScreen,#coachScreen,#leagueScreen) .primary{
+  background:#285F9A!important;
+  background-image:none!important;
+  color:#FFFFFF!important;
+  border:1px solid #4A90E2!important;
+  box-shadow:none!important;
+  text-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] #startScreen :is(.menu-btn,.read-first-toggle){
+  background:#24313A!important;
+  background-image:none!important;
+  color:var(--gq-ink)!important;
+  border:1px solid #566978!important;
+  box-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] #startScreen .dashboard-menu .menu-btn :is(b,span){
+  color:var(--gq-ink)!important;
+}
+html:root body[data-nucleo-game="english"] #startScreen .dashboard-menu .menu-btn span{
+  color:var(--gq-muted)!important;
+}
+html:root body[data-nucleo-game="english"] #startScreen :is(.card,.statusbox,.peer-box,.ai-valuation-box,.learning-score-box,
+  .next-campaign-box,.daily-key-card,.daily-key-face,.keyring-item,.key-slide,.study-card,.study-panel),
+html:root body[data-nucleo-game="english"] :is(#statsScreen,#coachScreen,#leagueScreen) :is(.card,.statusbox,.section){
+  background:var(--gq-panel)!important;
+  background-image:none!important;
+  border-color:var(--gq-edge)!important;
+  box-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] #startScreen .daily-key-section{
+  border-top-color:var(--gq-edge)!important;
+}
+html:root body[data-nucleo-game="english"] #startScreen .ad-medal-stat{
+  box-shadow:none!important;
+  background:#172028!important;
+}
+/* A true light reading plane while questions are active. */
+html:root:has(body[data-nucleo-game="english"] #gameScreen:not(.hidden)){
+  background:#EAF0F5!important;
+  color-scheme:light;
+}
+html:root body[data-nucleo-game="english"]:has(#gameScreen:not(.hidden)){
+  background:#EAF0F5!important;
+  background-image:none!important;
+  color:#25282C!important;
+  color-scheme:light;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden){
+  background:#EAF0F5!important;
+  background-image:none!important;
+  color:#25282C!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-header{
+  background:#EAF0F5!important;
+  color:#25282C!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-progress{
+  background:#CCD8E2!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-progress-fill{
+  background:var(--gq-brand)!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-points,
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-counter,
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-reveal-hint{
+  color:#46596B!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-pause{
+  color:#25282C!important;
+  background:#FFFFFF!important;
+  border:1px solid #9FB5C6!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .question{
+  background:#FFFFFF!important;
+  background-image:none!important;
+  color:#25282C!important;
+  border:1px solid #B5C9D7!important;
+  box-shadow:none!important;
+  border-radius:16px;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) :is(.question h2,#questionText){
+  color:#25282C!important;
+  text-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden)
+  #answers>.answer:not(.good,.bad,.dim){
+  background:#FFFFFF!important;
+  background-image:none!important;
+  color:#25282C!important;
+  box-shadow:none!important;
+  border-width:2px!important;
+  border-style:solid!important;
+  font-weight:750;
+}
+/* Keep each option's existing semantic border color (four separate categories). */
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .focus-time{
+  background:#FFFFFF!important;
+  color:#25282C!important;
+  border-color:#9FB5C6!important;
+}
+/* Results and error review are reading, not home/dashboard environments. */
+html:root body[data-nucleo-game="english"] :is(#endScreen,#errorsScreen){
+  background:#EAF0F5!important;
+  background-image:none!important;
+  color:#25282C!important;
+}
+html:root body[data-nucleo-game="english"] :is(#endScreen,#errorsScreen)>.panel{
+  background:#FFFFFF!important;
+  background-image:none!important;
+  border:1px solid #B5C9D7!important;
+  box-shadow:none!important;
+  color:#25282C!important;
+}
+html:root body[data-nucleo-game="english"] :is(#endScreen,#errorsScreen) .resulttitle :is(h1,h2,.kicker,p){
+  color:#25282C!important;
+}
+html:root body[data-nucleo-game="english"] :is(#endScreen,#errorsScreen) :is(.secondary,.ghost){
+  background:#EFF5F9!important;
+  color:#24465D!important;
+  border:1px solid #9FB5C6!important;
+}
+/* Adapt result metric surfaces as a neutral reading family, not its grading colors. */
+html:root body[data-nucleo-game="english"] #endScreen :is(.card,.section,.statusbox){
+  background:#F2F7FA!important;
+  border:1px solid #B5C9D7!important;
+  box-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] #endScreen .card :is(b,strong,span){
+  color:#25282C!important;
+}
+html:root body[data-nucleo-game="english"] :is(#endScreen,#errorsScreen) :is(.primary,.screen-nav .primary){
+  background:#285F9A!important;
+  background-image:none!important;
+  color:#FFFFFF!important;
+  border-color:#4A90E2!important;
+}
+html:root body[data-nucleo-game="english"] :is(#startScreen,#gameScreen,#statsScreen,#coachScreen,#leagueScreen,#endScreen,#errorsScreen)
+  :is(button,a,summary,input,textarea):focus-visible{
+  outline:3px solid #4A90E2!important;outline-offset:3px!important;
+}
+@media (prefers-reduced-motion:reduce){
+  html:root body[data-nucleo-game="english"] :is(#startScreen,#gameScreen,#endScreen) :is(.card,.answer,button){
+    transition:none!important;
+  }
+}
+
+/* Pilot findings: shared top bar was dark-on-dark; use legible controls in both views. */
+html:root body[data-nucleo-game="english"] .adrian-tools {
+  background:#EAF0F5!important;
+  border-bottom:1px solid #B5C9D7;
+}
+html:root body[data-nucleo-game="english"] .adrian-tools .nucleo-route-nav {
+  background:#192229!important;
+  border-color:#566978!important;
+}
+html:root body[data-nucleo-game="english"] .adrian-tools .nucleo-route-nav :is(a,button) {
+  color:#EAF0F5!important;
+  background:#192229!important;
+  border-color:#566978!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] .adrian-tools .nucleo-route-nav :is(a,button):focus-visible {
+  outline:3px solid #4A90E2!important;
+}
+/* The fixed route toolbar otherwise covers the first quiz line and progress. */
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) {
+  padding-top:calc(var(--nucleo-topbar-height,56px) + 10px)!important;
+  box-sizing:border-box!important;
+}
+/* Compact game medals: accumulated numerals in circles, independent star. */
+html:root body[data-nucleo-game="english"] #startMedals .ad-medal-strip {
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:10px!important;
+  height:auto!important;
+  min-height:40px!important;
+  padding:2px 0!important;
+}
+html:root body[data-nucleo-game="english"] #startMedals .ad-medal-stat:not(.ad-medal-stat-star) {
+  flex:0 0 34px!important;
+  width:34px!important;
+  min-width:34px!important;
+  height:34px!important;
+  min-height:34px!important;
+  padding:0!important;
+  margin:0!important;
+  border:1.5px solid var(--ach)!important;
+  border-radius:50%!important;
+  display:grid!important;
+  place-items:center!important;
+  position:relative!important;
+  background:#151C22!important;
+  box-shadow:none!important;
+  opacity:1!important;
+}
+html:root body[data-nucleo-game="english"] #startMedals .ad-medal-stat:not(.ad-medal-stat-star)>i {
+  display:grid!important;
+  place-items:center!important;
+  width:100%!important;height:100%!important;
+  min-width:0!important;min-height:0!important;
+  margin:0!important;padding:0!important;
+  inset:auto!important;position:static!important;
+  background:transparent!important;box-shadow:none!important;
+  border:0!important;border-radius:0!important;
+  color:#EAF0F5!important;
+  font:700 16px/1 Roboto,system-ui,sans-serif!important;
+  text-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] #startMedals .ad-medal-stat:not(.ad-medal-stat-star)>b {
+  display:none!important;
+}
+html:root body[data-nucleo-game="english"] #startMedals .ad-medal-stat.locked:not(.ad-medal-stat-star) {
+  border-color:color-mix(in srgb,var(--ach) 65%,#414B54)!important;
+}
+/* The old star circle and miniature star are both removed visually. */
+html:root body[data-nucleo-game="english"] #startMedals .ad-medal-stat-star.locked {
+  display:none!important;
+}
+html:root body[data-nucleo-game="english"] #startMedals .ad-medal-stat-star:not(.locked) {
+  display:inline-flex!important;align-items:center!important;
+  gap:5px!important;min-width:0!important;width:auto!important;
+  height:34px!important;padding:0 2px!important;
+  border:0!important;background:transparent!important;
+  box-shadow:none!important;opacity:1!important;
+}
+html:root body[data-nucleo-game="english"] #startMedals .ad-medal-stat-star:not(.locked)::before {
+  content:"★";color:#E7BF57;font-size:24px;line-height:1;
+}
+html:root body[data-nucleo-game="english"] #startMedals .ad-medal-stat-star>i {
+  display:none!important;
+}
+html:root body[data-nucleo-game="english"] #startMedals .ad-medal-stat-star>b,
+html:root body[data-nucleo-game="english"] #startMedals .ad-medal-stat-star>b em {
+  display:inline!important;
+  font:750 16px/1 Roboto,system-ui,sans-serif!important;
+  color:#EAF0F5!important;
+  background:transparent!important;
+  text-shadow:none!important;
+}
+/* Key Diary preserves its carousel and flip/advance behavior, but shows one
+ * complete slide per viewport instead of two clipped partial slides. */
+html:root body[data-nucleo-game="english"] #startScreen .key-carousel {
+  gap:12px!important;
+  padding:2px 0 10px!important;
+  scroll-padding-inline:0!important;
+}
+html:root body[data-nucleo-game="english"] #startScreen .key-carousel>.key-slide {
+  flex:0 0 100%!important;
+  width:100%!important;
+  min-width:0!important;
+  scroll-snap-align:start!important;
+}
+html:root body[data-nucleo-game="english"] #startScreen .key-slide .daily-key-card {
+  min-width:0!important;
+}
+html:root body[data-nucleo-game="english"] #startScreen .key-slide .daily-key-face strong {
+  overflow-wrap:anywhere!important;
+}
+
+/* Reading task uses the available viewport instead of leaving its focus card
+ * stranded directly beneath the route bar. No change to the answer engine. */
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) .playfield{
+  justify-content:center!important;
+}
+html:root body[data-nucleo-game="english"] #gameScreen:not(.hidden) #answers>.answer{
+  min-height:88px!important;
+  font-size:clamp(20px,5.2vw,25px)!important;
+  line-height:1.25!important;
+}
+
+html:root body[data-nucleo-game="english"] #startScreen .key-carousel-hint{
+  color:#B9C5CE!important;
+  opacity:1!important;
+}
+html:root body[data-nucleo-game="english"] .nucleo-route-footer :is(a,button){
+  color:#EAF0F5!important;
+  background:#192229!important;
+  border-color:#566978!important;
+  opacity:1!important;
+}
+
+/* Finish screen: scores first, medals secondary; preserve all award counters. */
+html:root body[data-nucleo-game="english"] #endMedals .ad-medal-strip{
+  display:flex!important;flex-wrap:wrap!important;
+  align-items:center!important;justify-content:center!important;
+  gap:14px!important;height:auto!important;min-height:42px!important;
+  padding:6px 0!important;
+}
+html:root body[data-nucleo-game="english"] #endMedals .ad-medal-stat:not(.ad-medal-stat-star){
+  display:grid!important;place-items:center!important;
+  flex:0 0 38px!important;width:38px!important;min-width:38px!important;
+  height:38px!important;min-height:38px!important;
+  margin:0!important;padding:0!important;
+  border:1.5px solid var(--ach)!important;
+  border-radius:50%!important;
+  background:#F2F7FA!important;
+  box-shadow:none!important;
+  opacity:1!important;
+}
+html:root body[data-nucleo-game="english"] #endMedals .ad-medal-stat:not(.ad-medal-stat-star)>i{
+  display:grid!important;place-items:center!important;
+  position:static!important;inset:auto!important;
+  margin:0!important;padding:0!important;
+  width:100%!important;height:100%!important;
+  min-width:0!important;min-height:0!important;
+  border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+  color:#25282C!important;text-shadow:none!important;
+  font:750 17px/1 Roboto,system-ui,sans-serif!important;
+}
+html:root body[data-nucleo-game="english"] #endMedals .ad-medal-stat:not(.ad-medal-stat-star)>b{
+  display:none!important;
+}
+html:root body[data-nucleo-game="english"] #endMedals .ad-medal-stat-star{
+  display:inline-flex!important;align-items:center!important;
+  gap:5px!important;min-width:0!important;width:auto!important;
+  height:38px!important;margin:0!important;padding:0!important;
+  background:transparent!important;
+  border:0!important;box-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] #endMedals .ad-medal-stat-star::before{
+  content:"★";font:750 24px/1 Roboto,system-ui,sans-serif;
+  color:#A77A24;
+}
+html:root body[data-nucleo-game="english"] #endMedals .ad-medal-stat-star>i{
+  display:none!important;
+}
+html:root body[data-nucleo-game="english"] #endMedals .ad-medal-stat-star>b,
+html:root body[data-nucleo-game="english"] #endMedals .ad-medal-stat-star>b em{
+  display:inline!important;
+  color:#25282C!important;
+  background:transparent!important;
+  font:750 17px/1 Roboto,system-ui,sans-serif!important;
+  text-shadow:none!important;
+}
+html:root body[data-nucleo-game="english"] #endScreen .target-result :is(span,small,b,strong,p){
+  color:#25282C!important;
+  opacity:1!important;
+}
+html:root body[data-nucleo-game="english"] #endScreen :is(.end-collapsible>summary,.end-ai-group>summary){
+  background:#EFF5F9!important;
+  border:1px solid #B5C9D7!important;
+  color:#25282C!important;
+}
+
+/* Clear the absolute badge positioning inherited from the old star medallion. */
+html:root body[data-nucleo-game="english"] #endMedals .ad-medal-stat-star,
+html:root body[data-nucleo-game="english"] #endMedals .ad-medal-stat-star>b,
+html:root body[data-nucleo-game="english"] #endMedals .ad-medal-stat-star>b em {
+  position:static!important;
+  inset:auto!important;
+  transform:none!important;
+  width:auto!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+  float:none!important;
+  vertical-align:middle!important;
+}
+html:root body[data-nucleo-game="english"] #endScreen .campaign-eta-mini :is(small,span,em) {
+  color:#46596B!important;
+  opacity:1!important;
+}
+
+html:root body[data-nucleo-game="english"] #endMedals .ad-medal-stat-star::before{
+  display:inline-block!important;
+  position:static!important;
+  inset:auto!important;
+  transform:none!important;
+  align-self:center!important;
+  margin:0!important;
+  padding:0!important;
+  line-height:1!important;
+}
