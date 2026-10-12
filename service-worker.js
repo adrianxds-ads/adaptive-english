@@ -1,8 +1,8 @@
-const APP_VERSION='3.36.7';
+const APP_VERSION='3.36.8';
 importScripts('./build-assets.js','./sw-integrity.js');
 const CACHE_PREFIX='ae-campaign1-';
 const CACHE='ae-campaign1-'+self.AdrianRelease.build;
-const ASSETS=['./nucleo-global-v45.css?v=4.5.3','./grammar-refinement-v42.css?v=4.2.0','./grammar-time-display-v42.js?v=4.2.0','./nucleo-quiz-refinement.css?v=4.1.0','./nucleo-oled-shell.css?v=1.0.0','./grammar-focus.css?v=3.36.7','./grammar-focus.js?v=3.36.7','./pixel-quiz-layout.css','./nucleo-game-theme.css','./learning-feedback.js','./quiz-polish.css','./progress-storage.js','./progress-indexeddb.js','./','./index.html','/adrian-core/design/adrian-visual-system.js','/adrian-core/components/adrian-achievements.js','/adrian-core/components/adrian-performance.js?v=1.0.1-20261006','./lessons.js','./keys.js','./error-coach.js','./language-points.js','./app.js','./performance-adapter.js?v=1.0.0-20261006','./campaign-01.json','./campaign-01.js','./manifest.webmanifest','./icon.svg'];
+const ASSETS=['./nucleo-global-v45.css?v=4.5.3','./grammar-refinement-v42.css?v=4.2.0','./grammar-time-display-v42.js?v=4.2.0','./nucleo-quiz-refinement.css?v=4.1.0','./nucleo-oled-shell.css?v=1.0.0','./grammar-focus.css?v=3.36.8','./grammar-focus.js?v=3.36.8','./pixel-quiz-layout.css','./nucleo-game-theme.css','./learning-feedback.js','./quiz-polish.css','./progress-storage.js','./progress-indexeddb.js','./','./index.html','/adrian-core/design/adrian-visual-system.js','/adrian-core/components/adrian-achievements.js','/adrian-core/components/adrian-performance.js?v=1.0.1-20261006','./lessons.js','./keys.js','./error-coach.js','./language-points.js','./app.js','./performance-adapter.js?v=1.0.0-20261006','./campaign-01.json','./campaign-01.js','./manifest.webmanifest','./icon.svg'];
 const CORE_RE=/\.(?:html|js|css|json|webmanifest)$/i;
 function withTimeout(req,ms,init={}){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return releaseFetch(req,{...init,signal:c.signal}).finally(()=>clearTimeout(t));}
 async function installCore(list){
