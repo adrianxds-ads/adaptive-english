@@ -1,18 +1,18 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script src="./learning-feedback.js?v=3.36.11"></script>
-<script src="./progress-storage.js?v=3.36.11"></script>
-<script src="./progress-indexeddb.js?v=3.36.11"></script>
+<script src="./learning-feedback.js?v=3.36.12"></script>
+<script src="./progress-storage.js?v=3.36.12"></script>
+<script src="./progress-indexeddb.js?v=3.36.12"></script>
 <script src="/adrian-core/components/adrian-sync.js?v=1.0.8-0d4fa97"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#EAF0F5">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="ae-version" content="3.36.11">
-<meta name="hub-version" content="3.36.11">
-<title>Grammar Quest · 3.36.11</title>
+<meta name="ae-version" content="3.36.12">
+<meta name="hub-version" content="3.36.12">
+<title>Grammar Quest · 3.36.12</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -515,7 +515,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
   #gameScreen .feedback .feedback-record b{font-size:clamp(44px,14vw,64px)!important}
 }
 </style>
-<link rel="stylesheet" href="./quiz-polish.css?v=3.36.11">
+<link rel="stylesheet" href="./quiz-polish.css?v=3.36.12">
 <style id="read-first-style">
 .read-first-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 2px}.read-first-row small{color:var(--muted);font-size:11px;font-weight:750;line-height:1.35}.read-first-toggle{min-height:42px!important;padding:10px 12px!important;border-radius:999px!important;font-size:11px!important;letter-spacing:.035em!important}.read-first-toggle[aria-pressed="true"]{background:rgba(143,215,176,.14)!important;border-color:rgba(143,215,176,.42)!important;color:#eafff2!important}#answers{transition:opacity .12s ease}#answers.read-first-hidden{visibility:hidden;opacity:0;pointer-events:none}
 </style>
@@ -578,8 +578,8 @@ body:has(#gameScreen:not(.hidden)) .adrian-tools .nucleo-arcade-points{display:f
 @media(max-height:740px){#gameScreen:not(.hidden) .question h2{font-size:clamp(20px,4.6vw,29px)!important}#gameScreen:not(.hidden) .answer{font-size:clamp(17px,4.1vw,24px)!important;padding:5px!important}}
 @media(prefers-reduced-motion:reduce){#gameScreen .answer{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="./pixel-quiz-layout.css?v=3.36.11">
-<link rel="stylesheet" href="./grammar-focus.css?v=3.36.11">
+<link rel="stylesheet" href="./pixel-quiz-layout.css?v=3.36.12">
+<link rel="stylesheet" href="./grammar-focus.css?v=3.36.12">
 <link rel="stylesheet" href="./nucleo-oled-shell.css?v=1.0.0">
 <link rel="stylesheet" href="./nucleo-quiz-refinement.css?v=4.1.0">
 <link rel="stylesheet" href="./grammar-refinement-v42.css?v=4.2.0">
@@ -672,7 +672,7 @@ body {
 }
 </style>
 <!-- Grammar Quest pilot: last scoped skin, after legacy OLED/global layers. -->
-<link rel="stylesheet" href="./grammar-visual-pilot.css?v=3.36.11">
+<link rel="stylesheet" href="./grammar-visual-pilot.css?v=3.36.12">
 <link rel="stylesheet" href="/adrian-core/design/integrated-v11/integrated-theme.css"></head>
 <body data-nucleo-game="english" data-integrated-app="grammar" style="--integrated-tint:#CBD8E3;--integrated-accent:#4A90E2">
 <div class="app">
@@ -737,12 +737,16 @@ body {
   <div class="panel">
     <div class="top-dashboard-nav"><button id="statsTopDashboardBtn" class="ghost">DASHBOARD</button></div>
     <div class="resulttitle"><div class="kicker">DASHBOARD · v3.0</div><h1>Statistics</h1><p>Your full learning snapshot before the next level.</p></div>
+    <details class="stats-native-details stats-native-models"><summary>Modelos y métricas avanzadas de esta aplicación</summary>
     <div class="ai-valuation-box"><div><span>AI VALORATION</span><b id="statsAiLevel">— / 15</b><small id="statsAiConfidence">Adaptive estimate</small></div><em>AI</em></div>
     <div class="learning-score-box"><div><span>LEARNING SCORE</span><b id="statsLearningScore">—</b><small id="statsLearningWindow">Long-term curve</small></div><div id="statsLearningDelta" class="learning-direction neutral">→</div></div>
     <div class="peer-box"><div class="peer-head"><span>TYPICAL LEARNER MODEL</span><b id="statsPeerDelta" class="peer-delta neutral">—</b></div><div class="peer-values"><div><b id="statsPeerYou">—</b><span>You</span></div><div><b id="statsPeerHealthy">—</b><span>Healthy min</span></div><div><b id="statsPeerExpected">—</b><span>Typical</span></div><div><b id="statsPeerStrong">—</b><span>Strong pace</span></div><div><b id="statsPeerDeltaMini">±0</b><span>Pace</span></div></div><small id="statsPeerLabel">Model-based typical range · not measured users</small></div>
     <div class="grid"><div class="card"><b id="statsCoverage">0%</b><span>Coverage</span></div><div class="card"><b id="statsMastery">0%</b><span>Mastery</span></div><div class="card"><b id="statsAccuracy">0%</b><span>Recent accuracy</span></div><div class="card lifetime-score-card"><b id="statsAllAccuracy">-</b><span>Avg hits /15</span></div><div class="card"><b id="statsAutomatic">0%</b><span>Automatic</span></div><div class="card"><b id="statsAvg">0.0s</b><span>Avg response</span></div><div class="card"><b id="statsTotal">0</b><span>Total answers</span></div><div class="card study-time-card"><b id="statsStudyTime">0s</b><span>Active training time</span></div></div>
+    </details>
     <section id="statsFocusPanel" class="focus-panel stats-focus-panel"></section>
+    <details class="stats-native-details stats-native-charts"><summary>Gráficas originales de la aplicación · análisis complementario</summary>
     <div class="charts stats-charts"><div class="section score-section"><div class="chart-title-row"><h3>Correct answers · /15</h3><button id="scoreExpandBtn" class="ghost small">EXPAND</button></div><div id="statsAccuracyChart"></div></div><div class="section learning-trend"><h3>Learning Curve · long-term</h3><div id="statsLearningChart"></div></div></div>
+    </details>
     <div class="section target-stats-section"><h3>Target performance</h3><div class="grid target-grid"><div class="card"><b id="targetAvg">—</b><span>Avg target /15</span></div><div class="card"><b id="targetActualAvg">—</b><span>Avg actual /15</span></div><div class="card"><b id="targetDeltaAvg">—</b><span>Avg vs target</span></div><div class="card"><b id="targetHitRate">—</b><span>Targets met</span></div></div><div id="targetBreakdown" class="statusbox"></div></div>
     <div class="section reading-load-section"><h3>Reading load · fixed 15s</h3><p class="meta">Observational only · the timer and adaptive engine do not change from these measurements.</p><div class="grid"><div class="card"><b id="readingShort">—</b><span>Short · ≤12 words</span><small id="readingShortMeta">No evidence yet</small></div><div class="card"><b id="readingMedium">—</b><span>Medium · 13–17 words</span><small id="readingMediumMeta">No evidence yet</small></div><div class="card"><b id="readingLong">—</b><span>Long · ≥18 words</span><small id="readingLongMeta">No evidence yet</small></div></div><div id="readingLoadInsight" class="statusbox">Building evidence.</div></div>
     <div id="statsCampaign2" class="statusbox"></div>
@@ -882,24 +886,24 @@ body {
 <script src="/adrian-core/design/adrian-visual-system.js?v=core-20261004b"></script>
 <script src="/adrian-core/components/adrian-achievements.js?v=stars4"></script><script src="/adrian-core/components/hub-charts.js?v=1.1.0"></script>
 <script src="/adrian-core/components/adrian-performance.js?v=1.1.0"></script>
-<script src="./lessons.js?v=3.36.11"></script>
-<script src="./keys.js?v=3.36.11"></script>
-<script src="./error-coach.js?v=3.36.11"></script>
+<script src="./lessons.js?v=3.36.12"></script>
+<script src="./keys.js?v=3.36.12"></script>
+<script src="./error-coach.js?v=3.36.12"></script>
 <script>window.LANGUAGE_POINTS_CONFIG={appId:"english",timeLimit:15};</script>
-<script src="./language-points.js?v=3.36.11"></script>
+<script src="./language-points.js?v=3.36.12"></script>
 
-<script src="./campaign-01.js?v=3.36.11"></script>
-<script src="./app.js?v=3.36.11"></script>
+<script src="./campaign-01.js?v=3.36.12"></script>
+<script src="./app.js?v=3.36.12"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  navigator.serviceWorker.register('./service-worker.js?v=3.36.11',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  navigator.serviceWorker.register('./service-worker.js?v=3.36.12',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 }
 </script>
-<script src="./performance-adapter.js?v=3.36.11"></script><script src="/adrian-core/components/hub-quiz-ux.js?v=20261011-2"></script>
+<script src="./performance-adapter.js?v=3.36.12"></script><script src="/adrian-core/components/hub-quiz-ux.js?v=20261011-2"></script>
 <script src="/adrian-core/components/hub-nav.js?v=13-arcade-20261011"></script>
-<script src="./arcade-stability.js?v=3.36.11"></script>
+<script src="./arcade-stability.js?v=3.36.12"></script>
 
-<script src="./grammar-focus.js?v=3.36.11"></script>
+<script src="./grammar-focus.js?v=3.36.12"></script>
 <script src="./grammar-time-display-v42.js?v=4.2.0"></script>
 <script id="unified-timer-script">
 (function() {
