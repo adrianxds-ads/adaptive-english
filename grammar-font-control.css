@@ -1,0 +1,37 @@
+/* Grammar typography pilot: the existing Núcleo visual contract is preserved. */
+:root{--gq-text-scale:1.15}
+html body[data-integrated-app="grammar"] .grammar-font-controls{
+ position:sticky;top:0;z-index:1200;display:flex;gap:8px;align-items:center;justify-content:flex-end;
+ min-height:54px;padding:4px max(12px,env(safe-area-inset-right));background:rgba(14,19,24,.98);
+ color:#EAF0F5;border-bottom:1px solid #56636D;font:700 16px/1.35 Roboto,Arial,sans-serif;
+}
+html body[data-integrated-app="grammar"] .grammar-font-controls button{
+ min-height:48px;min-width:52px;padding:6px 9px;background:#273742;color:#fff;border:1px solid #92A4B3;
+ border-radius:10px;box-shadow:none;cursor:pointer;font:800 20px/1.2 Roboto,Arial,sans-serif;
+}
+html body[data-integrated-app="grammar"] .grammar-font-controls button:disabled{opacity:.45;cursor:default}
+html body[data-integrated-app="grammar"] .grammar-font-controls button:focus-visible{outline:3px solid #F1C40F;outline-offset:2px}
+html body[data-integrated-app="grammar"] .grammar-font-controls output{
+ min-width:52px;text-align:center;font:750 16px/1.2 Roboto,Arial,sans-serif;font-variant-numeric:tabular-nums
+}
+html body[data-integrated-app="grammar"] .grammar-font-controls .gq-font-label{font:700 16px/1.2 Roboto,Arial,sans-serif}
+html body[data-integrated-app="grammar"] :is(#startScreen,#statsScreen,#coachScreen,#leagueScreen,#endScreen,#errorsScreen) :is(p,li,label,summary,.subtitle,.meta,.statusbox,.footerline,.hub-chart-meta){
+ font-size:calc(16px * var(--gq-text-scale))!important;line-height:1.4!important;overflow-wrap:anywhere
+}
+html body[data-integrated-app="grammar"] :is(#startScreen,#statsScreen,#coachScreen,#leagueScreen,#endScreen,#errorsScreen) button:not(.soundbtn){
+ font-size:calc(17px * var(--gq-text-scale))!important;white-space:normal!important;overflow-wrap:anywhere
+}
+html body[data-integrated-app="grammar"] #gameScreen #questionText{
+ font-size:calc(24px * var(--gq-text-scale))!important;line-height:1.35!important
+}
+html:root body[data-integrated-app="grammar"] #gameScreen#gameScreen#gameScreen#gameScreen#gameScreen button.answer{
+ font-size:calc(20px * var(--gq-text-scale))!important;white-space:normal!important;overflow-wrap:anywhere
+}
+html body[data-integrated-app="grammar"] #gameScreen :is(#readFirstNote,.qnum span,.integrated-progress-note,.feedback-label){
+ font-size:calc(16px * var(--gq-text-scale))!important;line-height:1.4!important
+}
+@media(max-width:380px){
+ html body[data-integrated-app="grammar"] .grammar-font-controls{gap:6px}
+ html body[data-integrated-app="grammar"] .grammar-font-controls button{min-width:49px}
+ html body[data-integrated-app="grammar"] #gameScreen :is(.answer,button.answer){padding-left:6px!important;padding-right:6px!important}
+}
