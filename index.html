@@ -1,18 +1,18 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script src="./learning-feedback.js?v=3.36.14"></script>
-<script src="./progress-storage.js?v=3.36.14"></script>
-<script src="./progress-indexeddb.js?v=3.36.14"></script>
+<script src="./learning-feedback.js?v=3.36.15"></script>
+<script src="./progress-storage.js?v=3.36.15"></script>
+<script src="./progress-indexeddb.js?v=3.36.15"></script>
 <script src="/adrian-core/components/adrian-sync.js?v=1.0.8-0d4fa97"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#EAF0F5">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="ae-version" content="3.36.14">
-<meta name="hub-version" content="3.36.14">
-<title>Grammar Quest · 3.36.14</title>
+<meta name="ae-version" content="3.36.15">
+<meta name="hub-version" content="3.36.15">
+<title>Grammar Quest · 3.36.15</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <style>
@@ -515,7 +515,7 @@ html,body,.app,.screen,.top,.toprow,.playfield,.question,.answer-stage,.answers,
   #gameScreen .feedback .feedback-record b{font-size:clamp(44px,14vw,64px)!important}
 }
 </style>
-<link rel="stylesheet" href="./quiz-polish.css?v=3.36.14">
+<link rel="stylesheet" href="./quiz-polish.css?v=3.36.15">
 <style id="read-first-style">
 .read-first-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 2px}.read-first-row small{color:var(--muted);font-size:11px;font-weight:750;line-height:1.35}.read-first-toggle{min-height:42px!important;padding:10px 12px!important;border-radius:999px!important;font-size:11px!important;letter-spacing:.035em!important}.read-first-toggle[aria-pressed="true"]{background:rgba(143,215,176,.14)!important;border-color:rgba(143,215,176,.42)!important;color:#eafff2!important}#answers{transition:opacity .12s ease}#answers.read-first-hidden{visibility:hidden;opacity:0;pointer-events:none}
 </style>
@@ -578,8 +578,8 @@ body:has(#gameScreen:not(.hidden)) .adrian-tools .nucleo-arcade-points{display:f
 @media(max-height:740px){#gameScreen:not(.hidden) .question h2{font-size:clamp(20px,4.6vw,29px)!important}#gameScreen:not(.hidden) .answer{font-size:clamp(17px,4.1vw,24px)!important;padding:5px!important}}
 @media(prefers-reduced-motion:reduce){#gameScreen .answer{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="./pixel-quiz-layout.css?v=3.36.14">
-<link rel="stylesheet" href="./grammar-focus.css?v=3.36.14">
+<link rel="stylesheet" href="./pixel-quiz-layout.css?v=3.36.15">
+<link rel="stylesheet" href="./grammar-focus.css?v=3.36.15">
 <link rel="stylesheet" href="./nucleo-oled-shell.css?v=1.0.0">
 <link rel="stylesheet" href="./nucleo-quiz-refinement.css?v=4.1.0">
 <link rel="stylesheet" href="./grammar-refinement-v42.css?v=4.2.0">
@@ -672,13 +672,14 @@ body {
 }
 </style>
 <!-- Grammar Quest pilot: last scoped skin, after legacy OLED/global layers. -->
-<link rel="stylesheet" href="./grammar-visual-pilot.css?v=3.36.14">
+<link rel="stylesheet" href="./grammar-visual-pilot.css?v=3.36.15">
 <link rel="stylesheet" href="/adrian-core/design/integrated-v11/integrated-theme.css"><style id="nucleo-phrasal-timer-unification">
 #gameScreen .focus-timer-clock{font:900 clamp(16px,4.8vw,21px)/1.15 system-ui,sans-serif;color:#EAF0F5;font-variant-numeric:tabular-nums;white-space:nowrap;min-width:58px;text-align:center}
 #gameScreen .focus-time-segments{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:3px;width:100%;margin:10px 0 0}
 #gameScreen .focus-time-segments .seg{height:6px;border-radius:5px;background:rgba(234,240,245,.22)}
 #gameScreen .focus-time-segments .seg.on{background:#D4B07B}
 </style>
+<link rel="stylesheet" href="./quiz-ergonomics.css?v=1.0.0">
 </head>
 <body data-nucleo-game="english" data-integrated-app="grammar" style="--integrated-tint:#CBD8E3;--integrated-accent:#4A90E2">
 <div class="app">
@@ -894,24 +895,25 @@ body {
 <script src="/adrian-core/design/adrian-visual-system.js?v=core-20261004b"></script>
 <script src="/adrian-core/components/adrian-achievements.js?v=stars4"></script><script src="/adrian-core/components/hub-charts.js?v=1.1.0"></script>
 <script src="/adrian-core/components/adrian-performance.js?v=1.1.0"></script>
-<script src="./lessons.js?v=3.36.14"></script>
-<script src="./keys.js?v=3.36.14"></script>
-<script src="./error-coach.js?v=3.36.14"></script>
+<script src="./lessons.js?v=3.36.15"></script>
+<script src="./keys.js?v=3.36.15"></script>
+<script src="./error-coach.js?v=3.36.15"></script>
 <script>window.LANGUAGE_POINTS_CONFIG={appId:"english",timeLimit:15};</script>
-<script src="./language-points.js?v=3.36.14"></script>
+<script src="./language-points.js?v=3.36.15"></script>
 
-<script src="./campaign-01.js?v=3.36.14"></script>
-<script src="./app.js?v=3.36.14"></script>
+<script src="./campaign-01.js?v=3.36.15"></script>
+<script src="./quiz-ergonomics.js?v=1.0.0"></script>
+<script src="./app.js?v=3.36.15"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  navigator.serviceWorker.register('./service-worker.js?v=3.36.14',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  navigator.serviceWorker.register('./service-worker.js?v=3.36.15',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 }
 </script>
-<script src="./performance-adapter.js?v=3.36.14"></script><script src="/adrian-core/components/hub-quiz-ux.js?v=20261011-2"></script>
+<script src="./performance-adapter.js?v=3.36.15"></script><script src="/adrian-core/components/hub-quiz-ux.js?v=20261011-2"></script>
 <script src="/adrian-core/components/hub-nav.js?v=13-arcade-20261011"></script>
-<script src="./arcade-stability.js?v=3.36.14"></script>
+<script src="./arcade-stability.js?v=3.36.15"></script>
 
-<script src="./grammar-focus.js?v=3.36.14"></script>
+<script src="./grammar-focus.js?v=3.36.15"></script>
 
 <script src="/adrian-core/design/integrated-v11/integrated-view.js"></script></body>
 </html>

@@ -1,6 +1,7 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.36.14";
+const APP_VERSION = "3.36.15";
+const quizFlow=new window.QuizFlowController();
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -1272,6 +1273,7 @@ function adaptiveLevelTarget(plan){
 let sessionStarting=false;
 function secondaryEffect(run){try{Promise.resolve(run()).catch(e=>console.warn("Secondary effect recovered",e));}catch(e){console.warn("Secondary effect recovered",e);}}
 async function startSession(finalMode=false){
+  quizFlow.cancel();
   if(sessionStarting)return;sessionStarting=true;try{
   applyRatingTheme(overallStats().rating);
   QuizLearning.clear();
@@ -1281,13 +1283,14 @@ async function startSession(finalMode=false){
   session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),target,plan:raw.map(shuffleOptions),abortSnapshot,rankBefore:skillRankPositions(),combo:0,bestCombo:0,recovered:0,masteredRewards:0,learningXp:0,lastReward:""};
   $("sessionLevel").innerHTML=finalMode?"FINAL":`L${state.level}<small class="level-target">TARGET ${target.toFixed(1)}</small>`;
   secondaryEffect(()=>window.LanguagePoints?.beginLevel?.({target,level:state.level}));
-  await settleUi(ensureAudio(),1000,"Audio start");
+  await settleUi(ensureAudio(),1000,"Audio start");await window.QuizErgonomics.ready;
   await settleUi(showLevelIntro(finalMode,target),4500,"Session intro");
   missionOverlay(false);
   showScreen("gameScreen");nextQuestion();
   }finally{sessionStarting=false;}
 }
 function abortSession(){
+  quizFlow.cancel();
   if(!session)return;
   clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;deadline=0;locked=true;missionOverlay(false);
   focusPausedAt=0;focusAwaiting=false;$("focusPausePanel").hidden=true;$("gameScreen").classList.remove("focus-awaiting");
@@ -1312,7 +1315,7 @@ function startTimer(){
   focusAnswerAt=performance.now();
   deadline=focusAnswerAt+TIME_LIMIT*1000;
   paintFocusTimer(TIME_LIMIT);
-  timerHandle=setInterval(()=>{
+  timerHandle=guardedQuizInterval(()=>{
     if(!session||locked){clearInterval(timerHandle);timerHandle=null;return;}
     if(focusPausedAt||focusAwaiting)return;
     const left=Math.max(0,(deadline-performance.now())/1000);
@@ -1349,6 +1352,7 @@ function focusSyncPoints(){
   if($("focusPoints")?.textContent!==value)$("focusPoints").textContent=value;
 }
 function nextQuestion(){
+  quizFlow.begin();clearInterval(timerHandle);timerHandle=null;deadline=0;
   QuizLearning.clear();
   clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;NucleoReadFirstSkip.hide();currentPreReadMs=0;
   locked=false;hideCorrectReveal();
@@ -1431,10 +1435,16 @@ function answer(pos,timeout=false){
   state.history.push(rec);state.history=QuizLearning.retain(state.history,12000,STORAGE_KEY+":answers");state.activeTrainingMs=(state.activeTrainingMs||0)+rec.ms;state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
   secondaryEffect(()=>window.LanguagePoints?.recordAnswer?.({correct:ok,sec,timeLimit:TIME_LIMIT}));
   QuizLearning.show("#questionText",shownQuestion,rec.correctAnswer);
-  const answeredSession=session,answeredIndex=session.index,delay=QuizLearning.HOLD_MS;setTimeout(()=>{if(session!==answeredSession||session.index!==answeredIndex)return;session.index++;try{nextQuestion();}catch(e){console.error("Question advance recovered",e);locked=false;setTimeout(nextQuestion,120);}},delay);
+  const answeredSession=session,answeredIndex=session.index,answeredCount=session.records.length;
+  quizFlow.afterAnswer({correct:ok,
+    isCurrent:()=>session===answeredSession&&session.index===answeredIndex&&!session.finishing,
+    advance:()=>{session.index++;nextQuestion();},
+    retry:{render:()=>nextQuestion(),isCurrent:()=>session===answeredSession&&session.index===answeredIndex+1&&session.records.length===answeredCount&&!session.finishing}});
+
   try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.warn("Answer cue unavailable",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance,phraseCorrect,phraseWrong,current.cat);}catch(e){console.error("Feedback failed",e);}
 }
 function finishSessionSafe(){
+ quizFlow.cancel();
  if(!session||session.finishing)return;
  session.finishing=true;locked=true;
  Promise.resolve().then(()=>finishSession()).catch(e=>{
@@ -1674,4 +1684,20 @@ boot().catch(err=>{
  retry.onclick=()=>location.reload();
  actions.append(backup,retry);container.append(h,p,detail,actions);
  document.body.replaceChildren(container);
+});
+
+
+// A queued interval from a previous question may run after clearInterval.
+// Its captured owner, question and generation must still match before any work.
+function guardedQuizInterval(fn,ms=50){
+ const owner=session,index=session?.index,epoch=quizFlow.epoch;
+ const handle=setInterval(()=>{
+  if(session!==owner||session?.index!==index||quizFlow.epoch!==epoch||locked){clearInterval(handle);return;}
+  fn();
+ },ms);
+ return handle;
+}
+window.QuizErgonomics.bind(()=>{
+ if(!session)return null;
+ return {owner:session,questions:session.plan,results:session.records.map(r=>!!r.correct),index:session.index,total:session.plan.length,limit:TIME_LIMIT,locked,reading:focusAwaiting,paused:!!focusPausedAt,remaining:locked?TIME_LIMIT-(session.times.at(-1)||0):focusAwaiting?TIME_LIMIT:(deadline-(focusPausedAt||performance.now()))/1000};
 });
