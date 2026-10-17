@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.36.13";
+const APP_VERSION = "3.36.14";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -1301,9 +1301,10 @@ function paintFocusTimer(sec){
   const value=$("focusTimerText"),bar=$("focusSeconds");
   if(value)value.textContent=Math.max(0,sec).toFixed(1)+" s";
   if(bar){
-    const seconds=TIME_LIMIT,elapsed=Math.min(seconds,Math.max(0,Math.floor(seconds-sec)));
+    bar.setAttribute("aria-valuenow",String(Math.max(0,sec)));
+    const seconds=TIME_LIMIT,remaining=Math.min(seconds,Math.max(0,Math.ceil(sec)));
     if(bar.children.length!==seconds)bar.replaceChildren(...Array.from({length:seconds},()=>{const el=document.createElement("i");el.className="seg";return el;}));
-    [...bar.children].forEach((node,i)=>node.classList.toggle("on",i<elapsed));
+    [...bar.children].forEach((node,i)=>node.classList.toggle("on",i<remaining));
   }
 }
 function startTimer(){

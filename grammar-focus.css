@@ -38,3 +38,12 @@ html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden) .focus-stack{
 html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden) #answers.nucleo-options.read-first-hidden{display:grid;visibility:hidden;opacity:0;pointer-events:none}
 html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden) .focus-reveal-hint{display:block;position:absolute;top:calc(100% + 12px);left:0;right:0;margin:0;visibility:hidden}
 html:root body[data-grammar-focus="true"] #gameScreen:not(.hidden).focus-awaiting .focus-reveal-hint{visibility:visible}
+
+/* One visible countdown, driven exclusively by paintFocusTimer. */
+html body[data-integrated-app="grammar"] #gameScreen .integrated-timer{display:none!important}
+html body[data-integrated-app="grammar"] #gameScreen .focus-native-timer{width:100%;margin:18px 0 8px;color:#25282C;font-size:16px}
+html body[data-integrated-app="grammar"] #gameScreen .focus-native-timer-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px}
+html body[data-integrated-app="grammar"] #gameScreen #focusTimerText{color:#25282C!important;opacity:1!important;font-size:19px;position:static;font-variant-numeric:tabular-nums}
+html body[data-integrated-app="grammar"] #gameScreen #focusSeconds{display:grid!important;grid-template-columns:repeat(15,minmax(0,1fr));gap:3px;margin:0;width:100%}
+html body[data-integrated-app="grammar"] #gameScreen #focusSeconds .seg{height:13px;background:#FFF;border:1px solid #727D85;border-radius:4px}
+html body[data-integrated-app="grammar"] #gameScreen #focusSeconds .seg.on{background:#D4B07B;border:2px solid #25282C}
