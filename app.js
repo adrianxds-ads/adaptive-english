@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.36.12";
+const APP_VERSION = "3.36.13";
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
 const SESSION_SIZE = 15;
@@ -1281,6 +1281,8 @@ async function startSession(finalMode=false){
   session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),target,plan:raw.map(shuffleOptions),abortSnapshot,rankBefore:skillRankPositions(),combo:0,bestCombo:0,recovered:0,masteredRewards:0,learningXp:0,lastReward:""};
   $("sessionLevel").innerHTML=finalMode?"FINAL":`L${state.level}<small class="level-target">TARGET ${target.toFixed(1)}</small>`;
   secondaryEffect(()=>window.LanguagePoints?.beginLevel?.({target,level:state.level}));
+  await settleUi(ensureAudio(),1000,"Audio start");
+  await settleUi(showLevelIntro(finalMode,target),4500,"Session intro");
   missionOverlay(false);
   showScreen("gameScreen");nextQuestion();
   }finally{sessionStarting=false;}
@@ -1295,10 +1297,27 @@ function abortSession(){
   if(snapshot){try{const restored=JSON.parse(snapshot);state=validProgressState(restored)?normaliseProgressState(restored):restored;state.focusTimeByDate=focusKeep.times;state.focusTargetsByDate=focusKeep.targets;state.focusTrackingStartedAt=focusKeep.started;save();}catch(e){console.error("Emergency exit rollback failed",e);}}
   locked=false;renderStart();showScreen("startScreen");
 }
-// Ghost timer: performance.now() is sampled only for analytics, with no timeout.
+function paintFocusTimer(sec){
+  const value=$("focusTimerText"),bar=$("focusSeconds");
+  if(value)value.textContent=Math.max(0,sec).toFixed(1)+" s";
+  if(bar){
+    const seconds=TIME_LIMIT,elapsed=Math.min(seconds,Math.max(0,Math.floor(seconds-sec)));
+    if(bar.children.length!==seconds)bar.replaceChildren(...Array.from({length:seconds},()=>{const el=document.createElement("i");el.className="seg";return el;}));
+    [...bar.children].forEach((node,i)=>node.classList.toggle("on",i<elapsed));
+  }
+}
 function startTimer(){
-  clearInterval(timerHandle);timerHandle=null;
+  clearInterval(timerHandle);
   focusAnswerAt=performance.now();
+  deadline=focusAnswerAt+TIME_LIMIT*1000;
+  paintFocusTimer(TIME_LIMIT);
+  timerHandle=setInterval(()=>{
+    if(!session||locked){clearInterval(timerHandle);timerHandle=null;return;}
+    if(focusPausedAt||focusAwaiting)return;
+    const left=Math.max(0,(deadline-performance.now())/1000);
+    paintFocusTimer(left);
+    if(left<=0){clearInterval(timerHandle);timerHandle=null;answer(-1,true);}
+  },50);
 }
 function focusUpdateProgress(answered){
   const total=session?.plan?.length||15;
@@ -1317,6 +1336,7 @@ function focusResume(){
   if(!focusPausedAt)return;
   const elapsed=performance.now()-focusPausedAt;
   if(focusAnswerAt)focusAnswerAt+=elapsed;
+  if(deadline)deadline+=elapsed;
   if(focusReadAt)focusReadAt+=elapsed;
   focusPausedAt=0;
   $("focusPausePanel").hidden=true;
@@ -1340,6 +1360,7 @@ function nextQuestion(){
   $("focusQuestionCounter").textContent=(session.index+1)+" / "+session.plan.length;
   focusUpdateProgress(session.index);
   focusSyncPoints();
+  paintFocusTimer(TIME_LIMIT);
   const rewardPrior=state.seen[current.fingerprint]||null,rewardGap=rewardPrior?state.level-rewardPrior.lastLevel:null,rewardSpecial=rewardPrior?.lapses>0&&!rewardPrior.masteredRewarded&&rewardPrior.lastCorrect===true&&rewardPrior.count>=2&&rewardGap>=2?"MASTER CHANCE":rewardPrior?.lapses>0&&rewardPrior.lastCorrect===false?"RECOVERY":rewardPrior?(QuizLearning.ready(rewardPrior,state.level)?"SPACED REVIEW":"EXTRA PRACTICE"):session.index===session.plan.length-1?"FINAL":"";
   $("qTotal").textContent="/ "+session.plan.length+(rewardSpecial?" · "+rewardSpecial:"");
   const view=visibleCard(current);current.visibleQuestion=view.question;current.visibleOptions=view.options;current.visibleFocus=view.focus;current.visibleNames=view.names;
@@ -1374,6 +1395,12 @@ function nextQuestion(){
       $("gameScreen").classList.remove("focus-awaiting");
       startTimer();
     };
+    const finishRead=()=>{
+      if(!focusAwaiting)return;
+      if(focusPausedAt){revealHandle=setTimeout(finishRead,250);return;}
+      revealEarlyOnTap?.();
+    };
+    revealHandle=setTimeout(finishRead,readFirstDelayMs(view.question));
   }else{
     focusAwaiting=false;focusReadAt=0;revealEarlyOnTap=null;
     $("gameScreen").classList.remove("focus-awaiting");
@@ -1384,7 +1411,7 @@ function feedback(ok,type,sec,correct,appearance,patternAppearance,phraseCorrect
 function answer(pos,timeout=false){
   if(locked||focusAwaiting||focusPausedAt)return;
   locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;
-  const sec=Math.max(.05,(performance.now()-focusAnswerAt)/1000);
+  const sec=timeout?TIME_LIMIT:clamp((performance.now()-focusAnswerAt)/1000,.05,TIME_LIMIT);
   focusUpdateProgress(session.index+1);
   const ok=pos===current.correctPos&&!timeout,type=outcomeType(ok,sec,current.targetTime||3.6,timeout);
   const buttons=[...$("answers").children];
@@ -1397,7 +1424,7 @@ function answer(pos,timeout=false){
   const now=Date.now(),intervalDays=reviewIntervalDays(previousSeen,type);
   state.seen[current.fingerprint]={count:appearance,lastLevel:state.level,lastTs:now,lastCorrect:ok,lapses,intervalDays,nextDueTs:now+intervalDays*86400000,masteredRewarded:!!(previousSeen?.masteredRewarded||masteredReward)};state.templateLast[current.templateId]=state.level;state.templateSeen[current.templateId]={count:patternAppearance,lastLevel:state.level,lastTs:now};
   const shownQuestion=current.visibleQuestion||current.q,shownOptions=current.visibleOptions||current.display,load=promptLoadMeta(shownQuestion);
-  const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,occurrence:appearance,patternOccurrence:patternAppearance,review:!!previousSeen,reviewDue:QuizLearning.ready(previousSeen,state.level),delayedRecall:!!previousSeen&&elapsedDays(previousSeen.lastTs)>=1,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:shownQuestion,originalQuestion:current.q,userAnswer:pos>=0?shownOptions[pos]:"No answer",correctAnswer:shownOptions[current.correctPos],rule:current.rule,promptWords:load.words,promptChars:load.chars,readingLoad:load.band,targetTimeSec:current.targetTime||3.6,timeLimitSec:null,timingMode:"GHOST_UNLIMITED",sessionMode:session.mode,studyMode:focusCurrentReadFirst?"READ_FIRST":"STANDARD",preReadMs:currentPreReadMs};
+  const rec={level:state.level,qid:current.id,cat:current.cat,skill:current.skill,templateId:current.templateId,domain:current.domain,correct:ok,ms:Math.round(sec*1000),type,speedScore,occurrence:appearance,patternOccurrence:patternAppearance,review:!!previousSeen,reviewDue:QuizLearning.ready(previousSeen,state.level),delayedRecall:!!previousSeen&&elapsedDays(previousSeen.lastTs)>=1,gap:previousSeen?state.level-previousSeen.lastLevel:null,ts:Date.now(),question:shownQuestion,originalQuestion:current.q,userAnswer:pos>=0?shownOptions[pos]:"No answer",correctAnswer:shownOptions[current.correctPos],rule:current.rule,promptWords:load.words,promptChars:load.chars,readingLoad:load.band,targetTimeSec:current.targetTime||3.6,timeLimitSec:TIME_LIMIT,timingMode:"COUNTDOWN_15S",sessionMode:session.mode,studyMode:focusCurrentReadFirst?"READ_FIRST":"STANDARD",preReadMs:currentPreReadMs};
   hideCorrectReveal();
   try{flashGrammarFocus(shownQuestion,rec.correctAnswer,current.visibleFocus||current.focus||[]);}catch(e){console.error("Grammar focus flash failed",e);}
   state.history.push(rec);state.history=QuizLearning.retain(state.history,12000,STORAGE_KEY+":answers");state.activeTrainingMs=(state.activeTrainingMs||0)+rec.ms;state.totalAttempts++;session.records.push(rec);session.times.push(sec);if(ok)session.correct++;if(type==="automatic")session.automatic++;
