@@ -525,3 +525,14 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 - Adds a Key Diary discovery card for the persistent MUST HAVE vs SHOULD HAVE confusion.
 - Cue: `DETECTIVE → MUST HAVE · MADRE REGAÑANDO → SHOULD HAVE`.
 - Compression: `MUST = misterio resuelto · SHOULD = sermón`.
+
+
+## 24/10/2026 · Reparación local: respuestas posteriores al vencimiento
+
+**Base:** `0fd576e` (`main`), worktree aislado `repair/grammar-deadline-20261024`. Se reprodujo en Edge móvil (360×740, 412×915) un defecto del reloj: si el callback del intervalo se retrasa, responder 250 ms después de los 15 segundos registraba un acierto.
+
+**Corrección:** `answer()` compara `performance.now()` con `deadline` y trata cualquier entrada tardía como `timeout` (sin selección). Conserva Read First, pausa/reanudación, cuatro respuestas, claves, recompensas e IDs de almacenamiento. No modifica progreso ni datos reales.
+
+**Prueba nueva:** `python test-grammar-deadline-browser.py`. Antes FAIL (respuesta tardía puntuaba); después PASS en dos tamaños, con acierto dentro de plazo, doble pulsación, pausa/reanudación (plazo ampliado 5 segundos) y cero errores JS. `node --check app.js`, `node test_progress_pack_isolated.cjs` y `node test_quota_indexeddb_isolated.cjs` también superados con perfiles/datos simulados. Sin pruebas físicas en Pixel 10.
+
+**Estado:** probado y registrado localmente; sin fusión, `push` ni publicación. Sin consumo de Argon.

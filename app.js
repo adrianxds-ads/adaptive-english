@@ -1415,6 +1415,8 @@ function nextQuestion(){
 function feedback(ok,type,sec,correct,appearance,patternAppearance,phraseCorrect=0,phraseWrong=0,cat=""){/* Feedback stays on the answer tiles. */}
 function answer(pos,timeout=false){
   if(locked||focusAwaiting||focusPausedAt)return;
+  // Even if the browser delays its interval callback, an expired deadline cannot score.
+  if(!timeout&&deadline>0&&performance.now()>=deadline){timeout=true;pos=-1;}
   locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;
   const sec=timeout?TIME_LIMIT:clamp((performance.now()-focusAnswerAt)/1000,.05,TIME_LIMIT);
   focusUpdateProgress(session.index+1);
