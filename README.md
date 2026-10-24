@@ -562,3 +562,12 @@ Evidencia reproducible en el entorno Windows: `C:\Users\adria\AppData\Local\Temp
 - La aplicación antigua registró una respuesta, pero su service worker histórico falló al instalarse desde cero en el laboratorio. Se comprobó la migración del registro y del nivel a la nueva PWA, con caché nueva activa y arranque offline. **No** se ha demostrado la sustitución de un service worker antiguo ya instalado; permanece como caso no verificado.
 - Prueba compartida reproducible: `_repair_cloze_20261024/test-four-pwa-upgrade.py` (Playwright + Edge en contextos nuevos, servidor HTTP solo en 127.0.0.1; prueba conjunta: **4/4 PASS**). La salida distingue tres cambios completos de service worker y la recuperación de progreso de Grammar con instalación nueva.
 - No fusionado, no publicado ni comprobado en Pixel 10. No modifica las claves de progreso ni los bancos de preguntas. La sustitución de la caché antigua ya instalada de Grammar requiere comprobación posterior; ninguna prueba local certifica lo que ocurrirá en un dispositivo real.
+
+
+### 24/10/2026 · Publicación comprobada (3.36.16)
+
+- Integración en `main` por fast-forward, sin reescribir historial: `c9f46cc`. Push a `origin/main` aceptado; GitHub Pages sirve desde `main` (raíz).
+- Verificación HTTP pública: `app.js`, `index.html`, `service-worker.js` y `build-assets.js` con HTTP 200 y SHA-256 idéntico a los archivos publicados previstos. Build de caché: `89990945f9a09a9e`.
+- Verificación de uso: Edge en perfil **temporal y aislado**, navegación a `https://adrianxds-ads.github.io/adaptive-english/`, instalación del service worker actualizado, recarga offline e inicio del quiz con cuatro respuestas (PASS; sin errores JS). La sincronización remota se bloqueó en las pruebas para no crear datos ficticios.
+- Se verificó la conservación de progreso 3.36.15 → 3.36.16. La sustitución del service worker histórico de Grammar no pudo reproducirse en laboratorio; instalación nueva y PWA pública actual funcionan offline.
+- Publicación y funcionamiento en navegador verificados; **no se ha verificado todavía el Pixel 10 ni una actualización física de una instalación previa**. No se alteraron claves ni registros de progreso de usuarios. No se modificaron Hub ni Core.
