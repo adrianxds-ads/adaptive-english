@@ -22,3 +22,5 @@ self.addEventListener('fetch',e=>{
     const r=await network(e.request,5000);if(r&&r.ok){await c.put(e.request,r.clone());return r;}return Response.error();
   })());
 });
+
+// PWA cache release 3.36.16 - answer deadline fix (isolated candidate).

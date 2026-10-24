@@ -536,3 +536,12 @@ Full 3,000-question bank audit; repaired generator artifacts and predictable-ans
 **Prueba nueva:** `python test-grammar-deadline-browser.py`. Antes FAIL (respuesta tardía puntuaba); después PASS en dos tamaños, con acierto dentro de plazo, doble pulsación, pausa/reanudación (plazo ampliado 5 segundos) y cero errores JS. `node --check app.js`, `node test_progress_pack_isolated.cjs` y `node test_quota_indexeddb_isolated.cjs` también superados con perfiles/datos simulados. Sin pruebas físicas en Pixel 10.
 
 **Estado:** probado y registrado localmente; sin fusión, `push` ni publicación. Sin consumo de Argon.
+
+
+### 24/10/2026 · Cierre de integración aislada y preparación PWA
+
+- Recorrido de navegador: partida completa de 15 preguntas mediante botones (8/15; aciertos y errores); pantalla final, sesión y nivel recuperados tras recarga, sin errores JavaScript. Nivel simulado: 42 → 43. Perfiles Edge separados, sin datos personales. Test común: `C:\Users\adria\AppData\Local\Temp\hub-four-quizzes-fullround-20261024.py` (ejecutado para cuatro ramas; PASS).
+- Prelectura: cuatro tarjetas ocultas antes de revelar, temporizador de respuesta activado después, único registro y modo `READ_FIRST` comprobados (PASS). Test común: `C:\Users\adria\AppData\Local\Temp\hub-four-quizzes-readfirst-20261024.py`.
+- Versión candidata: `3.36.16`; el HTML actualiza rutas `app.js` y `service-worker.js`, se fuerza revisión del service worker y `build-assets.js` incorpora las huellas SHA-256 actualizadas. Cache build candidato: `8e8b1a2727a5eaca`. Verificado que los hashes corresponden a los archivos locales, sin tocar claves de almacenamiento, contenido pedagógico, Hub o Core.
+- Reejecutadas tras preparar caché: pruebas de deadline, `node --check` en JS y `git diff --check` (PASS). En Cloze también batería oficial de 900 preguntas y temporizador adaptativo (PASS).
+- Estado: cambios locales listos para revisión de integración, pero sin fusión ni despliegue. No se ha probado funcionamiento offline real con service worker ni en Pixel 10. Hasta publicación autorizada, Hub `versions.json` y versiones públicas siguen iguales.
