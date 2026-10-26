@@ -24,3 +24,5 @@ self.addEventListener('fetch',e=>{
 });
 
 // PWA cache release 3.36.16 - answer deadline fix (isolated candidate).
+
+// Hub Arena 2.0.1: fingerprint manifest corrected for Mobile First controller.
