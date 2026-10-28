@@ -212,27 +212,19 @@
  }
 
  function syncAnswerFeedback(registered){
-  const fb=id("feedback"),answers=id("answers");
-  if(!fb||!answers)return;
-  // Classroom owns its own explanation and feedback; never replace it.
-  if(app.kind==="classroom")return;
-  if(!registered){
-   if(fb.dataset.arSynthetic==="true"){fb.replaceChildren();fb.classList.remove("ar-synthetic-feedback");delete fb.dataset.arSynthetic}
-   return;
-  }
-  if(text(fb))return; // preserve any genuine engine output
-  const correct=answers.querySelector("button.answer.good,button.answer.is-correct");
-  const wrong=answers.querySelector("button.answer.bad,button.answer.is-wrong");
-  if(!correct)return;
-  const chosen=wrong?"incorrecta":"correcta";
-  // Same official answer from the existing rendered buttons; no scoring or grammar invented.
-  const label=correct.querySelector(".option-label")?.textContent.trim()
-     ||correct.textContent.replace(/^\s*[A-D]\s*/,"").trim();
-  fb.dataset.arSynthetic="true";
-  fb.classList.add("ar-synthetic-feedback");
-  const heading=add(fb,"strong","",chosen==="correcta"?"✓ Respuesta correcta":"✕ Revisa la respuesta");
-  if(chosen!=="correcta"){add(fb,"span",""," · ");add(fb,"span","","Clave: "+label)}
+  const fb=id("feedback"),s=getSession();
+  if(!fb||!s)return;
+  // Read-only session tally; do not infer progress from option colors.
+  const records=Array.isArray(s.records)?s.records:[];
+  const hits=Number(s.correct)||0;
+  const attempts=records.length||(Array.isArray(s.times)?s.times.length:0);
+  const misses=Math.max(0,attempts-hits);
+  const value="✓ "+hits+"   ✕ "+misses;
+  if(fb.textContent!==value)fb.textContent=value;
+  fb.classList.add("ar-arcade-tally");
+  fb.setAttribute("aria-label",hits+" aciertos y "+misses+" errores");
  }
+
  function boot(){
   const stage=id("gameScreen"),home=id("startScreen"),end=id("endScreen");
   if(!stage||!home||!end)return;

@@ -18,7 +18,7 @@ let CAMPAIGN=null, BANK=[], state=null, session=null, timerHandle=null, revealHa
 let revealEarlyOnTap=null;
 let focusAnswerAt=0,focusReadAt=0,focusPausedAt=0,focusAwaiting=false,focusCurrentReadFirst=false;
 
-let audioCtx=null, soundOn=true, lastTickShown=TIME_LIMIT+1, lastUrgentBeat=-1;
+let audioCtx=null, soundOn=(()=>{try{return localStorage.getItem('adrian_hub_sound_v1')!=='0';}catch(e){return true;}})(), lastTickShown=TIME_LIMIT+1, lastUrgentBeat=-1;
 let focusLastActivityTs=Date.now(),focusLastTickTs=Date.now(),focusSaveMs=0,focusTimerHandle=null;
 
 const $=id=>document.getElementById(id);
@@ -165,8 +165,8 @@ function tone(freq,dur=.035,gain=.018,type='sine',delay=0){
 }
 function playTick(strong=false,step=0){const f=strong?(step%2?1540:1260):(step%2?1280:980);tone(f,strong?.034:.026,strong?.026:.016,'square');}
 function playUrgentTimerPulse(left,beat=0){const final=left<=2,f=final?(beat%2?1660:1450):(beat%2?1360:1160);tone(f,final?.034:.028,final?.016:.012,final?'square':'triangle');if(left<=.55)tone(1960,.042,.010,'sine',.014);}
-function playCorrect(){tone(784,.065,.024,"triangle");tone(1046.5,.085,.022,"sine",.055);tone(1318.5,.10,.015,"sine",.115);}
-function playWrong(){tone(311.1,.09,.020,"triangle");tone(196,.12,.017,"sine",.075);}
+function playCorrect(sec=0){tone(784,.055,.022,"triangle");if(sec>0&&sec<=4){tone(1046.5,.07,.019,"sine",.050);tone(1318.5,.07,.014,"sine",.103);}}
+function playWrong(timeout=false){if(timeout){tone(311.1,.065,.018,"triangle");tone(207.65,.085,.015,"sine",.07);}else{tone(220,.065,.016,"triangle");}}
 function playComplete(){tone(392,.075,.022,'sine');tone(523.25,.085,.024,'triangle',.070);tone(659.25,.100,.026,'sine',.145);tone(783.99,.155,.028,'sine',.230);}
 function playCountdownStep(n){tone(n===1?1046.5:783.99,.055,.018,'triangle');}
 const LEVEL_SCORE_ROOTS=[146.83,155.56,164.81,174.61,196.00,220.00,246.94,261.63,293.66,329.63,349.23,392.00,440.00,493.88,523.25];
@@ -248,7 +248,7 @@ function playKeyFlip(revealed=true,soft=false){
   notes.forEach(([f,d],i)=>tone(f,i===2?.085:.055,i===2?gain:gain*.82,i===1?'triangle':'sine',d));
 }
 function haptic(ok){
-  try{if(navigator.vibrate)(!ok&&navigator.vibrate(12));}catch(e){}
+  try{if(localStorage.getItem('adrian_hub_haptics_v1')==='1'&&navigator.vibrate)(!ok&&navigator.vibrate(12));}catch(e){}
 }
 function pulseFeedback(ok){/* Feedback stays on the answer tiles. */}
 function burstParticles(anchor){/* Feedback stays on the answer tiles. */}
@@ -1313,6 +1313,7 @@ function paintFocusTimer(sec){
 function startTimer(){
   clearInterval(timerHandle);
   focusAnswerAt=performance.now();
+  lastTickShown=TIME_LIMIT+1;lastUrgentBeat=-1;
   deadline=focusAnswerAt+TIME_LIMIT*1000;
   paintFocusTimer(TIME_LIMIT);
   timerHandle=guardedQuizInterval(()=>{
@@ -1320,6 +1321,9 @@ function startTimer(){
     if(focusPausedAt||focusAwaiting)return;
     const left=Math.max(0,(deadline-performance.now())/1000);
     paintFocusTimer(left);
+    const shown=Math.ceil(left);
+    if(left>2&&shown<lastTickShown&&shown>0){lastTickShown=shown;playTick(left<=5,shown);}
+    if(left<=2&&left>0){const beat=Math.floor((2-left)*4);if(beat!==lastUrgentBeat){lastUrgentBeat=beat;playUrgentTimerPulse(left,beat);}}
     if(left<=0){clearInterval(timerHandle);timerHandle=null;answer(-1,true);}
   },50);
 }
@@ -1443,7 +1447,7 @@ function answer(pos,timeout=false){
     advance:()=>{session.index++;nextQuestion();},
     retry:{render:()=>nextQuestion(),isCurrent:()=>session===answeredSession&&session.index===answeredIndex+1&&session.records.length===answeredCount&&!session.finishing}});
 
-  try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect();else playWrong();}catch(e){console.warn("Answer cue unavailable",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance,phraseCorrect,phraseWrong,current.cat);}catch(e){console.error("Feedback failed",e);}
+  try{save();}catch(e){console.error("Progress save failed",e);}try{applyRatingTheme(overallStats().rating);}catch(e){console.error(e);}try{if(ok)playCorrect(sec);else playWrong(timeout);}catch(e){console.warn("Answer cue unavailable",e);}try{haptic(ok);pulseFeedback(ok);if(ok&&pos>=0)burstParticles(buttons[pos]);}catch(e){console.error("Tactile feedback failed",e);}try{feedback(ok,type,sec,rec.correctAnswer,appearance,patternAppearance,phraseCorrect,phraseWrong,current.cat);}catch(e){console.error("Feedback failed",e);}
 }
 function finishSessionSafe(){
  quizFlow.cancel();
@@ -1640,7 +1644,7 @@ async function boot(){
   for(const id of ["statsTopDashboardBtn","leagueTopDashboardBtn","coachTopDashboardBtn","errorsTopDashboardBtn"]){const b=$(id);if(b)b.onclick=()=>{renderStart();showScreen("startScreen");};}
   const continueFromEnd=async()=>{await ensureAudio();if(state.completed){renderStart();showScreen("startScreen");}else await startSession(false);};$("continueBtn").onclick=continueFromEnd;$("topContinueBtn").onclick=continueFromEnd;
   const finalFromEnd=async()=>{await ensureAudio();await startSession(true);};$("finalBtn").onclick=finalFromEnd;$("topFinalBtn").onclick=finalFromEnd;
-  $("soundBtn").onclick=async()=>{soundOn=!soundOn;if(soundOn){await ensureAudio();tone(760,.06,.025,'sine');}refreshSoundButton();};
+  $("soundBtn").onclick=async()=>{soundOn=!soundOn;try{localStorage.setItem("adrian_hub_sound_v1",soundOn?"1":"0");}catch(e){}if(soundOn){await ensureAudio();tone(760,.06,.025,'sine');}refreshSoundButton();};
   $("abortSessionBtn").onclick=abortSession;
   $("focusPauseBtn").onclick=focusPause;
   $("focusResumeBtn").onclick=focusResume;
