@@ -1,6 +1,6 @@
 
 const INITIAL_PRIORS = {"would_rather":[0.18,0.12,0.17],"inversion":[0.37,0.25,0.3],"third_conditional":[0.35,0.19,0.28],"allow_to":[0.45,0.3,0.34],"neednt_have":[0.25,0.16,0.2],"should_have":[0.28,0.18,0.23],"modal_deduction":[0.3,0.18,0.25],"wish_past":[0.88,0.79,0.78],"wish_present":[0.55,0.4,0.45],"mixed_conditional":[0.58,0.43,0.47],"causative":[0.14,0.08,0.15],"passive":[0.55,0.4,0.45],"backshift":[0.72,0.47,0.55],"past_perfect":[0.72,0.6,0.6],"unless":[0.24,0.12,0.24],"despite":[0.42,0.31,0.36],"so_such":[0.6,0.46,0.48],"too_enough":[0.55,0.4,0.44],"look_forward":[0.82,0.74,0.72],"get_used_to":[0.75,0.62,0.64],"used_to":[0.84,0.73,0.72],"make_bare":[0.84,0.74,0.73],"whose":[0.86,0.79,0.78],"second_conditional":[0.65,0.5,0.56],"had_better":[0.65,0.52,0.56]};
-const APP_VERSION = "3.36.18";
+const APP_VERSION = "3.36.19";
 const quizFlow=new window.QuizFlowController();
 const STORAGE_KEY = "adaptive_english_campaign1_v1";
 const GLOBAL_LEVEL_KEY = "adaptive_english_global_level_v1";
@@ -353,8 +353,14 @@ async function loadStateDurable(){
       if(raw){
         const recovered=restoreHistory(JSON.parse(raw));
         if(!validProgressState(recovered))throw Error('Invalid IndexedDB progress state');
-        if(!local||!localPresent||Number(recovered.updatedAt||0)>Number(local.updatedAt||0))
+        // A newer empty IndexedDB snapshot must never displace a restored campaign.
+        const score=s=>[Math.max(0,Number(s?.sessions)||0),Math.max(0,Number(s?.totalAttempts)||0)];
+        const [dbSessions,dbAnswers]=score(recovered),[localSessions,localAnswers]=score(local);
+        const dbDominates=dbSessions>=localSessions&&dbAnswers>=localAnswers&&(dbSessions>localSessions||dbAnswers>localAnswers);
+        const localDominates=localSessions>=dbSessions&&localAnswers>=dbAnswers&&(localSessions>dbSessions||localAnswers>dbAnswers);
+        if(!local||!localPresent||dbDominates||(!localDominates&&dbSessions===localSessions&&dbAnswers===localAnswers&&Number(recovered.updatedAt||0)>Number(local.updatedAt||0)))
           return normaliseProgressState(recovered);
+        if(!localDominates&&(dbSessions!==localSessions||dbAnswers!==localAnswers))throw Error('Conflicting progress snapshots; preserved both');
       }
     }catch(e){
       // Failing closed prevents an older local snapshot from overwriting newer progress.
@@ -1718,4 +1724,20 @@ function guardedQuizInterval(fn,ms=50){
 window.QuizErgonomics.bind(()=>{
  if(!session)return null;
  return {owner:session,questions:session.plan,results:session.records.map(r=>!!r.correct),index:session.index,total:session.plan.length,limit:TIME_LIMIT,locked,reading:focusAwaiting,paused:!!focusPausedAt,remaining:locked?TIME_LIMIT-(session.times.at(-1)||0):focusAwaiting?TIME_LIMIT:(deadline-(focusPausedAt||performance.now()))/1000};
+});
+
+// App restored its own visible state: Sync recovery must update an idle UI immediately.
+window.addEventListener('adrian-sync-updated',()=>{
+  if(!state||!document.getElementById('gameScreen')?.classList.contains('hidden'))return;
+  Promise.resolve().then(async()=>{
+    const incoming=await loadStateDurable();
+    const prev=state;
+    const s0=Math.max(0,Number(prev?.sessions)||0),a0=Math.max(0,Number(prev?.totalAttempts??prev?.answers)||0);
+    const s1=Math.max(0,Number(incoming?.sessions)||0),a1=Math.max(0,Number(incoming?.totalAttempts??incoming?.answers)||0);
+    const improved=s1>=s0&&a1>=a0&&(s1>s0||a1>a0);
+    const legacyRecovered=s0===0&&s1===0&&a0===0&&a1===0&&Number(incoming?.level)>Number(prev?.level);
+    if(!improved&&!legacyRecovered)return;
+    state=incoming;
+    renderStart();
+  }).catch(error=>console.error('Sync progress UI restore failed; stored records preserved',error));
 });
