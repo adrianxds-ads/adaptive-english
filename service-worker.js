@@ -1,4 +1,4 @@
-const APP_VERSION='3.36.15';
+const APP_VERSION='3.36.17';
 importScripts('./build-assets.js','./sw-integrity.js');
 const CACHE_PREFIX='ae-campaign1-';
 const CACHE='ae-campaign1-'+self.AdrianRelease.build;
@@ -26,3 +26,4 @@ self.addEventListener('fetch',e=>{
 // PWA cache release 3.36.16 - answer deadline fix (isolated candidate).
 
 // Hub Arena 2.0.1: fingerprint manifest corrected for Mobile First controller.
+// Study-level display era release 3.36.17 · 2026-10-31. Progress storage unchanged.
