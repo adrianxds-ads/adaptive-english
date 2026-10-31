@@ -124,6 +124,16 @@ function shuffledAnswerColorClasses(){
 function applyVisualSystemTokens(){const r=document.documentElement;AVS_RANKS.forEach((x,i)=>{r.style.setProperty(`--rank-${i+1}`,x.color);r.style.setProperty(`--rank-${i+1}-surface`,x.surface||x.color);r.style.setProperty(`--rank-${i+1}-band`,x.band||x.color);r.style.setProperty(`--rank-${i+1}-text`,x.text||x.color);});r.style.setProperty("--reward-gold",COLOR_BANDS_15[14]);r.style.setProperty("--reward-gold-text",AVS_TEXT_BANDS_15[14]);r.style.setProperty("--elite-violet",COLOR_BANDS_15[13]);r.style.setProperty("--negative-wine",COLOR_BANDS_15[3]);}
 function storedGlobalLevel(){try{return Math.max(1,Math.floor(Number(localStorage.getItem(GLOBAL_LEVEL_KEY))||1));}catch(e){return 1;}}
 function syncGlobalLevel(level){const n=Math.max(1,Math.floor(Number(level)||1),storedGlobalLevel());try{localStorage.setItem(GLOBAL_LEVEL_KEY,String(n));}catch(e){}return n;}
+// New learning era: display-only counter; preserve historical adaptive levels.
+const HUB_LEVEL_ERA_START=Date.parse('2026-10-31T19:09:03+01:00');
+function eraLevel(raw=state?.level){
+  const current=Number(state?.level);
+  if(!Number.isFinite(current))return 0;
+  const history=Array.isArray(state?.sessionHistory)?state.sessionHistory:Array.isArray(state?.history)?state.history:[];
+  const recent=history.filter(r=>r&&Number(r.ts??r.at)>=HUB_LEVEL_ERA_START&&(r.mode==null||r.mode==='training')).length;
+  const base=current-recent,requested=Number(raw);
+  return Math.max(0,Math.round((Number.isFinite(requested)?requested:current)-base));
+}
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
 const pct=x=>Math.round(x*100);
@@ -985,7 +995,7 @@ function localCoachReport(){
   const misconceptionRows=[];for(const r of hist.filter(x=>!x.correct).slice(-500)){const m=misconceptionFingerprint(r);if(m.source==="fallback"||m.id==="NO_ANSWER")continue;if(!misconceptionRows.some(x=>x.id===m.id))misconceptionRows.push(m);}misconceptionRows.sort((a,b)=>b.recentCount-a.recentCount||b.count-a.count);const mc=misconceptionRows[0];
   const evidence=days<7?`Llevas ${days.toFixed(1)} días reales de evidencia. El volumen puede mostrar adquisición, pero todavía es pronto para llamar retención a largo plazo a una mejora reciente.`:`El historial cubre ${days.toFixed(1)} días reales y hay ${due} preguntas actualmente debidas para revisión.`;
   const next=best?`Durante los próximos 5 niveles, la prioridad principal es <b>${escapeHtml(best.name)}</b>${second?` y después <b>${escapeHtml(second.name)}</b>`:""}. ${best.rows.length?`En ${best.rows.length} intentos recientes, ${Math.round(best.wrongRate*100)}% fueron errores.`:""}`:"Sigue acumulando niveles para construir prioridades fiables.";
-  return {phase,html:`${campaignPracticeEstimateHtml()}<article class="local-coach-hero"><small>LIVE · LEVEL ${state.level}</small><h2>${phase}</h2><p>${phaseText}</p></article><article class="coach-narrative"><h3>Qué está pasando</h3><p>Tu ventana inmediata contiene <b>${recent.length}</b> respuestas. Precisión: <b>${ra==null?"—":(ra*100).toFixed(1)+"%"}</b>; automaticidad: <b>${rau==null?"—":(rau*100).toFixed(1)+"%"}</b>; tiempo medio: <b>${rt==null?"—":(rt/1000).toFixed(2)+" s"}</b>. ${delta==null?"Aún no hay una ventana anterior comparable.":`Frente a las ${prev.length} respuestas anteriores: precisión ${delta>=0?"+":""}${delta.toFixed(1)} pp, tiempo ${timeDelta>=0?"+":""}${timeDelta.toFixed(2)} s y automaticidad ${autoDelta>=0?"+":""}${autoDelta.toFixed(1)} pp.`}</p><h3>Retención y carga pendiente</h3><p>${evidence} Ahora mismo hay <b>${due}</b> revisiones debidas.</p><h3>Cuello de botella</h3><p>${best?`La prioridad calculada es <b>${escapeHtml(best.name)}</b>, con mastery ${Math.round(best.mastery*100)}% y ${Math.round(best.wrongRate*100)}% de error en su ventana reciente.`:"Todavía no hay evidencia suficiente."}${mc?` La misconception con señal reciente más clara es <b>${escapeHtml(mc.label)}</b>: ${mc.count} casos históricos, ${mc.recentCount} entre los últimos 30 errores de esa skill (${mc.evidence} evidence).`:""}</p><h3>Próximos 5 niveles</h3><p>${next}</p><div class="coach-method">Informe local determinista · se recalcula después de cada nivel · no usa Internet ni modifica el motor adaptativo.</div></article>`};
+  return {phase,html:`${campaignPracticeEstimateHtml()}<article class="local-coach-hero"><small>LIVE · LEVEL ${eraLevel(state.level)}</small><h2>${phase}</h2><p>${phaseText}</p></article><article class="coach-narrative"><h3>Qué está pasando</h3><p>Tu ventana inmediata contiene <b>${recent.length}</b> respuestas. Precisión: <b>${ra==null?"—":(ra*100).toFixed(1)+"%"}</b>; automaticidad: <b>${rau==null?"—":(rau*100).toFixed(1)+"%"}</b>; tiempo medio: <b>${rt==null?"—":(rt/1000).toFixed(2)+" s"}</b>. ${delta==null?"Aún no hay una ventana anterior comparable.":`Frente a las ${prev.length} respuestas anteriores: precisión ${delta>=0?"+":""}${delta.toFixed(1)} pp, tiempo ${timeDelta>=0?"+":""}${timeDelta.toFixed(2)} s y automaticidad ${autoDelta>=0?"+":""}${autoDelta.toFixed(1)} pp.`}</p><h3>Retención y carga pendiente</h3><p>${evidence} Ahora mismo hay <b>${due}</b> revisiones debidas.</p><h3>Cuello de botella</h3><p>${best?`La prioridad calculada es <b>${escapeHtml(best.name)}</b>, con mastery ${Math.round(best.mastery*100)}% y ${Math.round(best.wrongRate*100)}% de error en su ventana reciente.`:"Todavía no hay evidencia suficiente."}${mc?` La misconception con señal reciente más clara es <b>${escapeHtml(mc.label)}</b>: ${mc.count} casos históricos, ${mc.recentCount} entre los últimos 30 errores de esa skill (${mc.evidence} evidence).`:""}</p><h3>Próximos 5 niveles</h3><p>${next}</p><div class="coach-method">Informe local determinista · se recalcula después de cada nivel · no usa Internet ni modifica el motor adaptativo.</div></article>`};
 }
 function renderLocalCoach(){const host=$("localCoachReport");if(!host)return;host.innerHTML=localCoachReport().html;}
 function renderCoachScreen(){
@@ -1209,8 +1219,8 @@ function renderStart(){
   $("startAiLevel").textContent=`${ai.level} / 15`;paintText("startAiLevel",ai.score/100);
   $("startAiConfidence").textContent=`AI Valoration · evidencia ${Math.round(ai.confidence*100)}%`;paintText("startAiConfidence",ai.confidence);
   $("startKicker").textContent=`CAMPAIGN 1 · ${currentStageText()}`;
-  $("startLevel").textContent=`LEVEL ${state.level}`;
-  $("startBtn").textContent=state.sessions?`CONTINUE · LEVEL ${state.level}`:`START · LEVEL ${state.level}`;
+  $("startLevel").textContent=`LEVEL ${eraLevel(state.level)}`;
+  $("startBtn").textContent=eraLevel(state.level)?`CONTINUE · LEVEL ${eraLevel(state.level)}`:`START · LEVEL ${eraLevel(state.level)}`;
   $("coverageText").textContent=`${Object.keys(state.seen).length.toLocaleString()} / ${BANK.length.toLocaleString()}`;
   $("coverageFill").style.width=pct(st.coverage)+"%";paintFill("coverageFill",st.coverage);paintText("coverageText",st.coverage);
   $("masteryText").textContent=pct(st.mastery)+"%";$("masteryFill").style.width=pct(st.mastery)+"%";paintFill("masteryFill",st.mastery);paintText("masteryText",st.mastery);
@@ -1246,7 +1256,7 @@ async function showLevelIntro(finalMode,target){
   const el=missionOverlay(true),last=state.sessionHistory.filter(x=>x.mode==="training").slice(-1)[0];if(!el)return;
   el.className="mission-overlay intro";const rank=finalMode?14:valueLevel((target||0)/15);el.style.setProperty("--mission-accent",valueColor(rank/15));
   const lastDelta=last&&Number.isFinite(last.target)?last.correct-last.target:null,lastLine=last?`LAST ${last.correct}/15${lastDelta==null?"":` · ${lastDelta>=0?"+":""}${lastDelta.toFixed(1)} VS TARGET`}`:"FIRST LEVEL";
-  $("missionBody").innerHTML=`<div class="mission-eyebrow">${finalMode?"FINAL CHALLENGE":`LEVEL ${state.level}`}</div><div class="mission-title">${finalMode?"FINAL RUN":"TARGET"}</div><div class="mission-score" style="color:${finalMode?valueTextColor(13/15):valueTextColor((target||0)/15)}">${finalMode?"READY":`${target.toFixed(1)}<small>/15</small>`}</div><div class="mission-meta">${lastLine}</div><div class="mission-rules">15 QUESTIONS · ${TIME_LIMIT}s</div>`;
+  $("missionBody").innerHTML=`<div class="mission-eyebrow">${finalMode?"FINAL CHALLENGE":`LEVEL ${eraLevel(state.level)}`}</div><div class="mission-title">${finalMode?"FINAL RUN":"TARGET"}</div><div class="mission-score" style="color:${finalMode?valueTextColor(13/15):valueTextColor((target||0)/15)}">${finalMode?"READY":`${target.toFixed(1)}<small>/15</small>`}</div><div class="mission-meta">${lastLine}</div><div class="mission-rules">15 QUESTIONS · ${TIME_LIMIT}s</div>`;
   for(const n of [3,2,1]){$("missionCount").textContent=String(n);$("missionCount").classList.remove("pop");void $("missionCount").offsetWidth;$("missionCount").classList.add("pop");playCountdownStep(n);await wait(820);}
   $("missionCount").textContent="GO";tone(1318.5,.09,.022,"sine");await wait(320);missionOverlay(false);
 }
@@ -1288,7 +1298,7 @@ async function startSession(finalMode=false){
   if(!raw.length){sessionStarting=false;return;}
   const target=finalMode?null:adaptiveLevelTarget(raw),abortSnapshot=JSON.stringify(state);
   session={mode:finalMode?"final":"training",level:state.level,index:0,correct:0,automatic:0,times:[],records:[],usedDisplayNames:new Set(),target,plan:raw.map(shuffleOptions),abortSnapshot,rankBefore:skillRankPositions(),combo:0,bestCombo:0,recovered:0,masteredRewards:0,learningXp:0,lastReward:""};
-  $("sessionLevel").innerHTML=finalMode?"FINAL":`L${state.level}<small class="level-target">TARGET ${target.toFixed(1)}</small>`;
+  $("sessionLevel").innerHTML=finalMode?"FINAL":`L${eraLevel(state.level)}<small class="level-target">TARGET ${target.toFixed(1)}</small>`;
   secondaryEffect(()=>window.LanguagePoints?.beginLevel?.({target,level:state.level}));
   await settleUi(ensureAudio(),1000,"Audio start");await window.QuizErgonomics.ready;
   await settleUi(showLevelIntro(finalMode,target),4500,"Session intro");
@@ -1472,7 +1482,7 @@ function finishSessionSafe(){
     const latest=stored?.sessionHistory?.at(-1);
     persisted=!!(snap&&latest&&latest.level===session?.records?.[0]?.level&&latest.ts===snap.ts&&latest.correct===snap.correct&&latest.total===snap.total);
    }catch(_){}
-   $("endKicker").textContent=`LEVEL ${snap?.level??state?.level??""} COMPLETE`;
+   $("endKicker").textContent=`LEVEL ${eraLevel(snap?.level??state?.level??0)} COMPLETE`;
    $("endScore").textContent=`${score}/${total}`;
    $("eAvg").textContent=fmtSec(snap?.avgMs??mean(session?.records?.map(r=>r.ms)||[]));
    $("eAuto").textContent=pct(snap?.automatic??((session?.automatic||0)/total))+"%";
@@ -1518,7 +1528,7 @@ async function finishSession(){
   try{renderEnd(snap,before);setEndHandoffStatus(false,false);}
   catch(e){
     console.error("End screen detail rendering failed; completed level remains saved",e);
-    $("endKicker").textContent=`LEVEL ${snap.level} COMPLETE`;
+    $("endKicker").textContent=`LEVEL ${eraLevel(snap.level)} COMPLETE`;
     $("endScore").textContent=`${snap.correct}/${snap.total} · ${pct(snap.accuracy)}%`;
     $("eAvg").textContent=fmtSec(snap.avgMs);
     $("eAuto").textContent=pct(snap.automatic)+"%";
@@ -1538,7 +1548,7 @@ function renderEnd(s,before){
   $("aiLegend").innerHTML=aiLegendHtml(ai.level);
   renderCampaign2Readiness();
   renderPracticeEstimateMini("endCampaignPracticeEstimate");
-  $("endKicker").textContent=s.mode==="final"?"FINAL CHALLENGE":`LEVEL ${s.level} COMPLETE`;
+  $("endKicker").textContent=s.mode==="final"?"FINAL CHALLENGE":`LEVEL ${eraLevel(s.level)} COMPLETE`;
   const targetHit=s.target==null?null:s.correct>=s.target,targetDelta=s.target==null?null:s.correct-s.target;
   $("endScore").textContent=`${s.correct}/${s.total} · ${pct(s.accuracy)}%`;$("endScore").style.color=valueTextColor(s.accuracy);
   const targetEl=$("endTarget");if(targetEl){targetEl.className=`target-result ${targetHit==null?"hidden":targetHit?"hit":"miss"}`;targetEl.innerHTML=targetHit==null?"":`<span>TARGET ${s.target.toFixed(1)}</span><b>${targetDelta>=0?"+":""}${targetDelta.toFixed(1)}</b><small>${targetHit?"TARGET BEATEN":"TARGET MISSED"}</small>`;}
@@ -1567,9 +1577,9 @@ function renderEnd(s,before){
   if(labToggle){labToggle.classList.toggle("hidden",wrong.length===0);const m=$("endErrorLabToggleMeta");if(m)m.textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"}`:"No errors";}
   const errorsLabel=`ERROR LAB · ${wrong.length}`;$("errorsBtn").textContent=errorsLabel;$("topErrorsBtn").textContent=errorsLabel;
   $("errorsBtn").classList.toggle("hidden",wrong.length===0);$("topErrorsBtn").classList.toggle("hidden",wrong.length===0);
-  $("errorsCount").textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} in Level ${s.level} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"}`:`No errors in Level ${s.level}`;
+  $("errorsCount").textContent=wrong.length?`${wrong.length} ${wrong.length===1?"error":"errors"} in Level ${eraLevel(s.level)} · ${errorGroups.length} ${errorGroups.length===1?"skill":"skills"}`:`No errors in Level ${eraLevel(s.level)}`;
   if(wrong.length)renderErrorLab(wrong,"errorsFull");else $("errorsFull").innerHTML='<p class="meta">No errors in this level.</p>';
-  const nextLabel=state.completed?"KEEP TRAINING":`NEXT LEVEL · ${state.level}`;$("continueBtn").textContent=nextLabel;$("topContinueBtn").textContent=nextLabel;
+  const nextLabel=state.completed?"KEEP TRAINING":`NEXT LEVEL · ${eraLevel(state.level)}`;$("continueBtn").textContent=nextLabel;$("topContinueBtn").textContent=nextLabel;
   const finalHidden=!(st.eligible&&!state.completed);$("finalBtn").classList.toggle("hidden",finalHidden);$("topFinalBtn").classList.toggle("hidden",finalHidden);
   if(s.mode==="final"&&!state.completed)$("endSub").textContent=`Final challenge not passed yet · ${pct(s.accuracy)}% · ${fmtSec(s.avgMs)}`;
   if(state.completed)$("endSub").textContent="CAMPAIGN 1 COMPLETE";
